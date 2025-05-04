@@ -19,6 +19,8 @@ from sklearn.metrics import (
 from scipy.stats import weibull_min, norm # Added norm for DOC
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+import matplotlib
+matplotlib.use('Agg') # 중요: pyplot import 전에 호출해야 함
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm # 한글 글꼴 설정용 임포트
 import seaborn as sns
@@ -54,7 +56,10 @@ from dataset_utils import (
     prepare_reuters8_dataset, prepare_acm_dataset, prepare_chemprot_dataset,
     prepare_banking77_dataset, prepare_oos_dataset, prepare_stackoverflow_dataset,
     prepare_atis_dataset, prepare_snips_dataset, prepare_financial_phrasebank_dataset,
-    prepare_arxiv10_dataset, prepare_custom_syslog_dataset # Added custom_syslog
+    prepare_arxiv10_dataset, prepare_custom_syslog_dataset,
+    prepare_50_class_reviews_dataset, # 50-class reviews 함수 추가
+    prepare_sst5_dataset,           # SST-5 함수 추가
+    prepare_dbpedia14_dataset         # DBpedia-14 함수 추가
 )
 
 # --- Basic Setup ---
@@ -64,6 +69,13 @@ warnings.filterwarnings("ignore", ".*does not have many workers.*")
 warnings.filterwarnings("ignore", ".*DataLoader running processes.*")
 warnings.filterwarnings("ignore", ".*Checkpoint directory.*exists but is not empty.*")
 warnings.filterwarnings("ignore", ".*The dataloader.*does not have many workers.*") # Added more specific ignore
+
+# --- Basic Setup ---
+hf_logging.set_verbosity_error()
+import warnings
+warnings.filterwarnings("ignore", ".*does not have many workers.*")
+warnings.filterwarnings("ignore", ".*DataLoader running processes.*")
+warnings.filterwarnings("ignore", ".*Checkpoint directory.*exists but is not empty.*")
 
 # --- Constants ---
 RESULTS_DIR = "results"
@@ -93,7 +105,7 @@ def setup_korean_font():
         if font_name:
             plt.rcParams['font.family'] = font_name
             plt.rcParams['axes.unicode_minus'] = False
-            print(f"Korean font '{font_name}' set for Matplotlib.")
+            # print(f"Korean font '{font_name}' set for Matplotlib.")
         else:
             print("Warning: No common Korean font found (Malgun Gothic, NanumGothic, etc.). Install one for proper Korean text in plots.")
             plt.rcParams['axes.unicode_minus'] = False # Still disable minus sign issue
@@ -108,7 +120,7 @@ setup_korean_font()
 # =============================================================================
 class TextDataset(Dataset):
     """PyTorch Dataset for text classification."""
-    def __init__(self, texts: list[str], labels: np.ndarray, tokenizer, max_length: int = 384):
+    def __init__(self, texts: list[str], labels: np.ndarray, tokenizer, max_length: int = 256):
         self.texts = texts
         self.labels = labels # Should be numpy array for efficient indexing
         self.tokenizer = tokenizer
@@ -153,7 +165,7 @@ class DataModule(pl.LightningDataModule):
         batch_size: int = 64,
         seen_class_ratio: float = 0.5,
         random_seed: int = 42,
-        max_length: int = 384,
+        max_length: int = 256,
         train_ratio: float = 0.7,
         val_ratio: float = 0.15,
         test_ratio: float = 0.15,
@@ -206,30 +218,35 @@ class DataModule(pl.LightningDataModule):
             "stackoverflow": prepare_stackoverflow_dataset, "atis": prepare_atis_dataset,
             "snips": prepare_snips_dataset, "financial_phrasebank": prepare_financial_phrasebank_dataset,
             "arxiv10": prepare_arxiv10_dataset, "custom_syslog": prepare_custom_syslog_dataset,
+            "50_class_reviews": prepare_50_class_reviews_dataset, # 신규 추가
+            "sst5": prepare_sst5_dataset,                      # 신규 추가
+            "dbpedia14": prepare_dbpedia14_dataset,             # 신규 추가
         }
 
     def prepare_data(self):
-        """Downloads or prepares data if necessary. Runs only once."""
-        print(f"Preparing data for dataset: {self.dataset_name}...")
+        """필요시 데이터를 다운로드하거나 준비합니다. (단 한번만 실행)"""
+        print(f"데이터 준비 중: {self.dataset_name}...")
         prepare_func = self.prepare_func_map.get(self.dataset_name)
         if prepare_func:
             try:
-                # Call the prepare function - it should handle download/extraction
+                # 준비 함수 호출 (다운로드/압축해제 등 처리)
                 _ = prepare_func(data_dir=self.data_dir)
-                print(f"{self.dataset_name} data preparation check complete.")
+                print(f"{self.dataset_name} 데이터 준비 확인 완료.")
             except FileNotFoundError as e:
-                 # Specific user instruction for custom dataset
-                 if self.dataset_name == 'custom_syslog':
-                      print(f"\n{'='*20} ACTION REQUIRED {'='*20}\n{e}\nPlease ensure your custom syslog data is placed correctly according to the dataset_utils documentation.\n{'='*78}\n")
+                 # 사용자 정의 데이터셋 또는 50-class reviews의 경우 특정 안내 메시지 출력
+                 if self.dataset_name in ['custom_syslog', '50_class_reviews']:
+                      print(f"\n{'='*20} 사용자 확인 필요 {'='*20}\n{e}\n{'='*62}\n")
                  else:
-                     print(f"Error during prepare_data for {self.dataset_name}: {e}")
-                 sys.exit(1) # Exit if data is missing (except maybe custom)
+                     print(f"{self.dataset_name} 데이터 준비 중 오류: {e}")
+                 # 사용자 제공 데이터셋은 파일이 없어도 즉시 종료하지 않을 수 있음 (상황에 따라 결정)
+                 # 여기서는 오류 발생 시 일단 종료
+                 sys.exit(1)
             except Exception as e:
-                print(f"Unexpected error during prepare_data for {self.dataset_name}: {e}")
+                print(f"{self.dataset_name} 데이터 준비 중 예기치 않은 오류: {e}")
                 import traceback; traceback.print_exc()
-                raise # Re-raise the exception
+                raise # 예외 다시 발생
         else:
-            print(f"Warning: No specific prepare_data action defined for dataset '{self.dataset_name}'. Assuming data exists.")
+            print(f"경고: '{self.dataset_name}' 데이터셋에 대한 특정 준비 작업이 정의되지 않았습니다. 데이터가 이미 존재한다고 가정합니다.")
 
     def setup(self, stage: str | None = None):
         """Loads data, performs splits, and creates datasets. Runs on each process in DDP."""
@@ -428,6 +445,161 @@ class DataModule(pl.LightningDataModule):
 # =============================================================================
 # Base Lightning Module (for common logic)
 # =============================================================================
+# studio2.py 에 추가
+
+def evaluate_baseline(
+    model: pl.LightningModule,
+    datamodule: DataModule,
+    args: argparse.Namespace
+) -> dict:
+    """Evaluates the baseline (standard classifier) performance on the test set."""
+    print("\n--- Evaluating Baseline Model Performance ---")
+    method_name = "baseline"
+    eval_start_time = time.time()
+    model.eval().to(model.device) # Ensure model is on correct device
+
+    all_preds_original_list = []
+    all_labels_original_list = []
+    all_max_probs_list = []
+    all_embeddings_list = []
+
+    # Need a way to map predictions back if the model outputs mapped indices
+    # Assuming the standard model predicts in the mapped space (0..num_seen-1)
+    # We need the _map_preds_to_original logic here too.
+
+    # Helper function (can be moved outside if preferred)
+    def _map_baseline_preds_to_original(preds_mapped_batch: np.ndarray | torch.Tensor) -> np.ndarray:
+        """Maps predicted indices (0..num_seen-1) back to original class indices for baseline."""
+        original_seen_indices = datamodule.original_seen_indices
+        if original_seen_indices is None:
+            print("Warning: original_seen_indices not found for baseline mapping.")
+            return preds_mapped_batch.cpu().numpy() if isinstance(preds_mapped_batch, torch.Tensor) else np.array(preds_mapped_batch)
+
+        if isinstance(preds_mapped_batch, torch.Tensor):
+            preds_mapped_np = preds_mapped_batch.cpu().numpy()
+        elif not isinstance(preds_mapped_batch, np.ndarray):
+            preds_mapped_np = np.array(preds_mapped_batch)
+        else:
+            preds_mapped_np = preds_mapped_batch
+
+        if not isinstance(original_seen_indices, np.ndarray):
+            original_seen_indices = np.array(original_seen_indices)
+
+        # Baseline never predicts -1, so output shape matches input
+        preds_original_batch = np.full_like(preds_mapped_np, -999, dtype=int) # Use placeholder
+
+        valid_mask = (preds_mapped_np >= 0) & (preds_mapped_np < len(original_seen_indices))
+        valid_mapped_indices = preds_mapped_np[valid_mask]
+        preds_original_batch[valid_mask] = original_seen_indices[valid_mapped_indices]
+
+        num_invalid = np.sum(~valid_mask)
+        if num_invalid > 0:
+            print(f"Warning: Found {num_invalid} invalid mapped indices during baseline prediction mapping.")
+            # Decide how to handle invalid indices, maybe map to a default known class?
+            # For now, they remain -999, which will count as incorrect for known samples.
+            preds_original_batch[~valid_mask] = -1 # Or map to a default known index if preferred
+
+        return preds_original_batch
+
+    test_loader = datamodule.test_dataloader()
+    if test_loader is None:
+        print("Error: Test dataloader not available for baseline evaluation.")
+        return OSRAlgorithm._get_empty_results(None, "Test dataloader missing") # Use helper from OSRAlgorithm
+
+    with torch.no_grad():
+        for batch in tqdm(test_loader, desc="Evaluating Baseline", leave=False):
+            input_ids = batch['input_ids'].to(model.device)
+            attention_mask = batch['attention_mask'].to(model.device)
+            token_type_ids = batch.get('token_type_ids')
+            if token_type_ids is not None: token_type_ids = token_type_ids.to(model.device)
+            labels_orig = batch['label'].cpu().numpy() # Original labels (-1 or orig index)
+
+            # Get model outputs
+            logits, embeddings = model(input_ids, attention_mask, token_type_ids)
+            probs = F.softmax(logits, dim=1)
+            max_probs, preds_mapped = torch.max(probs, dim=1) # Predicted mapped index (0..N-1)
+
+            # Map predictions back to original indices (baseline never predicts -1)
+            preds_original_baseline = _map_baseline_preds_to_original(preds_mapped)
+
+            # Store results
+            all_preds_original_list.extend(preds_original_baseline)
+            all_labels_original_list.extend(labels_orig)
+            all_max_probs_list.append(max_probs.cpu().numpy())
+            all_embeddings_list.append(embeddings.cpu().numpy())
+
+    # Concatenate results
+    all_preds_final = np.array(all_preds_original_list)
+    all_labels_original = np.array(all_labels_original_list)
+    all_max_probs = np.concatenate(all_max_probs_list) if all_max_probs_list else np.array([])
+    all_embeddings = np.concatenate(all_embeddings_list) if all_embeddings_list else np.empty((0, model.config.hidden_size))
+
+    # --- Calculate Metrics ---
+    unknown_labels_mask = datamodule._determine_unknown_labels(all_labels_original)
+    known_mask = ~unknown_labels_mask
+
+    # Accuracy (Known): Compare baseline's original predictions with true original labels for known samples
+    accuracy = accuracy_score(all_labels_original[known_mask], all_preds_final[known_mask]) if known_mask.any() else 0.0
+
+    # Unknown Detection Rate: Always 0 for baseline
+    unknown_detection_rate = 0.0
+
+    # AUROC & FPR@TPR90: Based on max softmax probability
+    # Score where higher means more unknown = -max_probs
+    scores_for_ranking = -all_max_probs
+    auroc = float('nan'); fpr_at_tpr90 = float('nan')
+    if len(np.unique(unknown_labels_mask)) > 1 and len(scores_for_ranking) == len(unknown_labels_mask):
+        try:
+            finite_mask = np.isfinite(scores_for_ranking)
+            valid_labels = unknown_labels_mask[finite_mask]
+            valid_scores = scores_for_ranking[finite_mask]
+            if len(np.unique(valid_labels)) > 1:
+                auroc = roc_auc_score(valid_labels, valid_scores)
+                fpr, tpr, _ = roc_curve(valid_labels, valid_scores)
+                idx90 = np.where(tpr >= 0.90)[0]
+                fpr_at_tpr90 = fpr[idx90[0]] if len(idx90) > 0 else 1.0
+        except Exception as e: print(f"Error calculating AUROC/FPR for baseline: {e}")
+
+    # F1 Score (Known)
+    cm_axis_labels_int, _ = OSRAlgorithm._get_cm_labels(None, datamodule) # Use helper to get labels
+    valid_cm_labels_set = set(cm_axis_labels_int)
+    filtered_labels_true = [l if l in valid_cm_labels_set else -1 for l in all_labels_original]
+    # Baseline never predicts -1, map invalid predictions if any occurred during mapping
+    filtered_labels_pred = [p if p in valid_cm_labels_set else -1 for p in all_preds_final]
+
+    precision, recall, f1_by_class, support = precision_recall_fscore_support(
+        filtered_labels_true, filtered_labels_pred, labels=cm_axis_labels_int,
+        average=None, zero_division=0
+    )
+    known_class_indices_in_cm = [i for i, lbl in enumerate(cm_axis_labels_int) if lbl != -1]
+    macro_f1 = np.mean(f1_by_class[known_class_indices_in_cm]) if known_class_indices_in_cm else 0.0
+
+    # OSCR AUC
+    try:
+        _, _, oscr_auc = calculate_oscr_curve({'predictions': all_preds_final, 'labels': all_labels_original, 'scores_for_ranking': scores_for_ranking}, datamodule)
+    except Exception as e:
+        print(f"Error calculating OSCR AUC for baseline: {e}")
+        oscr_auc = float('nan')
+
+
+    eval_duration = time.time() - eval_start_time
+    print(f"Baseline evaluation finished in {eval_duration:.2f}s.")
+
+    results = {
+        'accuracy': accuracy, 'auroc': auroc, 'f1_score': macro_f1,
+        'unknown_detection_rate': unknown_detection_rate, 'fpr_at_tpr90': fpr_at_tpr90,
+        'oscr_auc': oscr_auc, # Add OSCR AUC
+        # Include dummy CM info for consistent keys, or calculate if needed
+        'confusion_matrix': None, 'confusion_matrix_labels': cm_axis_labels_int,
+        'confusion_matrix_names': None, # Names not strictly needed for baseline summary
+        'predictions': all_preds_final, # Store baseline predictions
+        'labels': all_labels_original,
+        'scores_for_ranking': scores_for_ranking,
+        'embeddings': all_embeddings,
+        'eval_duration_sec': eval_duration,
+    }
+    return results
+
 class BaseRobertaModule(pl.LightningModule):
     """Base class for RoBERTa-based Lightning Modules to share optimizer config."""
     def __init__(self, model_name: str, num_classes: int, learning_rate: float,
@@ -3321,139 +3493,113 @@ def evaluate_adb_osr(base_model, datamodule, args, all_results):
 
 
 # --- OSCR Curve Calculation and Visualization ---
-def calculate_oscr_curve(results: dict, datamodule: DataModule) -> tuple[np.ndarray, np.ndarray]:
-    """Calculates CCR vs FPR for the OSCR curve."""
-    # Check required keys in results
-    required_keys = ['predictions', 'labels', 'scores_for_ranking']
-    if not all(key in results for key in required_keys):
-        print("Warning: Missing required data for OSCR calculation (predictions, labels, or scores_for_ranking).")
-        return np.array([0.0, 1.0]), np.array([0.0, 0.0]) # Default line (no area)
+def calculate_oscr_curve(results, datamodule):
+    """Calculates CCR vs FPR for the OSCR curve and returns AUC."""
+    # --- 수정: 반환값에 oscr_auc 추가 ---
+    default_return = np.array([0,1]), np.array([0,0]), float('nan') # AUC 기본값 NaN
+    # ---
 
-    preds = np.array(results['predictions'])
-    labels = np.array(results['labels'])
-    scores_for_ranking = np.array(results['scores_for_ranking']) # Higher score = more unknown
+    if 'predictions' not in results or 'labels' not in results or 'scores_for_ranking' not in results:
+        print("Warning: Missing data for OSCR calculation.")
+        return default_return # AUC 포함하여 반환
 
-    # Validate inputs
+    preds = np.array(results['predictions']); labels = np.array(results['labels']); scores_for_ranking = np.array(results['scores_for_ranking'])
     if len(preds) != len(labels) or len(preds) != len(scores_for_ranking):
-        print(f"Warning: Length mismatch in OSCR data (Preds: {len(preds)}, Labels: {len(labels)}, Scores: {len(scores_for_ranking)}). Cannot calculate OSCR.")
-        return np.array([0.0, 1.0]), np.array([0.0, 0.0])
-    if len(preds) == 0:
-        print("Warning: Empty data provided for OSCR calculation.")
-        return np.array([0.0, 1.0]), np.array([0.0, 0.0])
+        print("Warning: Length mismatch in OSCR data.")
+        return default_return # AUC 포함하여 반환
 
-    # Filter out non-finite scores
-    finite_score_mask = np.isfinite(scores_for_ranking)
-    if not np.all(finite_score_mask):
-        num_filtered = np.sum(~finite_score_mask)
-        print(f"Warning: Filtering {num_filtered} non-finite scores for OSCR calculation.")
-        preds = preds[finite_score_mask]
-        labels = labels[finite_score_mask]
-        scores_for_ranking = scores_for_ranking[finite_score_mask]
-        if len(preds) == 0:
-            print("Warning: No finite scores remain after filtering for OSCR.")
-            return np.array([0.0, 1.0]), np.array([0.0, 0.0])
+    unknown_labels_mask = datamodule._determine_unknown_labels(labels); known_mask = ~unknown_labels_mask
+    is_correct_known = (preds == labels) & known_mask; is_false_positive = (preds != -1) & unknown_labels_mask
+    valid_score_mask = ~np.isnan(scores_for_ranking)
+    if not np.all(valid_score_mask):
+        print(f"Warning: Filtering {np.sum(~valid_score_mask)} NaNs in OSCR scores.")
+        # NaN 필터링 시에도 원본 n_known, n_unknown 사용은 유지 (일관성 위해)
+        scores_for_ranking = scores_for_ranking[valid_score_mask]
+        is_correct_known = is_correct_known[valid_score_mask]
+        is_false_positive = is_false_positive[valid_score_mask]
+        # 필터링 후 샘플 수가 너무 적으면 계산 불가할 수 있음
+        if len(scores_for_ranking) < 2:
+             print("Warning: Too few valid scores after NaN filtering for OSCR.")
+             return default_return
 
-    # Identify known/unknown based on ground truth labels
-    unknown_labels_mask = datamodule._determine_unknown_labels(labels) # True if unknown (-1)
-    known_mask = ~unknown_labels_mask
-
-    # Calculate correctness for known samples and false positives for unknown samples
-    # Correct known: Prediction matches label AND label is known
-    is_correct_known = (preds == labels) & known_mask
-    # False positive: Prediction is NOT unknown (-1) BUT label IS unknown
-    is_false_positive = (preds != -1) & unknown_labels_mask
-
-    # Count total known and unknown samples
-    n_known = np.sum(known_mask)
-    n_unknown = np.sum(unknown_labels_mask)
-
+    n_known = np.sum(known_mask); n_unknown = np.sum(unknown_labels_mask)
     if n_known == 0 or n_unknown == 0:
-        print(f"Warning: No known ({n_known}) or no unknown ({n_unknown}) samples found after filtering. Cannot calculate OSCR curve.")
-        return np.array([0.0, 1.0]), np.array([0.0, 0.0])
+        print("Warning: No known or unknown samples for OSCR.");
+        return default_return # AUC 포함하여 반환
 
-    # Sort samples based on the 'unknownness' score (ascending order, so unknowns come later)
-    sorted_indices = np.argsort(scores_for_ranking)
-    sorted_correct_known = is_correct_known[sorted_indices]
-    sorted_false_positive = is_false_positive[sorted_indices]
+    # scores_for_ranking 값이 클수록 unknown일 확률이 높다고 가정
+    sorted_indices = np.argsort(scores_for_ranking); # 값이 작을수록 known일 확률 높음 -> FPR, CCR 계산 시 문제 없음
+    sorted_correct_known = is_correct_known[sorted_indices]; sorted_false_positive = is_false_positive[sorted_indices]
 
-    # Calculate cumulative sums
-    # CCR = Cumulative Correct Known / Total Known
-    ccr_values = np.cumsum(sorted_correct_known) / n_known
-    # FPR = Cumulative False Positives / Total Unknown
-    fpr_values = np.cumsum(sorted_false_positive) / n_unknown
+    # 누적합 계산
+    ccr_cumsum = np.cumsum(sorted_correct_known)
+    fpr_cumsum = np.cumsum(sorted_false_positive)
 
-    # Add (0,0) point at the beginning for plotting and AUC calculation
-    fpr_curve = np.insert(fpr_values, 0, 0.0)
-    ccr_curve = np.insert(ccr_values, 0, 0.0)
+    # CCR, FPR 계산 (분모가 0인 경우 방지)
+    ccr = ccr_cumsum / n_known if n_known > 0 else np.zeros_like(ccr_cumsum, dtype=float)
+    fpr = fpr_cumsum / n_unknown if n_unknown > 0 else np.zeros_like(fpr_cumsum, dtype=float)
 
-    # Ensure curves end at (1, CCR_max) or potentially (FPR_max, 1) depending on score range
-    # The current calculation correctly reflects the trade-off as threshold varies.
+    # 곡선 시작점 추가
+    fpr = np.insert(fpr, 0, 0.0); ccr = np.insert(ccr, 0, 0.0)
 
-    return fpr_curve, ccr_curve
+    # --- 수정: OSCR AUC 계산 ---
+    oscr_auc = float('nan')
+    if len(fpr) > 1 and len(ccr) > 1:
+        try:
+            # FPR 기준으로 정렬된 상태이므로 trapz 사용 가능
+            # 동일 FPR 값 처리: np.trapz는 일반적으로 잘 처리하지만, 명시적으로 unique 처리 가능
+            # unique_fpr, unique_idx = np.unique(fpr, return_index=True)
+            # unique_ccr = ccr[unique_idx]
+            # if len(unique_fpr) > 1:
+            #     oscr_auc = np.trapz(unique_ccr, unique_fpr)
+            # else:
+            #     oscr_auc = 0.0 # 면적 없음
 
+            # np.trapz 직접 사용 (더 간단)
+            oscr_auc = np.trapz(ccr, fpr)
 
-def visualize_oscr_curves(all_results: dict, datamodule: DataModule, args: argparse.Namespace):
-    """Plots OSCR curves for comparing multiple OSR methods found in all_results."""
-    print("\n--- Generating OSCR Comparison Curve ---")
-    plt.figure(figsize=(9, 7)) # Slightly larger figure
-    method_found = False
-    plotted_methods = []
+        except Exception as e:
+            print(f"Error calculating OSCR AUC: {e}")
+            oscr_auc = float('nan')
+    # ---
 
-    # Sort methods alphabetically for consistent plot legend order
-    sorted_methods = sorted(all_results.keys())
+    return fpr, ccr, oscr_auc # AUC 값 반환
 
-    for method in sorted_methods:
+# studio2.py 내 visualize_oscr_curves 함수
+
+def visualize_oscr_curves(all_results, datamodule, args):
+    """Plots OSCR curves for comparing multiple OSR methods (excluding baseline)."""
+    print("\n--- Generating OSCR Comparison Curve (OSR Methods Only) ---")
+    plt.figure(figsize=(8, 7)); method_found = False; plotted_methods = []
+
+    # --- 수정: Baseline 제외하고 OSR 방법만 순회 ---
+    osr_methods = sorted([m for m in all_results if m != 'baseline' and isinstance(all_results.get(m), dict) and 'error' not in all_results[m]])
+    # ---
+
+    for method in osr_methods: # OSR 방법만 사용
         results = all_results.get(method)
-        # Check if results are valid and not an error entry
-        if results and isinstance(results, dict) and 'error' not in results:
-            print(f"  Calculating OSCR curve for: {method.upper()}")
+        if results: # 결과가 있는지 확인 (오류가 아닌 경우)
             try:
-                fpr, ccr = calculate_oscr_curve(results, datamodule)
-                # Check if calculation returned valid data points
-                if fpr is not None and ccr is not None and len(fpr) > 1 and len(ccr) > 1:
-                    # Calculate Area Under the OSCR Curve using trapezoidal rule
-                    oscr_auc = np.trapz(ccr, fpr)
-                    plt.plot(fpr, ccr, lw=2.5, label=f'{method.upper()} (AUC = {oscr_auc:.3f})', alpha=0.85)
-                    method_found = True
-                    plotted_methods.append(method)
-                    print(f"    {method.upper()} OSCR AUC: {oscr_auc:.4f}")
-                else:
-                    print(f"    Skipping OSCR plot for {method}: Insufficient data points returned from calculation.")
-            except Exception as e:
-                print(f"    Error calculating or plotting OSCR for {method}: {e}")
-        elif results and isinstance(results, dict) and 'error' in results:
-             print(f"  Skipping OSCR for {method.upper()} due to previous evaluation error: {results['error']}")
-        else:
-             print(f"  Skipping OSCR for {method.upper()}: Invalid or missing results.")
+                fpr, ccr, _ = calculate_oscr_curve(results, datamodule)
+                oscr_auc = results.get('oscr_auc', float('nan'))
+                if len(fpr) > 1 and len(ccr) > 1:
+                    label_text = f'{method.upper()} (AUC = {oscr_auc:.3f})' if pd.notna(oscr_auc) else f'{method.upper()} (AUC = N/A)'
+                    plt.plot(fpr, ccr, lw=2.5, label=label_text, alpha=0.8)
+                    method_found = True; plotted_methods.append(method)
+                else: print(f"  Skipping OSCR plot for {method}: Insufficient data points.")
+            except Exception as e: print(f"  Error processing OSCR data for {method}: {e}")
 
+    if not method_found: print("No valid OSR results found to plot OSCR."); plt.close(); return
 
-    if not method_found:
-        print("No valid results found to plot OSCR comparison curve.")
-        plt.close() # Close the empty figure
-        return
-
-    # Add reference line (ideal closed-set: 0 FPR, 1 CCR) - represented differently on OSCR
-    # Often a diagonal line y=1-x is shown for reference, but its meaning is less direct here.
-    # Let's just plot the axes clearly.
-    # plt.plot([0, 1], [1, 0], color='grey', lw=1.5, linestyle='--', label='Reference (y=1-x)') # Optional reference
-
-    plt.xlim([-0.02, 1.02])
-    plt.ylim([-0.02, 1.05])
-    plt.xlabel('False Positive Rate (FPR)', fontsize=12)
-    plt.ylabel('Correct Classification Rate (CCR)', fontsize=12)
-    plt.title(f'OSCR Curves ({args.dataset}, Seen Ratio: {args.seen_class_ratio:.2f})', fontsize=14)
-    plt.legend(loc="lower left", fontsize=10)
-    plt.grid(True, linestyle=':', alpha=0.6)
-    plt.tight_layout()
-
-    # Save the plot
-    os.makedirs(RESULTS_DIR, exist_ok=True)
-    save_path = os.path.join(RESULTS_DIR, f"oscr_comparison_{args.dataset}_{args.seen_class_ratio:.2f}.png")
-    plt.savefig(save_path)
-    plt.close()
-    print(f"--- OSCR comparison curve saved to: {save_path} ---")
-
-
+    plt.plot([0, 1], [1, 0], color='grey', lw=1.5, linestyle='--', label='Ideal Closed-Set'); plt.xlim([-0.02, 1.02]); plt.ylim([-0.02, 1.05])
+    plt.xlabel('False Positive Rate (FPR)', fontsize=12); plt.ylabel('Correct Classification Rate (CCR)', fontsize=12); plt.title(f'OSCR Curves ({args.dataset}, Seen: {args.seen_class_ratio*100:.0f}%)', fontsize=14)
+    plt.legend(loc="lower left", fontsize=10); plt.grid(True, linestyle=':', alpha=0.6);
+    # --- 수정: 파일 이름 일관성 유지 ---
+    results_suffix = "_tuned" if args.parameter_search else ""
+    save_path = os.path.join(RESULTS_DIR, f"oscr_comparison_{args.dataset}_{args.seen_class_ratio:.2f}{results_suffix}.png")
+    # ---
+    plt.tight_layout(); plt.savefig(save_path); plt.close(); print(f"--- OSCR comparison curve saved to: {save_path} ---")
+    
 # --- Result Saving and Summary ---
 
 def _robust_json_converter(obj):
@@ -3528,121 +3674,137 @@ def _save_results(all_results: dict, args: argparse.Namespace):
         print(f"\nUnexpected error saving summary results: {e}")
 
 
+# studio2.py 내 _print_summary_table 함수
+
 def _print_summary_table(all_results: dict, args: argparse.Namespace):
     """Prints a formatted summary table of key metrics to the console."""
-    print("\n" + "="*110)
-    print(f"{' ' * 40} Experiment Results Summary {' ' * 40}")
-    print("="*110)
+    print("\n" + "="*120) # 너비 증가
+    print(f"{' ' * 45} Experiment Results Summary {' ' * 45}")
+    print("="*120)
 
-    # Metrics to display in the table and their display names
-    metrics_to_display = ["accuracy", "auroc", "fpr_at_tpr90", "unknown_detection_rate", "f1_score"]
-    metric_names_display = ["Acc(Known)", "AUROC", "FPR@TPR90", "UnkDetect", "F1(Known)"]
+    metrics_to_display = ["accuracy", "auroc", "fpr_at_tpr90", "oscr_auc", "unknown_detection_rate", "f1_score"]
+    metric_names_display = ["Acc(Known)", "AUROC", "FPR@TPR90", "OSCR AUC", "UnkDetect", "F1(Known)"]
 
-    # Filter out methods that resulted in an error
+    # --- 수정: Baseline 포함하여 정렬 ---
     methods_evaluated = sorted([m for m in all_results if isinstance(all_results.get(m), dict) and 'error' not in all_results[m]])
+    # ---
 
     if not methods_evaluated:
         print("No successful evaluation results to display in summary table.")
-        print("="*110)
+        print("="*120)
         return
 
-    # Determine column width based on method names
-    col_width = 16 # Adjust as needed
-    header = "{:<20}".format("Metric") # Width for metric names
-    for method in methods_evaluated:
+    col_width = 16 # 열 너비
+    # --- 수정: Baseline 포함하여 헤더 생성 ---
+    header = "{:<20}".format("Metric") # 첫 열 너비
+    for method in methods_evaluated: # Baseline 포함
         header += "{:<{}}".format(method.upper(), col_width)
+    # ---
     print(header)
     print("-" * len(header))
 
     # Print rows for each metric
     for i, metric_key in enumerate(metrics_to_display):
-        # Highlight the tuning metric if parameter search was enabled
         metric_display_name = metric_names_display[i]
         if args.parameter_search and metric_key == args.tuning_metric:
-            row = "* {:<18}".format(metric_display_name) # Add indicator and adjust spacing
+            row = "* {:<18}".format(metric_display_name)
         else:
-            row = "  {:<18}".format(metric_display_name) # Add indent for alignment
+            row = "  {:<18}".format(metric_display_name)
 
-        # Get value for each method
+        # Get value for each method (including baseline)
         for method in methods_evaluated:
-            val = all_results[method].get(metric_key, "N/A")
+            # --- 수정: Baseline의 UnkDetect는 0으로 표시 ---
+            if method == 'baseline' and metric_key == 'unknown_detection_rate':
+                val = 0.0 # Baseline은 unknown을 탐지하지 않음
+            else:
+                val = all_results[method].get(metric_key, "N/A")
+            # ---
+
             # Format the value
             try:
-                # Format as float if possible, otherwise as string
-                formatted_val = "{:<{}.4f}".format(float(val), col_width) if pd.notna(val) and isinstance(val, (float, int, np.number)) else "{:<{}}".format("NaN" if pd.isna(val) else str(val), col_width)
+                formatted_val = "{:<{}.4f}".format(float(val), col_width) if pd.notna(val) and isinstance(val, (float, int, np.number)) else "{:<{}}".format("N/A" if pd.isna(val) or val=="N/A" else str(val), col_width)
             except (TypeError, ValueError):
-                formatted_val = "{:<{}}".format(str(val), col_width) # Fallback to string
+                formatted_val = "{:<{}}".format(str(val), col_width)
             row += formatted_val
         print(row)
 
     if args.parameter_search:
         print("\n* Metric used for hyperparameter tuning.")
     print("=" * len(header))
-
+    
 
 # --- Main Evaluation Orchestrator ---
-def evaluate_osr_main(initial_trained_model: pl.LightningModule, datamodule: DataModule, args: argparse.Namespace):
-    """Runs evaluation for the selected OSR method(s)."""
-    all_results = {} # Dictionary to store results for each method
-    os.makedirs(RESULTS_DIR, exist_ok=True) # Ensure results directory exists
+# studio2.py 내 evaluate_osr_main 함수
+
+def evaluate_osr_main(initial_trained_model, datamodule, args):
+    """Runs evaluation for the selected OSR method(s) including baseline."""
+    all_results = {}
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+
+    # --- 수정: Baseline 평가 먼저 수행 ---
+    try:
+        baseline_results = evaluate_baseline(initial_trained_model, datamodule, args)
+        all_results['baseline'] = baseline_results
+    except Exception as e:
+        print(f"\n!!!!! Error evaluating Baseline: {e} !!!!!")
+        import traceback; traceback.print_exc()
+        all_results['baseline'] = {"error": str(e)}
+    # ---
 
     if args.parameter_search:
-        print("\n" + "="*70)
-        print(f"{' ' * 15} Hyperparameter Tuning Mode (Optuna) Enabled {' ' * 15}")
-        print("="*70)
-        print(f" Tuning Metric: {args.tuning_metric}")
-        print(f" Number of Trials: {args.n_trials}")
-        print(f" Method(s) to Tune: {args.osr_method}")
-        print("="*70 + "\n")
+        # ... (기존 튜닝 모드 메시지) ...
+        print("\n" + "="*70 + f"\n{' ' * 15}Hyperparameter Tuning Mode (Optuna)\n" + "="*70 + f"\nTuning Metric: {args.tuning_metric}, Trials: {args.n_trials}, Methods: {args.osr_method}\n" + "="*70 + "\n")
 
-    # Map method names to their evaluation functions
-    evaluation_function_map = {
-        "threshold": evaluate_threshold_osr,
-        "openmax": evaluate_openmax_osr,
-        "crosr": evaluate_crosr_osr,
-        "doc": evaluate_doc_osr,
-        "adb": evaluate_adb_osr
-    }
 
-    # Determine which methods to run
-    if args.osr_method == "all":
-        methods_to_run = list(evaluation_function_map.keys())
-    elif args.osr_method in evaluation_function_map:
-        methods_to_run = [args.osr_method]
-    else:
-        print(f"Error: Unknown OSR method specified: '{args.osr_method}'. Choose from {list(evaluation_function_map.keys())} or 'all'.")
-        return {} # Return empty results
+    method_map = { "threshold": evaluate_threshold_osr, "openmax": evaluate_openmax_osr, "crosr": evaluate_crosr_osr, "doc": evaluate_doc_osr, "adb": evaluate_adb_osr }
+    methods_to_run = list(method_map.keys()) if args.osr_method == 'all' else [args.osr_method]
 
-    print(f"--- Starting OSR Evaluation for Method(s): {', '.join(m.upper() for m in methods_to_run)} ---")
-
-    # Run evaluation for each selected method
     for method in methods_to_run:
-        if method in evaluation_function_map:
-            eval_func = evaluation_function_map[method]
-            # The evaluation function handles preparation (tuning/loading, retraining) and evaluation
-            eval_func(initial_trained_model, datamodule, args, all_results)
-        # Error handling is now inside each evaluate_xxx function
+        if method in method_map:
+            try:
+                print(f"\n>>> Starting evaluation for: {method.upper()} <<<")
+                # Pass the initial model to each OSR evaluation function
+                method_map[method](initial_trained_model, datamodule, args, all_results)
+            except Exception as e:
+                print(f"\n!!!!! Error evaluating method {method.upper()}: {e} !!!!!")
+                import traceback; traceback.print_exc()
+                all_results[method] = {"error": str(e)}
+        else:
+            print(f"Warning: Unknown OSR method '{method}' skipped.")
 
-    # --- Post-Evaluation Steps ---
-    # Save consolidated results
-    _save_results(all_results, args)
+    # --- Calculate OSCR AUC for all evaluated methods (including baseline) ---
+    print("\nCalculating OSCR AUC for evaluated methods...")
+    # --- 수정: Baseline 포함하여 순회 ---
+    all_methods_evaluated = ['baseline'] + methods_to_run # Include baseline
+    for method in all_methods_evaluated:
+    # ---
+        if method in all_results and isinstance(all_results[method], dict) and 'error' not in all_results[method]:
+            # --- 수정: baseline의 oscr_auc는 이미 계산되었으므로 건너뛰거나 재확인 ---
+            if method == 'baseline' and 'oscr_auc' in all_results[method]:
+                 print(f"  {method.upper()} OSCR AUC: {all_results[method]['oscr_auc']:.4f} (already calculated)")
+                 continue # Skip recalculation for baseline if already done
+            # ---
+            try:
+                _, _, oscr_auc = calculate_oscr_curve(all_results[method], datamodule)
+                all_results[method]['oscr_auc'] = oscr_auc
+                print(f"  {method.upper()} OSCR AUC: {oscr_auc:.4f}")
+            except Exception as e:
+                print(f"  Error calculating OSCR AUC for {method}: {e}")
+                all_results[method]['oscr_auc'] = float('nan')
 
-    # Print summary table
-    _print_summary_table(all_results, args)
+    # --- Save and Print Results ---
+    _save_results(all_results, args) # 수정된 저장 함수 호출
+    _print_summary_table(all_results, args) # 수정된 테이블 출력 함수 호출
 
-    # Generate OSCR comparison plot if multiple methods were evaluated successfully
-    successful_methods = [m for m in all_results if isinstance(all_results.get(m), dict) and 'error' not in all_results[m]]
-    if len(successful_methods) > 1:
-        visualize_oscr_curves(all_results, datamodule, args)
-    elif len(successful_methods) == 1:
-         print("\nOnly one method evaluated successfully, skipping OSCR comparison plot.")
-    else:
-         print("\nNo methods evaluated successfully, skipping OSCR comparison plot.")
+    # --- Visualize OSCR Curves ---
+    # --- 수정: Baseline 제외하고 OSR 방법만 시각화 ---
+    osr_methods_evaluated = [m for m in methods_to_run if m in all_results and isinstance(all_results[m], dict) and 'error' not in all_results[m]]
+    if len(osr_methods_evaluated) > 0: # OSR 방법이 1개 이상 있을 때만 비교 곡선 그림
+    # ---
+        visualize_oscr_curves(all_results, datamodule, args) # Baseline 제외하고 OSR 방법들만 전달
 
-
-    print("\n--- OSR Evaluation Finished ---")
+    print("\nEvaluation finished!")
     return all_results
-
 
 # =============================================================================
 # Argument Parser and Main Execution Block
@@ -3653,9 +3815,11 @@ def parse_args() -> argparse.Namespace:
 
     # --- Dataset and Model ---
     parser.add_argument('-dataset', type=str, default='acm',
+                        # choices 리스트에 신규 데이터셋 이름 추가
                         choices=['newsgroup20', 'bbc_news', 'trec', 'reuters8', 'acm', 'chemprot',
                                  'banking77', 'oos', 'stackoverflow', 'atis', 'snips',
-                                 'financial_phrasebank', 'arxiv10', 'custom_syslog'],
+                                 'financial_phrasebank', 'arxiv10', 'custom_syslog',
+                                 '50_class_reviews', 'sst5', 'dbpedia14'], # 신규 추가
                         help='Dataset to use.')
     parser.add_argument('-model', type=str, default='roberta-base',
                         help='Pre-trained RoBERTa model name from Hugging Face Hub.')
@@ -3669,7 +3833,7 @@ def parse_args() -> argparse.Namespace:
 
     # --- Training Hyperparameters ---
     parser.add_argument('-epochs', type=int, default=10, help='Maximum training epochs.')
-    parser.add_argument('-batch_size', type=int, default=32, help='Batch size for training and evaluation.')
+    parser.add_argument('-batch_size', type=int, default=64, help='Batch size for training and evaluation.')
     parser.add_argument('-lr', type=float, default=2e-5, help='Learning rate for backbone/standard models.')
     parser.add_argument('-weight_decay', type=float, default=0.01, help='Weight decay for AdamW optimizer.')
     parser.add_argument('-warmup_ratio', type=float, default=0.1,
@@ -3803,7 +3967,7 @@ def _setup_datamodule(args: argparse.Namespace, tokenizer) -> DataModule:
         train_ratio=args.train_ratio,
         val_ratio=args.val_ratio,
         test_ratio=args.test_ratio,
-        max_length=384, # Consider making this an arg
+        max_length=256, # Consider making this an arg
         data_dir=DATA_DIR,
         num_workers=NUM_DATALOADER_WORKERS
     )

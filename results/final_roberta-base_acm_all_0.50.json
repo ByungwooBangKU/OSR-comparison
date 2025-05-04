@@ -1,0 +1,132 @@
+{
+  "threshold": {
+    "accuracy": 0.8083700440528634,
+    "auroc": 0.7887430361018135,
+    "f1_score": 0.4236922081080192,
+    "unknown_detection_rate": 0.16940581542351454,
+    "fpr_at_tpr90": 0.4853157121879589,
+    "confusion_matrix_labels": [
+      -1,
+      0,
+      1,
+      2,
+      5,
+      9,
+      10
+    ],
+    "confusion_matrix_names": [
+      "Unknown",
+      "artificial intelligence",
+      "computer networks",
+      "computer security",
+      "graphics & vision",
+      "programming languages",
+      "software engineering"
+    ],
+    "eval_duration_sec": 51.897239685058594
+  },
+  "openmax": {
+    "accuracy": 0.8208516886930984,
+    "auroc": 0.825261925491936,
+    "f1_score": 0.4146779083257317,
+    "unknown_detection_rate": 0.1125158027812895,
+    "fpr_at_tpr90": 0.44640234948604995,
+    "confusion_matrix_labels": [
+      -1,
+      0,
+      1,
+      2,
+      5,
+      9,
+      10
+    ],
+    "confusion_matrix_names": [
+      "Unknown",
+      "artificial intelligence",
+      "computer networks",
+      "computer security",
+      "graphics & vision",
+      "programming languages",
+      "software engineering"
+    ],
+    "eval_duration_sec": 128.00246238708496
+  },
+  "crosr": {
+    "accuracy": 0.8135095447870778,
+    "auroc": 0.6019243038267638,
+    "f1_score": 0.37754674477503386,
+    "unknown_detection_rate": 0.00042140750105351877,
+    "fpr_at_tpr90": 0.7320117474302497,
+    "confusion_matrix_labels": [
+      -1,
+      0,
+      1,
+      2,
+      5,
+      9,
+      10
+    ],
+    "confusion_matrix_names": [
+      "Unknown",
+      "artificial intelligence",
+      "computer networks",
+      "computer security",
+      "graphics & vision",
+      "programming languages",
+      "software engineering"
+    ],
+    "eval_duration_sec": 125.05185556411743
+  },
+  "doc": {
+    "accuracy": 0.7819383259911894,
+    "auroc": 0.811353157431283,
+    "f1_score": 0.4704799674386509,
+    "unknown_detection_rate": 0.4049726085124315,
+    "fpr_at_tpr90": 0.43392070484581496,
+    "confusion_matrix_labels": [
+      -1,
+      0,
+      1,
+      2,
+      5,
+      9,
+      10
+    ],
+    "confusion_matrix_names": [
+      "Unknown",
+      "artificial intelligence",
+      "computer networks",
+      "computer security",
+      "graphics & vision",
+      "programming languages",
+      "software engineering"
+    ],
+    "eval_duration_sec": 124.88686037063599
+  },
+  "adb": {
+    "accuracy": 0.33259911894273125,
+    "auroc": 0.5121363503882703,
+    "f1_score": 0.03704444730502584,
+    "unknown_detection_rate": 0.0,
+    "fpr_at_tpr90": 0.8362701908957415,
+    "confusion_matrix_labels": [
+      -1,
+      0,
+      1,
+      2,
+      5,
+      9,
+      10
+    ],
+    "confusion_matrix_names": [
+      "Unknown",
+      "artificial intelligence",
+      "computer networks",
+      "computer security",
+      "graphics & vision",
+      "programming languages",
+      "software engineering"
+    ],
+    "eval_duration_sec": 53.02549338340759
+  }
+}
