@@ -63,8 +63,17 @@ MASKED_TEXT_COLUMN = 'masked_text_attention'
 TOP_WORDS_COLUMN = 'top_attention_words'
 EXCLUDE_CLASS_FOR_TRAINING = "unknown"
 
-# OE 데이터셋 생성 기준 설정
+# OE 데이터셋 생성 기준 설정 - 각 지표별 최적 퍼센타일 적용
+# 기본 필터 메트릭은 그대로 유지
 OE_FILTER_METRIC = 'removed_avg_attention'
+# 각 지표별 맞춤형 퍼센타일 및 모드 설정
+METRIC_SETTINGS = {
+    'removed_avg_attention': {'percentile': 90, 'mode': 'higher'},  # 90%로 상향 조정
+    'top_k_avg_attention': {'percentile': 80, 'mode': 'higher'},    # 80%로 조정
+    'max_attention': {'percentile': 85, 'mode': 'higher'},          # 85%로 조정
+    'attention_entropy': {'percentile': 25, 'mode': 'lower'}        # 하위 25% 선택
+}
+# 기본값 유지 (backward compatibility)
 OE_FILTER_PERCENTILE = 75
 OE_FILTER_MODE = 'higher'
 
@@ -957,8 +966,8 @@ def main():
         else:
             print(f"{metric} 시각화 건너뛰기 (없거나 모두 null).")
     
-    # 10. OE 데이터셋 추출
-    print("\n--- 10. OE 데이터셋 추출 ---")
+    # 10. OE 데이터셋 추출 (각 지표별 최적 퍼센타일 적용)
+    print("\n--- 10. OE 데이터셋 추출 (맞춤형 퍼센타일 적용) ---")
     for metric in metric_columns:
         if metric not in data_for_attention.columns or MASKED_TEXT_COLUMN not in data_for_attention.columns:
             print(f"{metric} 또는 {MASKED_TEXT_COLUMN} 컬럼이 없어 건너뜁니다.")
@@ -967,15 +976,25 @@ def main():
         scores = data_for_attention[metric].values
         scores = np.nan_to_num(scores, nan=0.0)
         
-        if OE_FILTER_MODE == 'higher':
-            threshold = np.percentile(scores, 100 - OE_FILTER_PERCENTILE)
+        # 해당 메트릭에 맞는 최적 설정 적용
+        if metric in METRIC_SETTINGS:
+            filter_percentile = METRIC_SETTINGS[metric]['percentile']
+            filter_mode = METRIC_SETTINGS[metric]['mode']
+        else:
+            # 설정이 없는 경우 기본값 사용
+            filter_percentile = OE_FILTER_PERCENTILE  
+            filter_mode = OE_FILTER_MODE
+        
+        # 모드에 따라 임계값과 선택 로직 적용
+        if filter_mode == 'higher':
+            threshold = np.percentile(scores, 100 - filter_percentile)
             selected_indices = np.where(scores >= threshold)[0]
-            mode_desc = f"top{OE_FILTER_PERCENTILE}pct"
+            mode_desc = f"top{filter_percentile}pct"
             print(f"{metric} >= {threshold:.4f} ({mode_desc}) 기준으로 OE 필터링...")
-        elif OE_FILTER_MODE == 'lower':
-            threshold = np.percentile(scores, OE_FILTER_PERCENTILE)
+        elif filter_mode == 'lower':
+            threshold = np.percentile(scores, filter_percentile)
             selected_indices = np.where(scores <= threshold)[0]
-            mode_desc = f"bottom{OE_FILTER_PERCENTILE}pct"
+            mode_desc = f"bottom{filter_percentile}pct"
             print(f"{metric} <= {threshold:.4f} ({mode_desc}) 기준으로 OE 필터링...")
         else:
             selected_indices = data_for_attention.index
@@ -983,7 +1002,7 @@ def main():
             print(f"{metric}에 기반한 필터링을 적용하지 않습니다.")
         
         if len(selected_indices) > 0:
-            # OE 데이터셋에 마스크된 텍스트 저장
+            # OE 데이터셋에 마스킹된 텍스트 저장
             oe_df_filtered = data_for_attention.iloc[selected_indices][[MASKED_TEXT_COLUMN]].copy()
             
             # 추가 정보를 포함한 확장 버전도 저장
@@ -1006,8 +1025,7 @@ def main():
                 print(f"{metric} OE 데이터셋 저장 중 오류: {e}")
         else:
             print(f"{metric} {mode_desc} 기준으로 OE 샘플이 선택되지 않았습니다.")
-    
-    # t-SNE 시각화 코드 수정
+    # 11. t-SNE 시각화 (removed_avg_attention에 맞춘 퍼센타일 적용)
     print("\n--- 11. t-SNE 시각화 ---")
     if len(all_features) == len(data_for_attention):
         # OE 후보 인덱스 (주요 필터링 지표 기준)
@@ -1016,19 +1034,28 @@ def main():
             scores = data_for_attention[OE_FILTER_METRIC].values
             scores = np.nan_to_num(scores, nan=0.0)
             
-            if OE_FILTER_MODE == 'higher':
-                threshold = np.percentile(scores, 100 - OE_FILTER_PERCENTILE)
+            # OE_FILTER_METRIC에 맞는 설정 적용
+            if OE_FILTER_METRIC in METRIC_SETTINGS:
+                filter_percentile = METRIC_SETTINGS[OE_FILTER_METRIC]['percentile']
+                filter_mode = METRIC_SETTINGS[OE_FILTER_METRIC]['mode']
+            else:
+                filter_percentile = OE_FILTER_PERCENTILE
+                filter_mode = OE_FILTER_MODE
+            
+            # 모드에 따라 임계값과 선택 로직 적용
+            if filter_mode == 'higher':
+                threshold = np.percentile(scores, 100 - filter_percentile)
                 oe_candidate_indices = np.where(scores >= threshold)[0]
-            elif OE_FILTER_MODE == 'lower':
-                threshold = np.percentile(scores, OE_FILTER_PERCENTILE)
+            elif filter_mode == 'lower':
+                threshold = np.percentile(scores, filter_percentile)
                 oe_candidate_indices = np.where(scores <= threshold)[0]
         
-        # t-SNE 레이블 준비
+        # t-SNE 레이블 준비 (이전 코드와 동일)
         tsne_labels = []
         known_label2id = log_data_module.label2id if log_data_module else {}
         unknown_class_lower = EXCLUDE_CLASS_FOR_TRAINING.lower()
         
-        # 클래스 레이블 할당
+        # 클래스 레이블 할당 (이전 코드와 동일)
         if CLASS_COLUMN in data_for_attention.columns:
             for cls in data_for_attention[CLASS_COLUMN]:
                 if cls == unknown_class_lower:
@@ -1048,13 +1075,26 @@ def main():
             tsne_class_names = {-1: 'Unknown', -2: 'Other/Filtered'}
         
         # t-SNE 시각화 실행
+        if OE_FILTER_METRIC in METRIC_SETTINGS:
+            filter_mode_desc = METRIC_SETTINGS[OE_FILTER_METRIC]['mode']
+            filter_percentile_value = METRIC_SETTINGS[OE_FILTER_METRIC]['percentile']
+        else:
+            filter_mode_desc = OE_FILTER_MODE
+            filter_percentile_value = OE_FILTER_PERCENTILE
+            
+        # 모드에 따른 레이블 조정
+        if filter_mode_desc == 'higher':
+            highlight_label = f'OE Candidate ({OE_FILTER_METRIC} higher {filter_percentile_value}%)'
+        else:
+            highlight_label = f'OE Candidate ({OE_FILTER_METRIC} lower {filter_percentile_value}%)'
+        
         plot_tsne(
             features=np.array(all_features),
             labels=tsne_labels,
             title=f't-SNE (Known vs Unknown vs OE Candidates by {OE_FILTER_METRIC})',
             save_path=os.path.join(VIS_DIR, f'tsne_visualization_{OE_FILTER_METRIC}.png'),
             highlight_indices=oe_candidate_indices,
-            highlight_label=f'OE Candidate ({OE_FILTER_METRIC} {OE_FILTER_MODE} {OE_FILTER_PERCENTILE}%)',
+            highlight_label=highlight_label,
             class_names=tsne_class_names,
             seed=RANDOM_STATE
         )
