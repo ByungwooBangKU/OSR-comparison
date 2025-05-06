@@ -663,7 +663,103 @@ def plot_metric_distribution(scores: np.ndarray, metric_name: str, title: str, s
         plt.show()
         plt.close()
 
-def plot_tsne(features: np.ndarray, labels: np.ndarray, title: str, save_path: Optional[str] = None, 
+
+def plot_tsne(features, labels, title, save_path=None, 
+                  highlight_indices=None, highlight_label='OE Candidate', 
+                  class_names=None, seed=42, perplexity=30, n_iter=1000):
+    """
+    An improved version of the t-SNE plotting function with better formatting
+    and layout handling for proper image rendering.
+    
+    Args:
+        features: numpy array of feature vectors
+        labels: numpy array of class labels
+        title: plot title
+        save_path: path to save the figure to
+        highlight_indices: indices of samples to highlight
+        highlight_label: label for highlighted samples
+        class_names: dictionary mapping label indices to class names
+        seed: random seed for reproducibility
+        perplexity: t-SNE perplexity parameter
+        n_iter: number of iterations for t-SNE
+    """
+    if len(features) == 0:
+        print("No features for t-SNE.")
+        return
+    
+    print(f"Running t-SNE on {features.shape[0]} samples...")
+    try:
+        # Adjust perplexity to avoid errors with small datasets
+        adjusted_perplexity = min(perplexity, features.shape[0] - 1)
+        tsne = TSNE(
+            n_components=2, 
+            random_state=seed, 
+            perplexity=adjusted_perplexity, 
+            n_iter=n_iter, 
+            init='pca', 
+            learning_rate='auto'
+        )
+        tsne_results = tsne.fit_transform(features)
+    except Exception as e:
+        print(f"Error running t-SNE: {e}. Skipping plot.")
+        return
+    
+    df_tsne = pd.DataFrame(tsne_results, columns=['tsne1', 'tsne2'])
+    df_tsne['label'] = labels
+    df_tsne['is_highlighted'] = False
+    
+    if highlight_indices is not None:
+        df_tsne.loc[highlight_indices, 'is_highlighted'] = True
+    
+    # Create a larger figure with better proportions
+    plt.figure(figsize=(14, 10))
+    
+    # Use a different colormap with better contrast
+    unique_labels = sorted(df_tsne['label'].unique())
+    colors = plt.cm.tab20(np.linspace(0, 1, len(unique_labels)))
+    
+    # Plot each class separately
+    for i, label_val in enumerate(unique_labels):
+        subset = df_tsne[(df_tsne['label'] == label_val) & (~df_tsne['is_highlighted'])]
+        if len(subset) > 0:
+            class_name = class_names.get(label_val, f'Class {label_val}') if class_names else f'Class {label_val}'
+            plt.scatter(subset['tsne1'], subset['tsne2'], color=colors[i], label=class_name, alpha=0.7, s=30)
+    
+    # Highlight the OE candidates with a different marker and color
+    if highlight_indices is not None:
+        highlight_subset = df_tsne[df_tsne['is_highlighted']]
+        if len(highlight_subset) > 0:
+            plt.scatter(highlight_subset['tsne1'], highlight_subset['tsne2'], 
+                      color='red', marker='x', s=100, label=highlight_label, alpha=0.9)
+    
+    # Improved formatting
+    plt.title(title, fontsize=16, pad=20)
+    plt.xlabel("t-SNE Dimension 1", fontsize=14)
+    plt.ylabel("t-SNE Dimension 2", fontsize=14)
+    
+    # Add a grid for better readability
+    plt.grid(alpha=0.3, linestyle='--')
+    
+    # Improve legend positioning and formatting
+    legend = plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), 
+                      fontsize=12, frameon=True, fancybox=True, shadow=True)
+    
+    # Add some padding around the plot
+    plt.tight_layout()
+    
+    # Ensure the legend doesn't get cut off
+    plt.subplots_adjust(right=0.75)
+    
+    if save_path:
+        # Ensure high DPI for better quality image
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"t-SNE plot saved: {save_path}")
+    else:
+        plt.show()
+    
+    plt.close()
+    
+def plot_tsne_old(features: np.ndarray, labels: np.ndarray, title: str, save_path: Optional[str] = None, 
               highlight_indices: Optional[np.ndarray] = None, highlight_label: str = 'OE Candidate', 
               class_names: Optional[Dict[int, str]] = None, seed: int = 42, perplexity: int = 30, n_iter: int = 1000):
     if len(features) == 0:
@@ -1101,16 +1197,16 @@ def main():
         else:
             print(f"{metric} {mode_desc} 기준으로 OE 샘플이 선택되지 않았습니다.")
 
-    # 11. t-SNE 시각화 (순차적 필터링 결과 추가)
+    # t-SNE 시각화 부분 수정 (모든 지표 저장)
     print("\n--- 11. t-SNE 시각화 ---")
     if len(all_features) == len(data_for_attention):
-        # 기존 OE 필터 지표 시각화 (기존 코드 유지)
+        # 각 지표별 시각화 처리
         for metric in metric_columns:
             if metric not in data_for_attention.columns:
+                print(f"{metric} 컬럼이 없어 t-SNE 시각화를 건너뜁니다.")
                 continue
                 
             # 각 개별 지표에 대한 OE 후보 인덱스 계산
-            # (기존 코드와 동일)
             scores = data_for_attention[metric].values
             scores = np.nan_to_num(scores, nan=0.0)
             
@@ -1131,15 +1227,7 @@ def main():
                 oe_candidate_indices = np.where(scores <= threshold)[0]
                 mode_desc = f"{filter_mode} {filter_percentile}%"
             
-            # (기존 t-SNE 시각화 코드 유지)
-            # ...
-            
-        # 순차적 필터링 결과에 대한 t-SNE 시각화 추가
-        # 최종 선택된 샘플 인덱스 사용
-        sequential_oe_indices = final_selected_indices
-        
-        if len(sequential_oe_indices) > 0:
-            # t-SNE 레이블 준비 (기존 코드와 동일)
+            # t-SNE 레이블 준비
             tsne_labels = []
             known_label2id = log_data_module.label2id if log_data_module else {}
             unknown_class_lower = EXCLUDE_CLASS_FOR_TRAINING.lower()
@@ -1147,10 +1235,10 @@ def main():
             # 클래스 레이블 할당
             if CLASS_COLUMN in data_for_attention.columns:
                 for cls in data_for_attention[CLASS_COLUMN]:
-                    if cls == unknown_class_lower:
+                    if isinstance(cls, str) and cls.lower() == unknown_class_lower:
                         tsne_labels.append(-1)  # Unknown 클래스
                     else:
-                        tsne_labels.append(known_label2id.get(cls, -2))  # Known 클래스 또는 기타
+                        tsne_labels.append(known_label2id.get(cls, -2) if isinstance(cls, str) else -2)  # Known 클래스 또는 기타
             else:
                 # 클래스 컬럼이 없다면 모두 동일 레이블로 처리
                 tsne_labels = [0] * len(data_for_attention)
@@ -1163,10 +1251,28 @@ def main():
             else:
                 tsne_class_names = {-1: 'Unknown', -2: 'Other/Filtered'}
             
+            # 개별 지표에 대한 t-SNE 시각화
+            plot_tsne(
+                features=np.array(all_features),
+                labels=tsne_labels,
+                title=f't-SNE (Known vs Unknown vs OE Candidates by {metric} {mode_desc})',
+                save_path=os.path.join(VIS_DIR, f'tsne_visualization_{metric}_{filter_mode}_{filter_percentile}pct.png'),
+                highlight_indices=oe_candidate_indices,
+                highlight_label=f'OE Candidate ({metric} {mode_desc})',
+                class_names=tsne_class_names,
+                seed=RANDOM_STATE
+            )
+            
+            print(f"{metric} {mode_desc} 지표 t-SNE 시각화 저장 완료")
+        
+        # 순차적 필터링 결과에 대한 t-SNE 시각화 추가
+        sequential_oe_indices = final_selected_indices
+        
+        if len(sequential_oe_indices) > 0:
             # 순차적 필터링에 대한 설명 문자열 생성
             seq_filter_desc = " + ".join([f"{m} {s['mode']} {s['percentile']}%" for m, s in FILTERING_SEQUENCE])
             
-            # t-SNE 시각화 실행
+            # t-SNE 시각화 실행 (순차적 필터링)
             plot_tsne(
                 features=np.array(all_features),
                 labels=tsne_labels,
@@ -1178,7 +1284,7 @@ def main():
                 seed=RANDOM_STATE
             )
             
-            print(f"순차적 필터링 결과 t-SNE 시각화 저장: {os.path.join(VIS_DIR, 'tsne_visualization_sequential_filtering.png')}")
+            print(f"순차적 필터링 결과 t-SNE 시각화 저장 완료")
         else:
             print("순차적 필터링 후 선택된 샘플이 없어 t-SNE 시각화를 건너뜁니다.")
     else:
