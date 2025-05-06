@@ -63,8 +63,6 @@ MASKED_TEXT_COLUMN = 'masked_text_attention'
 TOP_WORDS_COLUMN = 'top_attention_words'
 EXCLUDE_CLASS_FOR_TRAINING = "unknown"
 
-# OE 데이터셋 생성 기준 설정 - 각 지표별 최적 퍼센타일 적용
-# 기본 필터 메트릭은 그대로 유지
 OE_FILTER_METRIC = 'removed_avg_attention'
 # 각 지표별 맞춤형 퍼센타일 및 모드 설정
 METRIC_SETTINGS = {
@@ -965,7 +963,7 @@ def main():
             )
         else:
             print(f"{metric} 시각화 건너뛰기 (없거나 모두 null).")
-    
+        
     # 10. OE 데이터셋 추출 (각 지표별 최적 퍼센타일 적용)
     print("\n--- 10. OE 데이터셋 추출 (맞춤형 퍼센타일 적용) ---")
     for metric in metric_columns:
@@ -1025,37 +1023,16 @@ def main():
                 print(f"{metric} OE 데이터셋 저장 중 오류: {e}")
         else:
             print(f"{metric} {mode_desc} 기준으로 OE 샘플이 선택되지 않았습니다.")
-    # 11. t-SNE 시각화 (removed_avg_attention에 맞춘 퍼센타일 적용)
-    print("\n--- 11. t-SNE 시각화 ---")
+
+    # 11. 모든 지표에 대한 t-SNE 시각화 수행
+    print("\n--- 11. 모든 지표에 대한 t-SNE 시각화 ---")
     if len(all_features) == len(data_for_attention):
-        # OE 후보 인덱스 (주요 필터링 지표 기준)
-        oe_candidate_indices = None
-        if OE_FILTER_METRIC in data_for_attention.columns:
-            scores = data_for_attention[OE_FILTER_METRIC].values
-            scores = np.nan_to_num(scores, nan=0.0)
-            
-            # OE_FILTER_METRIC에 맞는 설정 적용
-            if OE_FILTER_METRIC in METRIC_SETTINGS:
-                filter_percentile = METRIC_SETTINGS[OE_FILTER_METRIC]['percentile']
-                filter_mode = METRIC_SETTINGS[OE_FILTER_METRIC]['mode']
-            else:
-                filter_percentile = OE_FILTER_PERCENTILE
-                filter_mode = OE_FILTER_MODE
-            
-            # 모드에 따라 임계값과 선택 로직 적용
-            if filter_mode == 'higher':
-                threshold = np.percentile(scores, 100 - filter_percentile)
-                oe_candidate_indices = np.where(scores >= threshold)[0]
-            elif filter_mode == 'lower':
-                threshold = np.percentile(scores, filter_percentile)
-                oe_candidate_indices = np.where(scores <= threshold)[0]
-        
-        # t-SNE 레이블 준비 (이전 코드와 동일)
+        # t-SNE 레이블 준비 (공통)
         tsne_labels = []
         known_label2id = log_data_module.label2id if log_data_module else {}
         unknown_class_lower = EXCLUDE_CLASS_FOR_TRAINING.lower()
         
-        # 클래스 레이블 할당 (이전 코드와 동일)
+        # 클래스 레이블 할당 (공통)
         if CLASS_COLUMN in data_for_attention.columns:
             for cls in data_for_attention[CLASS_COLUMN]:
                 if cls == unknown_class_lower:
@@ -1068,39 +1045,64 @@ def main():
         
         tsne_labels = np.array(tsne_labels)
         
-        # 클래스 이름 매핑 - 수정된 부분
+        # 클래스 이름 매핑 (공통)
         if log_data_module and hasattr(log_data_module, 'id2label'):
             tsne_class_names = {**log_data_module.id2label, -1: 'Unknown', -2: 'Other/Filtered'}
         else:
             tsne_class_names = {-1: 'Unknown', -2: 'Other/Filtered'}
         
-        # t-SNE 시각화 실행
-        if OE_FILTER_METRIC in METRIC_SETTINGS:
-            filter_mode_desc = METRIC_SETTINGS[OE_FILTER_METRIC]['mode']
-            filter_percentile_value = METRIC_SETTINGS[OE_FILTER_METRIC]['percentile']
-        else:
-            filter_mode_desc = OE_FILTER_MODE
-            filter_percentile_value = OE_FILTER_PERCENTILE
+        # 각 지표별로 t-SNE 시각화 수행
+        for metric in metric_columns:
+            if metric not in data_for_attention.columns:
+                print(f"{metric} 컬럼이 없어 t-SNE 시각화를 건너뜁니다.")
+                continue
             
-        # 모드에 따른 레이블 조정
-        if filter_mode_desc == 'higher':
-            highlight_label = f'OE Candidate ({OE_FILTER_METRIC} higher {filter_percentile_value}%)'
-        else:
-            highlight_label = f'OE Candidate ({OE_FILTER_METRIC} lower {filter_percentile_value}%)'
-        
-        plot_tsne(
-            features=np.array(all_features),
-            labels=tsne_labels,
-            title=f't-SNE (Known vs Unknown vs OE Candidates by {OE_FILTER_METRIC})',
-            save_path=os.path.join(VIS_DIR, f'tsne_visualization_{OE_FILTER_METRIC}.png'),
-            highlight_indices=oe_candidate_indices,
-            highlight_label=highlight_label,
-            class_names=tsne_class_names,
-            seed=RANDOM_STATE
-        )
+            print(f"\n{metric}에 대한 t-SNE 시각화 수행 중...")
+            
+            scores = data_for_attention[metric].values
+            scores = np.nan_to_num(scores, nan=0.0)
+            
+            # 해당 메트릭에 맞는 최적 설정 적용
+            if metric in METRIC_SETTINGS:
+                filter_percentile = METRIC_SETTINGS[metric]['percentile']
+                filter_mode = METRIC_SETTINGS[metric]['mode']
+            else:
+                filter_percentile = OE_FILTER_PERCENTILE
+                filter_mode = OE_FILTER_MODE
+            
+            # 모드에 따라 OE 후보 선택
+            if filter_mode == 'higher':
+                threshold = np.percentile(scores, 100 - filter_percentile)
+                oe_candidate_indices = np.where(scores >= threshold)[0]
+                highlight_label = f'OE Candidate ({metric} higher {filter_percentile}%)'
+            elif filter_mode == 'lower':
+                threshold = np.percentile(scores, filter_percentile)
+                oe_candidate_indices = np.where(scores <= threshold)[0]
+                highlight_label = f'OE Candidate ({metric} lower {filter_percentile}%)'
+            else:
+                continue  # 유효하지 않은 모드
+            
+            # t-SNE 시각화 수행
+            tsne_title = f't-SNE (Known vs Unknown vs OE Candidates by {metric})'
+            tsne_save_path = os.path.join(VIS_DIR, f'tsne_visualization_{metric}.png')
+            
+            try:
+                plot_tsne(
+                    features=np.array(all_features),
+                    labels=tsne_labels,
+                    title=tsne_title,
+                    save_path=tsne_save_path,
+                    highlight_indices=oe_candidate_indices,
+                    highlight_label=highlight_label,
+                    class_names=tsne_class_names,
+                    seed=RANDOM_STATE
+                )
+                print(f"{metric}에 대한 t-SNE 시각화가 {tsne_save_path}에 저장되었습니다.")
+            except Exception as e:
+                print(f"{metric}에 대한 t-SNE 시각화 중 오류 발생: {e}")
     else:
         print(f"t-SNE 시각화 건너뛰기: 특징 벡터({len(all_features)})와 데이터({len(data_for_attention)}) 길이 불일치")
-    
+
     # 12. 결과 요약 및 저장
     print("\n--- 12. 결과 요약 ---")
     # 상위 OE 데이터 샘플 확인
