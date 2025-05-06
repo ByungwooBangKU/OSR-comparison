@@ -1,0 +1,91 @@
+train/test,log type,severity,class,text,Reference,label_4class,label_node,label_job,label_total
+train,DELL LC ,3,unknown,The health of sled in the sled slot arg1 is in Critical state.,,0,1,1,1
+train,DELL LC ,2,unknown,Server arg1 is removed.,,0,1,1,1
+test,HPE IML,3,unknown,Uncorrectable error was detected,,0,1,1,1
+train,DELL LC ,3,unknown,arg1 is sending inconsistent responses to the controller.,,0,1,1,1
+train,DELL LC ,3,unknown,arg1 is not functioning correctly.,,0,1,1,1
+train,DELL LC ,3,unknown,Unable to allocate resources.,,0,1,1,1
+train,DELL LC ,2,unknown,The arg1 is removed from slot arg2 .,,0,1,1,1
+train,DELL LC ,3,unknown,Consistency check for arg1 has completed with uncorrectable errors.,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 is not responding.,,0,1,1,1
+train,DELL LC ,2,unknown,A hardware incompatibility is detected between arg1 arg2 and arg3 arg4 .,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 is shutdown.,,0,1,1,1
+train,HPE IML,3,unknown,Trusted Platform Module (TPM) self-test error,,0,1,1,1
+test,DELL LC ,3,unknown,Resource allocation error.,,0,1,1,1
+test,DELL LC ,3,unknown,Unable to complete the operation because of an unknown issue.,,0,1,1,1
+train,DELL LC ,3,unknown,The arg1 is not installed correctly.,,0,1,1,1
+train,DELL LC ,3,unknown,Unable to run the command because of a general issue.,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 has a hardware error.,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer expired.,,0,1,1,1
+train,DELL LC ,3,unknown,General failure.,,0,1,1,1
+train,HPE IML,3,unknown,Intel Trusted Execution Error: Intel TXT BIOSACM has reported an error (code:0x%1),,0,1,1,1
+train,DELL LC ,3,unknown,An internal system error has occurred.,,0,1,1,1
+train,DELL LC ,3,unknown,An internal error occurred and a failover condition is detected.,,0,1,1,1
+train,syslog,2,unknown,kernel: Do you have a strange power saving mode enabled?,https://lore.kernel.org/all/Yi8f9PYNEHksy3io@hirez.programming.kicks-ass.net/T/,0,1,1,1
+train,HPE IML,3,unknown,Uncorrectable Machine Check Exception (Processor 1. APIC ID 0x00000032. Bank 0x00000005. Status 0xBEA00000'00000108. Address 0x01FFFFFF'97AEF5C6. Misc 0xD01C0000'00000000),,0,1,1,1
+train,DELL LC ,3,unknown,Communication with arg1 is intermittent.,,0,1,1,1
+test,DELL LC ,3,unknown,Server arg1 health changed to a critical state from either a normal or warning state.,,0,1,1,1
+train,HPE IML,3,unknown,System initialization error,,0,1,1,1
+test,DELL LC ,3,unknown,Intel Trusted Execution Technology (TXT) fatal error.,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer expired at arg1 .,,0,1,1,1
+train,DELL LC ,2,unknown,The system was reset due to a timeout from the watchdog timer.,,0,1,1,1
+train,syslog,2,unknown,"kernel: perf: Dynamic interrupt throttling disabled, can hang your system!",,0,1,1,1
+test,DELL LC ,3,unknown,Unable to service the request because of an internal system error.,,0,1,1,1
+test,HPE IML,3,unknown,"Improperly seated or missing device (%1, %2)",,0,1,1,1
+train,DELL LC ,2,unknown,arg1 in slot arg2 is offline.,,0,1,1,1
+test,DELL LC ,3,unknown,Timeout waiting for the device to respond.,,0,1,1,1
+test,DELL LC ,2,unknown,arg1 is switched OFF.,,0,1,1,1
+test,DELL LC ,3,unknown,A fatal error was detected on a component at slot arg1 .,,0,1,1,1
+train,HPE IML,3,unknown,Uncorrectable Machine Check Exception Extended Registers (Conf 0x00000003'000001F9. Ipid 0x000500B0'00000032. Synd 0x00000000'4D000000. DeStat 0x00000000'00000000. DeAddr 0x00000000'00000000 Misc1 0x0000000000000000),,0,1,1,1
+train,DELL LC ,3,unknown,The peripheral device in slot arg1 is in critical state.,,0,1,1,1
+train,DELL LC ,2,unknown,The arg1 has turned off because the critical temperature threshold is exceeded.,,0,1,1,1
+train,DELL LC ,3,unknown,Background Initialization (BGI) completed with uncorrectable errors on arg1 .,,0,1,1,1
+test,DELL LC ,2,unknown,The watchdog timer performed an AC power cycle on the system at arg1 .,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 was removed,,0,1,1,1
+train,DELL LC ,3,unknown,An unknown system hardware failure detected.,,0,1,1,1
+train,DELL LC ,3,unknown,The FRU on server arg1 is not functioning.,,0,1,1,1
+train,HPE IML,3,unknown,A critical system health error requires the systemto be shut down,,0,1,1,1
+test,DELL LC ,3,unknown,A Machine-Check Exception (MCE) error has occurred.,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer power cycled the system.,,0,1,1,1
+test,DELL LC ,3,unknown,An unexpected error occurred.,,0,1,1,1
+train,DELL LC ,3,unknown,Parity error.,,0,1,1,1
+train,DELL LC ,2,unknown,System Shutdown.,,0,1,1,1
+train,DELL LC ,3,unknown,A Flash corruption occurred in both the partitions of the component arg1 .,,0,1,1,1
+train,HPE IML,3,unknown,Intel Trusted Execution Error: Intel TXTSINITACM has reported an error (code:0x%1),,0,1,1,1
+train,DELL LC ,3,unknown,The sled arg1 is removed from slot arg2 .,,0,1,1,1
+train,HPE IML,3,unknown,A critical error occurred,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer restarted the system at arg1 .,,0,1,1,1
+train,DELL LC ,3,unknown,Server arg1 health changed to a non-recoverable state.,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer reset the system.,,0,1,1,1
+train,HPE IML,3,unknown,Unsupported Hardware Detected,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer powered off the system.,,0,1,1,1
+train,DELL LC ,3,unknown,One or more Machine Check errors occurred in the previous boot.,,0,1,1,1
+train,HPE IML,3,unknown,An unexpected shutdown was detected prior tothis boot,,0,1,1,1
+train,syslog,3,unknown,kernel: BERT: Error records from previous boot:,,0,1,1,1
+train,DELL LC ,3,unknown,Unable to read because the Field Replaceable Unit (FRU) is not functioning on the sled arg1 .,,0,1,1,1
+train,HPE IML,3,unknown,Uncorrectable Error detected on the previousboot,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 is not functional and is powered off.,,0,1,1,1
+train,DELL LC ,3,unknown,The arg1 is in read-only mode.,,0,1,1,1
+train,HPE IML,3,unknown,X64 Exception Type 0x%1 (%2) occurred duringthe previous boot. Image name: %3,,0,1,1,1
+train,DELL LC ,3,unknown,PCIe adapter arg1 in slot arg2 was removed while powered on.,,0,1,1,1
+test,DELL LC ,2,unknown,The watchdog timer turned off the system at arg1 .,,0,1,1,1
+test,DELL LC ,2,unknown,arg1 has been removed.,,0,1,1,1
+train,DELL LC ,3,unknown,The arg1 reliability has degraded.,,0,1,1,1
+train,DELL LC ,3,unknown,The operation was not successful.,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 was removed.,,0,1,1,1
+train,DELL LC ,3,unknown,Server arg1 health changed to a critical state from a non-recoverable state.,,0,1,1,1
+train,HPE IML,3,unknown,Hardware installation error,,0,1,1,1
+train,DELL LC ,3,unknown,POST fatal error detected.,,0,1,1,1
+train,DELL LC ,3,unknown,One or more chipset errors have occurred.,,0,1,1,1
+train,DELL LC ,3,unknown,The value of arg1 is greater than the upper critical threshold.,,0,1,1,1
+train,DELL LC ,3,unknown,arg1 initialization has failed.,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer interrupt was initiated.,,0,1,1,1
+test,DELL LC ,2,unknown,The arg1 is absent.,,0,1,1,1
+test,DELL LC ,3,unknown,A failure is detected on arg1 .,,0,1,1,1
+train,DELL LC ,3,unknown,Security subsystem errors detected for arg1 .,,0,1,1,1
+train,DELL LC ,2,unknown,The arg1 is removed.,,0,1,1,1
+train,DELL LC ,3,unknown,The system performance degraded.,,0,1,1,1
+train,DELL LC ,3,unknown,The arg1 arg2 operation was not successful.,,0,1,1,1
+train,DELL LC ,3,unknown,Server arg1 health changed to a non-recoverable state from a less severe state.,,0,1,1,1
+train,DELL LC ,2,unknown,The arg1 device may not function as expected because the device health status turned to Critical.,,0,1,1,1
+train,DELL LC ,3,unknown,Communication with arg1 was lost.,,0,1,1,1

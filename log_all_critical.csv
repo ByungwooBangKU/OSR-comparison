@@ -1,0 +1,1351 @@
+train/test,log type,severity,class,text,Reference,label_4class,label_node,label_job,label_total
+train,syslog,3,file system,"kernel: LustreError: LOG ID:(mdc_request.c:[kNUM]:mdc_quotactl()) ptlrpc_queue_wait failed, rc: -3",,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: Physical link of the NIC virbr[eth ID] is down,,0,1,1,1
+train,DELL LC ,2,board,Thermal: The ( arg1 ) reading ( arg2 C) exceeds the thermal limit.,,0,1,1,1
+train,DELL LC ,2,fan,The speed (RPM) of the arg1 fan arg2 is less than the lower critical threshold.,,0,1,1,1
+train,DELL LC ,3,"bios, firmware, driver",The iDRAC firmware is corrupted and unrecoverable.,,0,1,1,1
+train,syslog,3,file system,kernel: FAT-fs (sdb[NUM]:) Volume was not properly unmounted. Some data may be corrupt. Please run fsck.,,0,1,1,1
+train,DELL LC ,3,power,The system performance degraded because power capacity has changed.,,0,1,1,1
+test,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 32, pid=[PIDNUM], Channel ID [kNUM] intr0 [kNUM] intr1 [kNUM]",,0,1,1,1
+train,DELL LC ,2,memory,The memory module arg1 temperature is less than the lower critical threshold.,,0,1,1,1
+train,syslog,3,switch,nv-fabricmanager: NVSwitch port connected to GPU index [IDX] pci bus id [ID]:CC:00.0 experienced an NVLink fatal error and requires port reset to recover. All the running CUDA jobs [path] GPU will be affected.#012Resetting the specified GPU may clear the issue. Please refer to your system user [USER ID] for GPU reset instructions.,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",Unable to initialize Management Engine because the Management Engine is not responding.,,0,1,1,1
+test,syslog,3,file system,mmfs: [E] Close connection [ip] [agpu NODE ID] <c0n[interface ID]> (Broken pipe). Attempting reconnect.,,0,1,1,1
+train,syslog,3,storage,"kernel: nvme nvme1: I/O 19 QID [ID] timeout, reset controller",https://bugzilla.redhat.com/show_bug.cgi?id=1976411,0,1,1,1
+train,DELL LC ,3,memory,M: One or more memory errors have occurred during the Double Data Rate (DDR) memory channel initialization on the memory slot arg1 .,,0,1,1,1
+train,HPE IML,3,memory,"High rate of corrected memory errors,performance may be degraded",,0,1,1,1
+test,syslog,3,switch,"kernel: nvidia-nvswitch5: SXid (PCI:[device id]): [kNUM], SOE EXTERR",,0,1,1,1
+train,syslog,3,switch,"kernel: nvidia-nvswitch3: SXid (PCI:[device id]): [kNUM], Data {0x[kNUM]Jan 6 23:42:50 [agpu NODE ID] kernel: Linux version [version][kNUM]l8.x86_64 (mockbuild@x86-vm[kNUM]uild.eng.bos.redhat.com) (gcc version [version] [kNUM] (Red Hat [ADDR][kNUM]) (GCC)) #1 SMP Wed Sep 23 05:13:10 EDT [kNUM]",,0,1,1,1
+train,DELL LC ,2,power,The DC power supply is switched off.,,0,1,1,1
+train,syslog,3,nic,mount: mount.nfs: Network is unreachable,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE GRAPHICS GPCCLIENT_GCC faulted @ 0x[kNUM]_[kNUM] Fault is of type FAULT_PTE  access_TYPE_VIRT_READ",,0,1,1,1
+train,HPE IML,2,cpu,Processor UPI Initialization Error. A processorUPI initalization error was detected.,,0,1,1,1
+train,DELL LC ,3,memory,An uncorrectable Memory Error has occurred because a Dual Inline Memory Module (DIMM) is not functioning.,,0,1,1,1
+test,DELL LC ,2,"bus, io module, pci",Quick Path Interconnect (QPI) initialization error detected.,,0,1,1,1
+test,syslog,3,"bios, firmware, driver",root: nv_peer_mem: Error: Module nv_peer_mem does not exist,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: Spectrum Scale port [NUM] is not active,,0,1,1,1
+test,syslog,3,gpu,"NVRM: Xid (PCI:0000:4c:00): 31, pid=1545413, Ch 00000008, intr 00000000. MMU Fault: ENGINE GRAPHICS GPCCLIENT_T1_0 faulted @ 0x151f_b400a000. Fault is of type FAULT_PDE ACCESS_TYPE_VIRT_WRITE1",,0,1,1,1
+train,DELL LC ,2,board,The arg1 temperature is greater than the upper critical threshold.,,0,1,1,1
+train,syslog,3,service,"systemd: gpfs.service: Control process exited, code=exited status=1",,0,1,1,1
+train,syslog,3,"bus, io module, pci",kernel: pcieport [NUM]:a0:[kNUM]: PCI INT A: not connected,,0,1,1,1
+train,DELL LC ,2,power,The power input for power supply arg1 is lost.,,0,1,1,1
+train,DELL LC ,3,memory,Unsupported Unregistered Dual In-line Memory Module (UDIMM) memory is installed on memory slot: arg1 .,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] VERBS RDMA closed connection [ip] ([stnfs NODE ID]) [path] port [NUM] fabnum [NUM] index [IDX]0 [cookie ID] RDMA send error IBV_WC_WR_FLUSH_ERR,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: [kNUM]: Nothing registered for client mount! Is the 'lustre' module lo[kNUM]?,,0,1,1,1
+train,DELL LC ,3,storage,The FRU on storage sled arg1 is not functioning.,,0,1,1,1
+test,syslog,3,service,"systemd: local_scratch.mount: Mount process exited, code=exited status=32",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [sth NODE ID] <c0n[interface ID]>:[0] (Broken pipe). Attempting reconnect.,,0,1,1,1
+train,syslog,3,storage,"kernel: Buffer I/O error on dev sdb1, logical block 128, async page read",,0,1,1,1
+test,syslog,3,file system,"mmfs: [X] Recovery Log I/O failed, unmounting file system gpfs.sr06",,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The Management Engine firmware has recovered from one or more correctable errors.,,0,1,1,1
+train,syslog,3,switch,"kernel: nvidia-nvswitch0: SXid (PCI:[device id]): 19084, Non-fatal, Link 09 AN1 Heartbeat Timeout Error (First)",,0,1,1,1
+train,syslog,3,service,systemd: LSF.mount: Mounting timed out. Terminating.,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",iDRAC communication failure.,,0,1,1,1
+train,syslog,2,os,kernel: watchdog: BUG: soft lockup - CPU#[CPU NUM] stuck for [SEC]s! [zabbix_agent2:[NUM],https://blog.servis.co.kr/index.php/2019/03/06/kernelbug-soft-lockup-cpu7-stuck-for-67s/,0,1,1,1
+train,DELL LC ,2,battery,arg1 is unable to recover cached data from the Battery Backup Unit (BBU).,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 13, pid=[PIDNUM], Graphics SM Warp Exception (GPC 0, TPC 3, SM [NUM]:) Illegal Instruction",,0,1,1,1
+train,DELL LC ,2,power,A failure detected on power unit arg1 .,,0,1,1,1
+train,DELL LC ,3,memory,"Memory device status is critical. Memory device location: arg1 , Possible memory module event cause: arg2 .",,0,1,1,1
+train,syslog,3,service,systemd: nvidia-fabricmanager.service: Processes still around after final SIGKILL. Entering failed mode.,,0,1,1,1
+train,DELL LC ,3,fan,The fans are not redundant. Insufficient resources to maintain normal operations.,,0,1,1,1
+train,HPE IML,3,"setting, config","HPE Persistent Memory Configuration Error:(Major Code:%1, Minor Code:%2)",,0,1,1,1
+train,syslog,3,gpu,kernel: nvidia [device id]: can't recover (no error_detected callback),,0,1,1,1
+train,DELL LC ,3,storage,Fault detected on drive arg1 .,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: NVRM: The NVIDIA probe routine was not called for 4 device(s).,https://forums.developer.nvidia.com/t/nvidia-issue/177273/15,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: Physical link of the NIC ens[eth ID] is down,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 94, pid=[PIDNUM], Ch [kNUM]",,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:41:00): 31, pid=959064, Ch 00000012, intr 00000000. MMU Fault: ENGINE GRAPHICS GPCCLIENT_T1_13 faulted @ 0x14f4_84000000. Fault is of type FAULT_PDE ACCESS_TYPE_VIRT_READ",,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 13, pid=[PIDNUM], Graphics SM Warp Exception (GPC 0, TPC 0, SM [NUM]:) MMU Fault",,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(lmv_o[kNUM]:[kNUM]:lmv_quotactl()) getquota [path] 10 failed. -4,,0,1,1,1
+train,DELL LC ,2,"bios, firmware, driver",BIOS corruption is detected in the server.,,0,1,1,1
+test,HPE IML,3,memory,MemBIST MEMTEST: Uncorrectable memoryerror,,0,1,1,1
+test,DELL LC ,3,"bus, io module, pci",One or more PCIe device errors occurred in the previous boot.,,0,1,1,1
+train,DELL LC ,2,board,arg1 has crossed the minimum failure threshold.,,0,1,1,1
+test,syslog,3,"bmc, management module","kernel: ipmi_si IPI[kNUM]:00: The BMC does not support setting the recv irq bit, compensating, but the BMC needs to be fixed.","https://openipmi-developer.narkive.com/K6HoYoVk/bug-ipmi-null-device-printing-in-check-set-rcv-irq, https://lists.ubuntu.com/archives/kernel-team/2015-August/061623.html",0,1,1,1
+train,syslog,3,storage,"Server_Administrator: [NUM] - Storage Service Severity: Warning, Category: Storage, MessageID: CTL55, Message: Controller 0 (PERC H745 Adapter) event log: Enclosure PD 86(c None[path]) phy bad for slot 1",,0,1,1,1
+train,HPE IML,3,memory,Persistent memory error,,0,1,1,1
+train,DELL LC ,2,storage,Disk drive bay temperature is less than the lower critical threshold.,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",iDRAC is not responding after a recovery system reset was performed.,,0,1,1,1
+train,syslog,3,nic,kernel: ? tg3_io_error_detected+[ADDR][path] [tg3],,0,1,1,1
+train,syslog,3,file system,"mmfs: Error=MMFS_PHOENIX, ID=[ID], Tag=[ID]: reason 46 Failure reason mmchdisk for any disk failures and re-mount.",,0,1,1,1
+test,syslog,3,file system,auditd: Audit daemon suspending logging due to no space left on logging partition.,https://techintguru.blogspot.com/2017/04/audit.html,0,1,1,1
+test,DELL LC ,2,"voltage, current",The system board arg1 current is outside of range.,,0,1,1,1
+test,syslog,3,service,systemd: nvidia-fabricmanager.service: Killing [PID] (nv-fabricmanage) with signal SIGKILL.,,0,1,1,1
+train,DELL LC ,3,nic,Unable to connect to DHCP server.,,0,1,1,1
+train,DELL LC ,3,memory,The Non-Volatile Dual In-line Memory Module (NVDIMM) device in the slot arg1 has lost persistency and is placed in write-protect mode.,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The Intel Management Engine has indicated that an SMBus link failure has occurred.,,0,1,1,1
+test,syslog,3,file system,"mmfs: [E] Leaving cluster sr06.[sth NODE ID], due to expired lease",,0,1,1,1
+train,DELL LC ,2,power,Power supply arg1 is absent.,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: Reconnect to [ip] [vngpuc NODE ID] <c0n[interface ID]> failed,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 62, pid=8676, 0a99(17e8) 040113d9 575e2859",,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE GRAPHICS GPCCLIENT_T1_12 faulted @ 0x[kNUM]_[kNUM] Fault is of type FAULT_PTE  access_TYPE_VIRT_READ",,0,1,1,1
+train,DELL LC ,3,memory,Multi-bit ECC error on arg1 DIMM.,,0,1,1,1
+train,syslog,3,os,kdumpctl: dracut: installkernel failed in module kernel-modules-extra,,0,1,1,1
+train,syslog,3,file system,mmfs: [X] A severe error was encountered during cluster probe.,,0,1,1,1
+train,HPE IML,2,power,NVDIMM backup power has been lost and afuture backup is not possible,,0,1,1,1
+train,syslog,3,file system,"kernel: LNetError: LOG ID:(o2iblnd_[kNUM]:[kNUM]:kiblnd_check_txs_locked()) Timed out tx: tx_queue, [SEC] seconds",,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A PCI parity error was detected on a component at bus arg1 device arg2 function arg3 .,,0,1,1,1
+test,HPE IML,3,memory,A memory error has occurred,,0,1,1,1
+train,DELL LC ,2,"bus, io module, pci",Power fault event has occurred in the IO Module in slot arg1 .,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: nvidia_peermem: Unknown symbol nvidia_p2p_dma_map_pages (err -22),,0,1,1,1
+train,HPE IML,2,power,Power fault detected: Embedded storagecontroller,,0,1,1,1
+test,syslog,3,file system,"mmfs: [X] File System gpfs.sr06 unmounted by the system with return code 16, reason 1358466932, at line 1132 in [path]",,0,1,1,1
+train,HPE IML,3,memory,HPE Persistent Memory Module error,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(layout.c:[kNUM]:__req_capsule_get()) @@@ Wrong buffer for field `obd_quotactl' ([NUM] of 1) in format `OST_QUOTACTL': 0 vs. 112 (server)#012 req@[ID] x[ID][path]([NUM]) o19->lsr07-OST[kNUM]osc-[ID]@[ip]@o2ib:28[path] lens 336[path] e 0 to 0 dl [kNUM] ref 1 fl Complete:RN[path] rc [kNUM][path],,0,1,1,1
+train,DELL LC ,3,storage,Optical Drive arg1 - Incorrect status = arg2 arg3 .,,0,1,1,1
+test,DELL LC ,2,board,The chassis inlet temperature is greater than the upper critical threshold temperature.,,0,1,1,1
+train,DELL LC ,2,fan,arg1 RPM is outside of normal operating range.,,0,1,1,1
+train,syslog,3,file system,sa1: Cannot write data to system activity file: no space left on device,,0,1,1,1
+train,DELL LC ,3,memory,ECC Memory error rate failover condition detected.,,0,1,1,1
+train,syslog,3,os,"dracut: dracut module 'stratis' will not be installed, because command 'stratisd-init' could not be found!",,0,1,1,1
+test,syslog,3,file system,kernel: LustreError: [kNUM]: lscr21-MDT[kNUM]mdc-[ID]: operation to node [ip]@o2ib[eth ID] failed: rc = -16,,0,1,1,1
+train,syslog,3,storage,"Server_Administrator: [NUM] - Storage Service Severity: Critical, Category: Storage, MessageID: STOR0212, Message: The Enclosure 0:1 [path] 0 at Connector 0 has failed.",,0,1,1,1
+train,DELL LC ,3,power,The use of 110V is unacknowledged and the chassis cannot grant power on permission to the server.,,0,1,1,1
+train,syslog,3,switch,"kernel: nvidia-nvswitch2: SXid (PCI:[device id]): 26002, Failed to boot SOE([NUM])",,0,1,1,1
+train,HPE IML,2,fan,"%1 Storage system fan failure (%2 Slot %3, Fan%4, Location %5)",,0,1,1,1
+train,HPE IML,3,cpu,Processor Built-In Self-Test (BIST) failure,,0,1,1,1
+train,syslog,2,power,"Server_Administrator: [NUM] - Instrumentation Severity: Critical, Category: System Health, MessageID: PSU0912, Message: A failure detected [path] unit PS2 Status.",,0,1,1,1
+train,HPE IML,3,memory,HPE Persistent Memory Error,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:08:00): 69, pid=222118, Class Error: ChId 004b, Class 0000c197, Offset 00001944, Data 00000005, ErrorCode 0000000c",,0,1,1,1
+test,DELL LC ,3,storage,The peripheral sled in the slot arg1 has an internal cable disconnected or is missing required expanders.,,0,1,1,1
+train,syslog,3,os,"dracut: dracut module 'plymouth' will not be installed, because it's in the list to be omitted!",,0,1,1,1
+train,DELL LC ,3,board,Unable to turn on the server because the chassis cover is open.,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: The file system gpfs.ml3 was forced (forced) to unmount.,,0,1,1,1
+test,syslog,3,file system,pmlogger_daily: mktemp: failed to create directory via template ??path]?? no space left on device,,0,1,1,1
+train,DELL LC ,2,power,The power cord sensor is non-functional.,,0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 protocol error detected.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",The disk drive bay arg1 voltage is less than the lower critical threshold.,,0,1,1,1
+train,DELL LC ,2,power,Power supply arg1 failed.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",The system board arg1 current is less than the lower critical threshold.,,0,1,1,1
+train,DELL LC ,2,power,An interlock power down error detected on power unit arg1 .,,0,1,1,1
+train,syslog,3,file system,abrtd: Marking '[path][TIMESTAMP]' not reportable (no 'count' item),https://forums.fedoraforum.org/showthread.php?295214-systemd-and-separate-var-partition,0,1,1,1
+test,DELL LC ,3,memory,Single-bit ECC error limit exceeded on the arg1 DIMM.,,0,1,1,1
+train,syslog,3,file system,"kernel: LustreError: LOG ID:(osc_request.c:[kNUM]:brw_interpret()) lsr05-OST[kNUM]osc-[ID]: too many resent retries for object: 107LOG I[kNUM], rc = [kNUM]",,0,1,1,1
+train,syslog,3,service,"kernel: lockd: failed to reclaim lock for [PID] (errno 0, status 1)",,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: nvidia: module verification signature and/or required key missing - tainting kernel,,0,1,1,1
+train,DELL LC ,2,board,The chassis inlet temperature is less than the lower critical threshold temperature.,,0,1,1,1
+train,HPE IML,3,memory,NVDIMM is not accessible,,0,1,1,1
+train,syslog,3,file system,"mmfs: [X] Health check thread is unresponsive, suspending disk lease renewals",,0,1,1,1
+train,HPE IML,3,memory,HPE Persistent Memory Health Error: Processor%1 DIMM %2 (SN: %3),,0,1,1,1
+test,DELL LC ,2,cpu,CPU arg1 is absent,,0,1,1,1
+test,syslog,3,"resource management, scheduler",kernel: [PID](systemd-journal) over core_pipe_limit,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: The IBM Spectrum Scale service process not running [path] node. Normal operation be done.,,0,1,1,1
+test,syslog,3,storage,"kernel: ata[kNUM]: HPA support seems broken, skipping HPA handling",google : [log],0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 has a thermal trip (over-temperature) event.,,0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 initialization error detected.,,0,1,1,1
+train,syslog,3,service,"systemd: libvirtd.service: Main process exited, code=exited, status=3[path]",,0,1,1,1
+train,syslog,3,os,kernel: arp_error_report+[ADDR][path],https://lkml.iu.edu/hypermail/linux/kernel/1005.3/02089.html,0,1,1,1
+test,DELL LC ,3,"bus, io module, pci",Internal I/O failure.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",The power input for CPU arg1 voltage regulator module is lost.,,0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 temperature is outside of range.,,0,1,1,1
+train,DELL LC ,3,storage,Bad block medium error is detected at block arg1 on arg2 .,,0,1,1,1
+test,DELL LC ,2,power,Power supply cable has been removed from arg1 .,,0,1,1,1
+train,syslog,3,file system,collectl: E-Error writing to raw.gz file: no space left on device,https://ko.linux-console.net/?p=1093#gsc.tab=0,0,1,1,1
+train,HPE IML,3,"bus, io module, pci",PCIe Full Slot Training Failure,,0,1,1,1
+train,DELL LC ,2,"voltage, current",An under current fault detected on power supply arg1 .,,0,1,1,1
+train,DELL LC ,2,power,Power supply arg1 revision mismatch detected.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",Processor module arg1 voltage is greater than the upper critical threshold.,,0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 is stuck in POST.,,0,1,1,1
+train,DELL LC ,3,board,Unable to turn on the server because of current chassis storage setup or the chassis storage settings.,,0,1,1,1
+train,syslog,3,switch,"kernel: nvidia-nvswitch5: SXid (PCI:[device id]): [kNUM], SOE HALTED",,0,1,1,1
+train,DELL LC ,3,memory,An uncorrectable Memory Error has occurred because a Non-Volatile Dual In-line Memory Module (NVDIMM) is not functioning.,,0,1,1,1
+train,HPE IML,3,memory,Unsupported NVDIMM-N configuration detected- Processor %1 DIMM %2,,0,1,1,1
+test,syslog,3,file system,kernel: LNetError: LOG ID:(o2iblnd.c:[kNUM]:kiblnd_startup()) ko2iblnd: No matching interfaces,,0,1,1,1
+train,DELL LC ,2,board,System board - Data errors.,,0,1,1,1
+train,DELL LC ,3,nic,Unable to connect to the DNS server.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",Intel QPI interconnect arg1 has degraded.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(llite_lib.c:[kNUM]:ll_md_setattr()) md_setattr fails: rc = -4,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",One or more PCIe switch heatsinks are not properly attached.,,0,1,1,1
+train,DELL LC ,2,board,The system inlet temperature is greater than the upper critical threshold.,,0,1,1,1
+train,syslog,3,switch,nv-fabricmanager: NVSwitch port connected to GPU index [IDX] pci bus id [ID][device id] experienced an NVLink fatal error and requires port reset to recover. All the running CUDA jobs [path] GPU will be affected.#012Resetting the specified GPU may clear the issue. Please refer to your system user [USER ID] for GPU reset instructions.,,0,1,1,1
+train,syslog,3,"bus, io module, pci","Server_Administrator: [NUM] - Instrumentation Severity: Warning, Category: System Health, MessageID: SYS105, Message: Unable to process the event: A bus fatal error was detected [path] component at slot 21. Date and time of event: Sun Oct 9 23:49:51 2022.",,0,1,1,1
+test,DELL LC ,2,"voltage, current",System level current is greater than the upper critical threshold.,,0,1,1,1
+test,HPE IML,3,"bios, firmware, driver",Server Platform Services Firmware in RecoveryMode. System Halted.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(osc_request.c:[kNUM]:osc_init_grant()) lsr05-OST[kNUM]osc-[ID]: granted [kNUM] but already consumed [kNUM],,0,1,1,1
+train,syslog,3,memory,kernel: bad_page.col[kNUM]+[ADDR][path],http://barriosstory.blogspot.com/2009/08/bad-page-state.html,0,1,1,1
+train,DELL LC ,3,memory,A DIMM with an incompatible number of ranks is installed on memory slot: arg1 .,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: The filesystem gpfs.sr06 was forced (forced) to unmount,,0,1,1,1
+train,DELL LC ,3,memory,Memory resource allocation failure.,,0,1,1,1
+train,DELL LC ,3,nic,"Unable to access server: arg1 , because the NIC is disabled on the identified server.",,0,1,1,1
+test,DELL LC ,2,cpu,CPU arg1 machine check error detected.,,0,1,1,1
+train,DELL LC ,2,power,Unable to process the power-on request because of an internal error.,,0,1,1,1
+train,DELL LC ,2,power,The Chassis Manager is unable to obtain valid power allocation values because of an internal error.,,0,1,1,1
+test,DELL LC ,3,power,Server failed to power up due to noncontinuous power action.,,0,1,1,1
+train,HPE IML,3,memory,DIMM failure - Uncorrectable memory error - %1%2 Dimm %3.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(obd_config.c:559:class_setup()) setup MGC[ip]@o2ib failed (-2),,0,1,1,1
+train,syslog,3,os,"dracut: dracut module 'btrfs' will not be installed, because command 'btrfs' could not be found!",https://bugzilla.redhat.com/show_bug.cgi?id=1961935,0,1,1,1
+train,DELL LC ,3,storage,Hard Drive - Not installed.,,0,1,1,1
+train,HPE IML,3,"bus, io module, pci",Unsupported PCIe Card Configuration. The PCIedevice installed in Slot %1 is not supported in thecurrent location.,,0,1,1,1
+test,DELL LC ,3,"bmc, management module",The CMC/MM is unable to turn on the I/O module arg1 .,,0,1,1,1
+test,DELL LC ,2,battery,The system board battery is absent.,,0,1,1,1
+train,DELL LC ,3,"voltage, current",An error occurred during Voltage Regulator (VR) initialization on memory riser arg1 .,,0,1,1,1
+train,HPE IML,3,storage,Drive array controller error,,0,1,1,1
+train,DELL LC ,2,"bmc, management module",The Management Module at slot arg1 has detected thermal issues.,,0,1,1,1
+train,HPE IML,3,storage,Drive failure,,0,1,1,1
+train,DELL LC ,2,power,Soft power control failure detected on power unit arg1 .,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: [kNUM]: MGC[ip]@o2ib[eth ID]: connection MGS (at [ip]@o2ib[eth ID]) was lost; in progress operations using this service will fail,,0,1,1,1
+test,HPE IML,3,storage,Slot X Drive Array: Cache Module critical error,,0,1,1,1
+train,DELL LC ,3,nic,Unable to Send the Test Trap because the Entered Destination Address is Invalid or Not Reachable.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver","openib[eth ID]: Module ib_ipoib does not exist, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+train,syslog,3,storage,"kernel: nvme nvme0: I/O 5 QID [ID] timeout, completion",,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE HOST2 HUBCLIENT_ESC faulted @ [ADDR]_[kNUM] Fault is of type FAULT_PDE  access_TYPE_VIRT_READ",,0,1,1,1
+train,syslog,3,storage,"kernel: blk_update_request: critical target error, dev nvme1n1, sector [NUM] op [ADDR]:(READ) flags [ADDR] phys_seg [NUM] prio class 0",,0,1,1,1
+test,DELL LC ,3,memory,The data in the Persistent Memory DIMM located in memory slot arg1 is not accessible because the DIMM is locked and the passphrase is incorrect.,,0,1,1,1
+test,HPE IML,3,storage,RAID level invalid,,0,1,1,1
+train,syslog,3,file system,kernel: XFS (md[NUM]:) log mount[path] failed: error -5,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The Management Engine experienced a HECI error: arg1 .,,0,1,1,1
+train,DELL LC ,2,cpu,Unrecoverable CPU complex error detected on CPU arg1 .,,0,1,1,1
+test,syslog,3,service,systemd: gpfs.service: Killing [PID] (runmmfs) with signal SIGKILL.,,0,1,1,1
+test,DELL LC ,2,battery,The coin cell battery in CMC arg1 is not working.,,0,1,1,1
+test,DELL LC ,3,nic,Unable to access server: arg1 because both IPv4 and IPv6 are disabled. NIC Enabled = arg2 .,,0,1,1,1
+test,syslog,3,switch,nv-fabricmanager: NVSwitch failure detected and degraded mode configuration to abort Fabric Manager,,0,1,1,1
+train,syslog,3,file system,"mmfs: Error=MMFS_PHOENIX, ID=[ID], Tag=[ID]: reason 2 Failure reason failed for gpfs.sr06 after daemon",,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The Chassis Controller/Management Module is not responding or is not inserted properly. The status of Chassis Controller/Management Module is critical.,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 13, pid=1238, Graphics SM Warp Exception on (GPC 1, TPC 2): Misaligned Address",,0,1,1,1
+train,syslog,3,service,gdrcopy: libkmod: kmod_module_get_holders: could not open '[path]': No such file or directory,,0,1,1,1
+test,DELL LC ,2,board,The system inlet temperature is outside of range.,,0,1,1,1
+test,DELL LC ,3,storage,Drive mismatch detected for drive arg1 in disk drive bay arg2 .,,0,1,1,1
+train,HPE IML,3,cpu,Unsupported processor detected,,0,1,1,1
+train,syslog,3,file system,kernel: LNetError: LOG ID:(o2iblnd.c:[kNUM]:kiblnd_startup()) ko2iblnd: Can't initialize device: rc = -19,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:0a:00): 32, Channel ID 00000050 intr 00040000",,0,1,1,1
+train,DELL LC ,2,power,Power lost on power unit arg1 .,,0,1,1,1
+train,DELL LC ,3,storage,"Hard Drive arg1 - S/N arg2 , incorrect status = arg3 \n arg4 .",,0,1,1,1
+train,DELL LC ,2,storage,No bootable devices.,,0,1,1,1
+train,HPE IML,2,power,Power fault detected: Mezzanine X,,0,1,1,1
+train,DELL LC ,3,memory,Memory interconnect degraded.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",The arg1 voltage is greater than the upper critical threshold.,,0,1,1,1
+train,syslog,2,"voltage, current",Server_Administrator: [NUM] - Instrumentation Voltage sensor value unknown #012Sensor location: PS1 Voltage 1 #012Chassis location: Main System Chassis #012Previous state was: OK (Normal) #012Voltage sensor value (in Volts): 0.000,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:01:00 GPU-I:05): 94, pid=7194, Contained: CE User Channel (0x9). RST: No, D-RST: No",,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 94, pid=[PIDNUM], Contained: SM ([NUM]x1). RST: No, D-RST: No",,0,1,1,1
+test,HPE IML,3,storage,Smart array drive(s) failed,,0,1,1,1
+train,HPE IML,3,"bus, io module, pci","Uncorrectable PCI Express Error Detected.NVMe Box %1 Bay %2 (Segment 0x%3, Bus0x%4, Device 0x%5, Function 0x%6).Uncorrectable Error Status: 0x%7",,0,1,1,1
+train,DELL LC ,2,battery,The arg1 battery has reached the end of its life.,,0,1,1,1
+train,DELL LC ,3,nic,Unable to execute the command because the target device IP is not reachable: arg1 .,,0,1,1,1
+test,HPE IML,3,"bus, io module, pci","Uncorrectable PCI Express Error Detected. [UNKNOWN] 0 (Segment 0x0. Bus 0x83. Device 0x0. Function 0x0).  Uncorrectable Error Status: 0x0,",,0,1,1,1
+test,syslog,3,service,systemd: Failed to start General Parallel File System SDR Daemon.,,0,1,1,1
+train,HPE IML,2,power,System Power Supply: General Failure (Power Supply 6),,0,1,1,1
+train,syslog,3,"bios, firmware, driver","openib[eth ID]: Module mlx5_core belong to kernel-core which is not a part of MLNX_OFED, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+train,DELL LC ,2,"voltage, current",The arg1 sensor detected an error with a value of arg2 Volts.,,0,1,1,1
+test,syslog,3,service,"kernel: lockd: failed to reclaim lock for [PID] (errno -37, status 4)",,0,1,1,1
+train,syslog,3,file system,kernel: XFS (md[NUM]:) Invalid block length ([NUM]x0) for buffer,,0,1,1,1
+train,syslog,3,switch,"kernel: nvidia-nvswitch0: SXid (PCI:[device id]): 20034, Severity 0 Engine instance 24 Sub-engine instance 00",,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: IB RDMA NIC mlx5_0[path] was not recognized,,0,1,1,1
+train,DELL LC ,3,board,Unable to turn on the server because the chassis infrastructure not ready.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",One or more PCI Parity errors (PERR) have occurred.,,0,1,1,1
+train,DELL LC ,2,"bmc, management module",The system is halted because there is no response from the Management Module in return to a request for supplying extra power.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Deleted node [ip] ([agpu NODE ID]) is still up.,,0,1,1,1
+train,syslog,2,os,abrt-dump-journal-oops: abrt-dump-journal-oops: Found oopses: 1,https://www.mankier.com/1/abrt-dump-journal-oops,0,1,1,1
+train,syslog,3,os,kernel: Expanded resource Reserved due to conflict with PCI Bus [kNUM]:00,,0,1,1,1
+train,DELL LC ,3,memory,Cannot allocate memory.,,0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 failed to initialize.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: nvidia_peermem: Unknown symbol ib_unregister_peer_memory_client (err 0),https://forums.developer.nvidia.com/t/rivermax-gpudirect/228633,0,1,1,1
+train,syslog,3,service,systemd: nvidia-persistenced.service: Killing process ([NUM]) (nvidia-persiste) with signal SIGKILL.,,0,1,1,1
+test,syslog,3,file system,"mmfs: [E] Timeout executing cmdexec compatible pipeOpen command ""[path]"" args ""mmksh -c [path] [path] 2>[path] "" with delay 104.857500 secs, num read status 20",,0,1,1,1
+train,DELL LC ,3,"voltage, current",The mezzanine card arg1 arg2 voltage is less than the lower critical threshold.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A bus time-out was detected on a component at bus arg1 device arg2 function arg3 .,,0,1,1,1
+train,HPE IML,3,memory,NVDIMM arming error,,0,1,1,1
+test,DELL LC ,2,board,The control panel temperature is greater than the upper critical threshold.,,0,1,1,1
+train,DELL LC ,3,"voltage, current",The memory module arg1 arg2 voltage is outside of range.,,0,1,1,1
+train,HPE IML,2,power,The Battery Backup Unit in Power Supply bay%1 is discharging,,0,1,1,1
+train,DELL LC ,2,"bios, firmware, driver",The BIOS Recovery process failed consecutively for three times because of unknown issues.,,0,1,1,1
+train,DELL LC ,2,power,PSU arg1 exceeded upper temperature threshold and has been turned off.,,0,1,1,1
+train,DELL LC ,2,board,The system is automatically turned off because of insufficient cooling.,,0,1,1,1
+train,DELL LC ,3,memory,Intel SMI 2 Memory interconnect arg1 has a non-recoverable issue.,,0,1,1,1
+test,syslog,3,service,gdrcopy: modinfo: ERROR: Module gdrdrv not found.,,0,1,1,1
+train,syslog,3,file system,kernel: XFS (md[NUM]:) last sector read failed,,0,1,1,1
+train,syslog,3,gpu,kernel: NVRM: The NVIDIA GPU [device id]#012NVRM: (PCI ID: [kNUM]:[kNUM]) installed in this system has#012NVRM: fallen off the bus and is not responding to commands.,,0,1,1,1
+test,syslog,3,service,systemd: nvidia-fabricmanager.service: State 'stop-sigterm' timed out. Killing.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: mlx_compat: loading out-of-tree module taints kernel.,,0,1,1,1
+train,HPE IML,2,board,Server Critical Fault (Service Information: Fault Type Unknown. Riser Card Assembly. Riser Boards Temp (02h)),,0,1,1,1
+train,HPE IML,3,power,Unsupported power supply detected,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A bus uncorrectable error was detected on a component at slot arg1 .,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(ldlm_resour[kNUM]:[kNUM]:ldlm_resource_complain()) lsr07-MDT[kNUM]mdc-[ID]: namespace resource [[ADDR]LOG IDx1:[ADDR]].[ADDR] ([ID]) refcount nonzero ([NUM]) after lock cleanup; forcing cleanup.,,0,1,1,1
+train,HPE IML,3,memory,NVDIMMs have been removed from Processor%1. All NVDIMMs on Processor %2 have beendisabled,,0,1,1,1
+train,HPE IML,2,power,Mismatched power supply,,0,1,1,1
+train,syslog,3,file system,"kernel: LustreError: LOG ID:(osc_quota.c:309:osc_quotactl()) ptlrpc_queue_wait failed, rc: -5",,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: nvidia_peermem: Unknown symbol nvidia_p2p_dma_unmap_pages (err -22),,0,1,1,1
+test,DELL LC ,3,"bmc, management module",The Chassis Management Controller (CMC) is unable to communicate with the PCIe subsystem.,,0,1,1,1
+train,syslog,3,storage,"smartd: Device: [path], Critical Warning ([ADDR]): VolMemBackup",,0,1,1,1
+test,DELL LC ,2,memory,Memory device at location arg1 is overheating.,,0,1,1,1
+test,HPE IML,3,memory,"NVDIMM error: Processor %1, DIMM %2(SN:%3-%4-%5-%6)",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [sth NODE ID] <c0n[interface ID]> (Node failed). Attempting reconnect.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(lmv_o[kNUM]:[kNUM]:lmv_statfs()) lsr05-MDT[kNUM]mdc-[ID]: can't stat MDS #0: rc = -5,,0,1,1,1
+train,DELL LC ,3,board,Unable to complete the operation because of an issue with the I/O panel cable.,,0,1,1,1
+train,syslog,3,"setting, config",kernel: device [device ID]ns[eth ID] entered promiscuous mode,https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=geeksblog&logNo=20028102231,0,1,1,1
+train,syslog,3,storage,kernel: buffer_io_error: [NUM] callbacks suppressed,,0,1,1,1
+test,HPE IML,3,memory,"NVDIMM Error: Processor %1, DIMM %2.NVDIMM set for interleaving enabled but systemconfigured for interleaving disabled. NVDIMMhas been disabled.",,0,1,1,1
+train,syslog,3,file system,"mmfs: [E] sdrServ: Communication [path] 132 (<none>)[path], [err 11] Resource temporarily unavailable",,0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 is disabled.,,0,1,1,1
+test,DELL LC ,3,memory,Unable to allocate memory.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",root: nv_peer_mem: Error: the following required module is not loaded: ib_core,,0,1,1,1
+train,syslog,3,switch,"kernel: nvidia-nvswitch1: SXid (PCI:[device id]): 26004, Timed out while waiting for SOE command completion",,0,1,1,1
+train,DELL LC ,2,"voltage, current",The arg1 sensor has failed with a value arg2 Volts.,,0,1,1,1
+train,syslog,3,service,systemd: Failed to start General Parallel File System CCR Monitor.,,0,1,1,1
+train,syslog,3,"bus, io module, pci",kernel: pcieport [NUM]:c5:[kNUM]: BAR [NUM]: failed to assign [io size 0x[kNUM]],,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: mlx5_core [device id]: print_health_info:468:([PID]): synd [ADDR]: firmware internal error,,0,1,1,1
+train,DELL LC ,2,fan,Fan arg1 is absent.,,0,1,1,1
+train,syslog,2,"voltage, current",Server_Administrator: [NUM] - Instrumentation Voltage sensor detected a failure value #012Sensor location: System Board PDB_VRD_PG_ALL #012Chassis location: Main System Chassis #012Previous state was: Unknown #012Discrete voltage state: Bad,,0,1,1,1
+train,DELL LC ,2,"bus, io module, pci",Quick Path Interconnect (QPI) initialization error detected on processor arg1 .,,0,1,1,1
+train,syslog,3,os,kernel: pci [pci id] BAR [NUM]: no space for [mem size 0x[kNUM]],,0,1,1,1
+train,syslog,3,nic,lldpad: init_ports: Error adding device ib[eth ID],,0,1,1,1
+test,syslog,2,os,kernel: BUG: Bad page state in process python pfn:[kNUM],https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1007082,0,1,1,1
+train,DELL LC ,3,memory,An error occurred during DDR memory channel initialization on memory slots: arg1 .,,0,1,1,1
+train,HPE IML,3,power,A degraded power event has been detected andthe server should be replaced.,,0,1,1,1
+train,syslog,3,memory,kernel: Memory failure: buffer overflow when queuing memory failure at [ADDR]x[kNUM],,0,1,1,1
+test,DELL LC ,3,"setting, config",A configuration error was detected in the device located here: arg1 . Additional Details: arg2 .,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",iDRAC is not responding.,,0,1,1,1
+train,DELL LC ,3,memory,One or more memory errors have occurred during the Double Data Rate (DDR) memory channel initialization on the memory slot arg1 .,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] This node is being expelled from the cluster.,,0,1,1,1
+train,DELL LC ,3,storage,Unable to monitor or manage SAS components because the initialization sequence of the devices did not complete.,,0,1,1,1
+train,DELL LC ,2,board,The system board arg1 temperature is greater than the upper critical threshold.,,0,1,1,1
+test,syslog,3,file system,mmfs: [E] Remount failed for device gpfs.sr06: Device or resource busy,,0,1,1,1
+train,syslog,3,power,kernel: mlx5_core [device id]: mlx5_pcie_event:291:([PID]): Detected insufficient power [path] PCIe slot ([NUM]W).,,0,1,1,1
+train,DELL LC ,2,board,The control panel temperature is less than the lower critical threshold.,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE GRAPHICS GPCCLIENT_T1_10 faulted @ 0x[kNUM]_[kNUM] Fault is of type FAULT_WORK_CREATION  access_TYPE_VIRT_READ",,0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 - Machine check exception detected.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: [kNUM]: lscr21-MDT[kNUM]mdc-[ID]: This client was evicted by lscr21-MDT[kNUM]; in progress operations using this service will fail.,,0,1,1,1
+train,DELL LC ,3,power,Power supply arg1 is offline.,,0,1,1,1
+train,syslog,3,power,kernel: mlx5_core [device id]: mlx5_pcie_event:301:([PID]): Detected insufficient power [path] PCIe slot ([NUM]W).,,0,1,1,1
+train,HPE IML,3,"bus, io module, pci",PCIe Slot %1 failed to train or no device detectedon a bifurcated slot.,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 74, pid=[PIDNUM], NVLink: fatal error detected [path] 0([NUM]x0, [ADDR], [ADDR], 0x[kNUM], [ADDR], [ADDR], [ADDR])",,0,1,1,1
+train,DELL LC ,3,nic,The arg1 network link is down.,,0,1,1,1
+test,DELL LC ,2,power,The Power Supply Units (PSUs) in the system do not match.,,0,1,1,1
+train,DELL LC ,2,memory,The Non-Volatile Dual In-Line Memory Module (NVDIMM) in the memory slot arg1 has encountered a thermal shutdown event during the previous boot.,,0,1,1,1
+test,syslog,3,file system,"mmsysmon: [E] Event raised: GPFS CCR client initialization Item=CCR_CLIENT_INIT,ErrMsg='Security initializati[path]',Failed='Security'",,0,1,1,1
+train,DELL LC ,2,os,"OS - Suspect corrupt MBR, verify MBR with Anti-Virus Application.",,0,1,1,1
+train,DELL LC ,2,"bus, io module, pci",Quick Path Interconnect (QPI) links are operating in slow speed mode.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [agpu NODE ID] <c0n[interface ID]>:[1] (No route to host). Attempting reconnect.,,0,1,1,1
+train,HPE IML,2,power,Power fault detected,,0,1,1,1
+train,DELL LC ,3,power,Chassis Management Controller is unable to turn on server arg1 due to insufficient power for the arg2 .,,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Smart Array: Drive media errors couldnot be recovered by RAID protection,,0,1,1,1
+test,DELL LC ,3,board,"The arg1 sensor has failed, and the last recorded value by the sensor was arg2 A.",,0,1,1,1
+train,DELL LC ,2,"voltage, current",Processor module arg1 voltage is less than the lower critical threshold.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",Chassis power level current is outside of range.,,0,1,1,1
+train,DELL LC ,3,"bios, firmware, driver",Lifecycle Controller (LC) firmware was not accessible and is therefore in Recovery mode.,,0,1,1,1
+test,DELL LC ,3,memory,Memory device at location arg1 is not installed correctly.,,0,1,1,1
+train,DELL LC ,2,battery,Battery - Charge cycles exceeded maximum limit. :OR: Charger - Charge cycles exceeded maximum limit.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A failure is detected on IO module arg1 .,,0,1,1,1
+train,syslog,3,"bus, io module, pci",pmlogger_daily: Failed to connect to bus: Resource temporarily unavailable,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: acpi PNP[kNUM]:00: _OSC: platform does not support [SHPCHotplug AER DPC],https://bbs.archlinux.org/viewtopic.php?id=257499,0,1,1,1
+test,syslog,3,file system,kernel: LNetError: LOG ID:(lib-move.c:[kNUM]:lnet_handle_find_routed_path()) no route to [ip]@o2ib from <?>,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(llite_lib.c:[kNUM]:ll_prep_inode()) new_inode -fatal: rc -4,,0,1,1,1
+train,DELL LC ,3,memory,One or more memory errors have occurred on memory slot: arg1 .,,0,1,1,1
+train,HPE IML,2,power,Power supply %1 has exceeded the current limit.Power supply output will be disabled.,,0,1,1,1
+train,syslog,3,nic,mmsysmon: [E] Event raised: NIC bond[eth ID] is down.,,0,1,1,1
+train,DELL LC ,2,board,A CMOS checksum error has occurred. CMOS is reinitialized.,,0,1,1,1
+train,syslog,3,os,kernel: pci [pci id] BAR [NUM]: no space for [io size 0x[kNUM]],,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Lost membership in cluster sr06.[sth NODE ID]. Unmounting file systems.,,0,1,1,1
+train,HPE IML,3,storage,Boot from flash error (%1),,0,1,1,1
+train,DELL LC ,2,"bus, io module, pci",Intel QPI interconnect arg1 has a non-recoverable issue.,,0,1,1,1
+train,HPE IML,3,"bios, firmware, driver",Invalid firmware image detected on NVDIMM.,,0,1,1,1
+train,syslog,3,service,gdrcopy: Module gdrdrv does not exist,,0,1,1,1
+train,syslog,3,service,pmlogger: Failed to get unit file state for pmlogger.service: connection out,,0,1,1,1
+test,DELL LC ,2,fan,The Chassis was turned off because more than two internal fans stopped functioning.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",The disk drive bay arg1 voltage is outside of range.,,0,1,1,1
+train,syslog,3,file system,"mmfs: [E] sdrServ: Communication [path] 73 ([ip]) @handleRpcReq[path], [err 144] connection down",,0,1,1,1
+train,syslog,3,nic,mmsysmon: [E] Event raised: Physical link of the NIC bond[eth ID] is down,,0,1,1,1
+test,HPE IML,3,memory,NVDIMM controller error,,0,1,1,1
+train,syslog,3,file system,systemd-fsck: [ADDR]: Dirty bit is set. Fs was not properly unmounted and some data may be corrupt.,,0,1,1,1
+test,syslog,3,file system,"mmfs: Error=MMFS_PHOENIX, ID=[ID], Tag=[ID]: reason 2 Failure reason mmchdisk for any disk failures and re-mount.",,0,1,1,1
+train,DELL LC ,3,"bmc, management module",Management hardware component is not detected in the Management Module in slot arg1 .,,0,1,1,1
+train,syslog,3,service,systemd: nvidia-persistenced.service: Failed with result 'timeout'.,,0,1,1,1
+train,DELL LC ,2,power,Unable to turn on I/O Module arg1 due to insufficient chassis power.,,0,1,1,1
+train,syslog,3,memory,kernel: Memory failure: 0x[kNUM]: non anonymous thp,,0,1,1,1
+train,syslog,3,file system,"kernel: LustreError: LOG ID:(mgc_request.c:[kNUM]:mgc_process_log()) MGC[ip]@o2ib[eth ID]: recover log lscr[kNUM]liir failed, not fatal: rc = -5",,0,1,1,1
+test,syslog,3,os,gdm: GLib: g_hash_table_foreach: assertion 'version == hash_table->version' failed,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: NVRM: failed to copy out ioctl data,,0,1,1,1
+train,DELL LC ,2,storage,Disk drive bay temperature is outside of range.,,0,1,1,1
+test,DELL LC ,3,"voltage, current",The mezzanine card arg1 arg2 voltage is outside of range.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The LOM riser FRU for slot arg1 FRU ID arg2 is not functioning.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: nvidia-modeset: ERROR: Failed to find GPU ID,,0,1,1,1
+test,DELL LC ,2,storage,No bootable media found.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The IO Module in slot arg1 is not supported.,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",iDRAC not responding.,,0,1,1,1
+train,DELL LC ,3,storage,arg1 SAS SMP communications error arg2,,0,1,1,1
+train,HPE IML,2,cpu,Server Critical Fault (Service Information: Runtime Fault. Processor(AMD). Processor 2 (02h)),,0,1,1,1
+train,DELL LC ,2,"voltage, current",The system board arg1 voltage is less than the lower critical threshold.,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 48, pid=7928, An uncorrectable double bit error (DBE) has been detected on GPU in the L2 cache at cache 7, slice 2.",,0,1,1,1
+test,DELL LC ,2,os,The OS watchdog timer expired.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The Mezz card 4 FRU for the server arg1 is not functioning.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",Hardware incompatibility detected with mezzanine card arg1 .,,0,1,1,1
+train,DELL LC ,2,board,The arg1 cable or interconnect is not connected or is improperly connected.,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",Unable to power on server arg1 because of iDRAC communication issue.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The IO Module in slot arg1 did not boot within the expected time.,,0,1,1,1
+test,DELL LC ,3,"bmc, management module",Server failed to power on because no response from Management Module for power request.,,0,1,1,1
+train,syslog,3,file system,"mmfs: [X] File System gpfs.sr06 unmounted by the system with return code 16, reason 1500108505, at line 1132 in [path]",,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 43, pid=9581, Ch 00000008",,0,1,1,1
+train,HPE IML,2,cpu,"UPI Initialization Error: A fatal UPI initializationerror has been detected. %1 (Major Code: %2,Minor Code: %3)",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] VERBS RDMA closed connection [ip] ([vngpuc NODE ID]) [path] port [NUM] fabnum [NUM] index [IDX]5 [cookie ID] error 233,,0,1,1,1
+train,HPE IML,2,fan,"External chassis fan failure (Chassis %1, Fan%2, Location %3)",,0,1,1,1
+train,syslog,3,os,kernel: pci [pci id] BAR [NUM]: no space for [mem size 0x[kNUM] pref],,0,1,1,1
+test,DELL LC ,2,"voltage, current",CPU arg1 arg2 voltage is less than the lower critical threshold.,,0,1,1,1
+train,syslog,3,storage,kernel: scsi 9:0:0:0: rejecting I/O to [kNUM] device,,0,1,1,1
+test,syslog,3,"bios, firmware, driver",kernel: nvidia: loading out-of-tree module taints kernel.,https://forums.developer.nvidia.com/t/failing-to-load-nvidia-driver/221166,0,1,1,1
+test,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 48, pid=1323, An uncorrectable double bit error (DBE) has been detected on GPU in the framebuffer at partition 4, subpartition 1.",,0,1,1,1
+train,DELL LC ,3,storage,"The NVMe drive is not detected on the PCI tag arg1 , NameSpace ID arg2 .",,0,1,1,1
+test,DELL LC ,3,"bus, io module, pci",The Mezz card 1 FRU for the server arg1 is not functioning.,,0,1,1,1
+train,HPE IML,2,fan,"%1 Fan failure (Fan %2, Location %3, %4)",,0,1,1,1
+test,syslog,3,file system,"mmfs: Error=MMFS_SYSTEM_UNMOUNT, ID=[ID], Tag=[ID]: Unrecoverable file system operation Status code 218. Volume gpfs.sr06",,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The Chassis Management Controller (CMC) is unable to turn on the storage sled controller installed on server in slot arg1 because the server does not have a Mezzanine card.,,0,1,1,1
+train,syslog,3,gpu,kernel: NVRM: No NVIDIA GPU found.,,0,1,1,1
+train,syslog,3,file system,unbound-anchor: [1638630027] libunbound[421235:0] error: could not fflush([path]): no space left on device,,0,1,1,1
+train,syslog,3,service,"systemd: LSF.mount: Mount process exited, code=killed status=15",,0,1,1,1
+test,HPE IML,2,power,"%1 power request denied: %2 (EnclosureAddress %3, Slot %4)",,0,1,1,1
+train,DELL LC ,2,"bus, io module, pci",I/O Module arg1 temperature exceeded operating range.,,0,1,1,1
+train,DELL LC ,2,battery,Battery - The battery is not installed.,,0,1,1,1
+train,syslog,2,os,gvfsd: A connection to the bus can't be made,,0,1,1,1
+train,syslog,2,battery,Server_Administrator: [NUM] - Storage Service Controller event log: Battery is discharging: Controller 0 (PERC H745 Adapter),,0,1,1,1
+train,DELL LC ,3,"bios, firmware, driver",A BIOS corruption is detected. A BIOS Recovery process is automatically started. This process would take a few minutes.,,0,1,1,1
+train,syslog,3,file system,"mmfs: Error=MMFS_PHOENIX, ID=[ID], Tag=[ID]:",,0,1,1,1
+train,DELL LC ,3,memory,Correctable memory error rate exceeded for arg1 .,,0,1,1,1
+train,DELL LC ,3,board,Programmable interval timer error.,,0,1,1,1
+test,DELL LC ,3,storage,A bad disk block on arg1 cannot be reassigned during a write operation.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",An over voltage fault detected on power supply arg1 .,,0,1,1,1
+train,syslog,2,os,abrt-dump-journal-oops: abrt-dump-journal-oops: Found oopses: 3,,0,1,1,1
+train,HPE IML,3,"bus, io module, pci","Uncorrectable PCI Express Error Detected. %1%2 (Segment 0x%2, Bus 0x%3, Device 0x%4,Function 0x%5)",,0,1,1,1
+train,HPE IML,3,storage,%1 Smart Array - Controller failure (Status: %2),,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The Chassis Management Controller/Management Module (CMC/MM) cannot communicate with the arg1 control panel because of internal issues.,,0,1,1,1
+train,syslog,3,service,"abrtd: Too many clients, refusing connections to '[path]'","https://bugzilla.redhat.com/show_bug.cgi?id=1297316, https://forums.fedoraforum.org/showthread.php?315787-All-of-a-sudden-system-sluggish-tonns-of-coredumps",0,1,1,1
+train,HPE IML,3,"setting, config","Memory configuration error: No memory isavailable. If DIMMs are installed, verify that theDIMMs are installed properly. System Halted!",,0,1,1,1
+train,syslog,3,storage,mmfs: [E] Disk failure. Volume gpfs.sr06. rc = 5. Physical volume DATANSD31.,,0,1,1,1
+test,DELL LC ,3,"voltage, current",The arg1 voltage redundancy is lost.,,0,1,1,1
+test,syslog,3,file system,kernel: LustreError: LOG ID:(ldlm_lib.c:540:client_obd_setup()) can't add initial connection,,0,1,1,1
+train,DELL LC ,3,storage,Drive arg1 is in the critical array.,,0,1,1,1
+train,DELL LC ,3,"bios, firmware, driver",A firmware or software incompatibility is detected between arg1 arg2 and arg3 arg4 .,,0,1,1,1
+train,DELL LC ,3,battery,The storage battery for disk drive bay arg1 is absent.,,0,1,1,1
+test,DELL LC ,3,nic,Unable to detect network connection of arg1 in slot arg2 .,,0,1,1,1
+train,syslog,3,file system,dbus-daemon: Cannot setup inotify for '[path]'; error 'No space left on device',,0,1,1,1
+test,DELL LC ,3,"bus, io module, pci",A PCI system error was detected on a component at slot arg1 .,,0,1,1,1
+train,syslog,3,service,"kernel: lockd: server [ip] not responding, still trying",,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(llite_lib.c:[kNUM]:ll_md_setattr()) md_setattr fails: rc = -5,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A bus uncorrectable error was detected on a component at bus arg1 device arg2 function arg3 .,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The Intel Management Engine is unresponsive and the server thermal failsafe state is activated.,,0,1,1,1
+train,syslog,3,os,kdumpctl: libkmod: kmod_module_get_holders: could not open '[path]': No such file or directory,,0,1,1,1
+train,DELL LC ,3,memory,Memory device at location arg1 failed to transition to in test.,,0,1,1,1
+train,syslog,3,switch,"kernel: nvidia-nvswitch2: SXid (PCI:[device id]): 20034, Data {0x[kNUM], 0x[kNUM], 0x[kNUM], 0x[kNUM], 0x[kNUM], 0x[kNUM], 0x[kNUM], 0x[kNUM]}",,0,1,1,1
+train,syslog,3,file system,pmlogger_check: mktemp: failed to create directory via template ??path]?? no space left on device,,0,1,1,1
+train,DELL LC ,3,nic,Remote host is not reachable or connection is interrupted.,,0,1,1,1
+train,HPE IML,3,memory,"DIMM Initialization Error - Processor %1 DIMM%2. The identified processor and memory failedto initialize properly. %3 (Major Code:%4, MinorCode:%5).",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [stnfs NODE ID] <c0n[interface ID]> (connection by peer). Attempting reconnect.,,0,1,1,1
+train,DELL LC ,2,"bmc, management module",The CMC arg1 has reset because the thermal threshold was exceeded.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver","openib[eth ID]: Module ib_ipoib belong to kernel-modules which is not a part of MLNX_OFED, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+train,DELL LC ,3,"voltage, current",The memory module arg1 voltage is outside of range.,,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Error: Rx/Tx is disabled on this device,,0,1,1,1
+train,HPE IML,3,storage,Drive array cache module critical error,,0,1,1,1
+train,HPE IML,3,memory,Correctable Memory Error Threshold exceeded,,0,1,1,1
+train,syslog,3,"bmc, management module","kernel: ipmi_si IPI[kNUM]:00: The BMC does not support clearing the recv irq bit, compensating, but the BMC needs to be fixed.","https://openipmi-developer.narkive.com/K6HoYoVk/bug-ipmi-null-device-printing-in-check-set-rcv-irq, https://lists.ubuntu.com/archives/kernel-team/2015-August/061623.html",0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 13, pid=[PIDNUM], Graphics Exception: ChID [kNUM], Class [kNUM], Offset [kNUM], Data [kNUM]",,0,1,1,1
+test,DELL LC ,2,power,Power supply arg1 is incorrectly configured.,,0,1,1,1
+train,DELL LC ,3,"bios, firmware, driver","Memory is detected, but is not configurable.",,0,1,1,1
+test,DELL LC ,3,board,Timer refresh failed.,,0,1,1,1
+test,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 94, pid=[PIDNUM], Contained: CE User Channel ([NUM]xc). RST: No, D-RST: No",,0,1,1,1
+train,DELL LC ,2,"voltage, current",Could not power down 240VA on power unit arg1 .,,0,1,1,1
+test,DELL LC ,2,"voltage, current",The disk drive bay arg1 voltage is greater than the upper critical threshold.,,0,1,1,1
+train,HPE IML,3,storage,%1 Smart Array: Drive is failed: Port %2 Box %3Bay %4,,0,1,1,1
+train,syslog,3,file system,"mmfs: Error=MMFS_SYSTEM_UNMOUNT, ID=[ID], Tag=[ID]: Unrecoverable file system operation Status code 16. Volume gpfs.sr06",,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(client.c:[kNUM]:ptlrpc_replay_interpret()) @@@ request replay timed out.#012 req@[ID] x[ID][path]([NUM]) o4->lsr05-OST[kNUM]osc-[ID]@[ip]@o2ib:6[path] lens 488[path] e 13 to 1 dl [kNUM] ref 2 fl Interpret:EeX[path] rc [kNUM][path],,0,1,1,1
+test,syslog,3,file system,kernel: LustreError: LOG ID:(osc_request.c:[kNUM]:osc_brw_redo_request()) @@@ redo for recoverable error -30 req@[ID] x[ID][path]([NUM]) o4->lsr05-OST[kNUM]osc-[ID]@[ip]@o2ib:6[path] lens 520[path] e 0 to 0 dl [kNUM] ref 2 fl Interpret:RM[path] rc -30[path],,0,1,1,1
+train,syslog,3,file system,kernel: FAT-fs (sdb): invalid media value ([NUM]xb9),,0,1,1,1
+test,DELL LC ,3,storage,Servers are turned off to allocate power to the newly inserted hard disk drives.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(mgc_request.c:599:do_requeue()) failed processing log: -5,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [vngpuc NODE ID] <c0n[interface ID]> (connection by peer). Attempting reconnect.,,0,1,1,1
+train,DELL LC ,3,power,Chassis Management Controller (CMC) is unable to turn on the component arg1 - arg2 because of insufficient power.,,0,1,1,1
+train,DELL LC ,3,storage,The arg1 NVRAM has corrupt data.,,0,1,1,1
+train,syslog,3,file system,"mmsysmon: [E] Event raised: A majority of the quorum nodes are not reachable over the management network Item=PC_QUORUM_NODES,ErrMsg='Ping CCR quorum nodes failed',Failed='[ip];[ip];[ip]'",,0,1,1,1
+train,DELL LC ,2,os,The OS watchdog timer powered cycle the system.,,0,1,1,1
+train,syslog,3,"bmc, management module",kernel: ipmi_si IPI[kNUM]:00: There appears to be no BMC at this location,,0,1,1,1
+test,syslog,3,"bios, firmware, driver","kernel: NVRM: API mismatch: the client has the version [version], but#012NVRM: this kernel module has the version [version] Please#012NVRM: make sure that this kernel module and all NVIDIA driver#012NVRM: components have the same version.",,0,1,1,1
+test,syslog,3,file system,kernel: XFS (md[NUM]:) log I/O error -5,,0,1,1,1
+train,syslog,2,os,kernel: BUG: Bad page cache in process ptlrpcd_04_03 pfn:[kNUM],,0,1,1,1
+test,syslog,3,"bus, io module, pci","smad: [ALERT ]: CRITICAL: Improperly seated or missing device (Standby fault, Riser 3)",,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A PCIe error has occurred.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: mlx5_core [device id]: poll_health:838:([PID]): Fatal error 1 detected,https://lore.kernel.org/netdev/26dedb23-819f-8121-6e04-72677110f3cc@linux.ibm.com/T/,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A fatal error was detected on a component at bus arg1 device arg2 function arg3 .,,0,1,1,1
+train,syslog,2,"voltage, current","Server_Administrator: [NUM] - Instrumentation Severity: Warning, Category: System Health, MessageID: VLT401, Message: Unable to read PS1 Voltage 1 sensor value.",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [sth NODE ID] <c0n[interface ID]> (connection by peer). Attempting reconnect.,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:01:00): 74, pid=1674201, NVLink: Failed to train link 0 to remote PCI:0000:41:00",,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The mezzanine card arg1 is absent.,,0,1,1,1
+train,syslog,3,file system,"mmfs: [E] sdrServ: Communication [path] 134 (<none>)[path], [err 79] Can not access a needed shared library",,0,1,1,1
+train,syslog,3,service,systemd: nv_peer_mem[SEC]service: Failed with result 'exit-code'.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(osc_request.c:[kNUM]:osc_brw_redo_request()) @@@ redo for recoverable error -5 req@[ID] x[ID][path]([NUM]) o4->lsr05-OST[kNUM]osc-[ID]@[ip]@o2ib:6[path] lens [kNUM][path] e 0 to 0 dl [kNUM] ref 2 fl Interpret:RM[path] rc -5[path],,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [sth NODE ID] <c0n[interface ID]> (Broken pipe). Attempting reconnect.,,0,1,1,1
+test,syslog,3,file system,kernel: LustreError: LOG ID:(obd_mount.c:202:lustre_start_simple()) MGC[ip]@o2ib setup error -2,,0,1,1,1
+train,DELL LC ,3,memory,Intel DDR Memory interconnect arg1 has a non-recoverable issue.,,0,1,1,1
+train,DELL LC ,2,power,Unable to access the PSU arg1 FRU data.,,0,1,1,1
+train,syslog,3,nic,collectl: Error 'connection by peer' writing to socket,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(mdc_locks.c:[kNUM]:mdc_intent_getattr_async_interpret()) ldlm_cli_enqueue_fini: -5,,0,1,1,1
+train,DELL LC ,2,storage,Failed to boot from A.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",An output under voltage fault detected on power supply arg1 .,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: The node is not able to reach enough quorum nodes[path] to work properly.,,0,1,1,1
+train,DELL LC ,3,power,Unable to turn on the server arg1 because the power requirement request exceeds the power cap value.,,0,1,1,1
+train,DELL LC ,2,fan,Fan - The ( arg1 ) fan is running faster than expected.,,0,1,1,1
+train,DELL LC ,3,"bios, firmware, driver",CEM Storage Management encountered internal error.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",nv-fabricmanager: lost socket connection global and local fabric manager instance,,0,1,1,1
+test,HPE IML,3,memory,DIMM initialization error,,0,1,1,1
+train,syslog,3,service,systemd: nvidia-persistenced.service: Processes still around after SIGKILL. Ignoring.,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 80, pid=[PIDNUM], Channel ID [kNUM] intr0 [kNUM]",,0,1,1,1
+test,syslog,3,file system,mmsysmon: [E] Event raised: The file system gpfs.sr06 was forced (forced) to unmount.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",CPU arg1 arg2 voltage is outside of range.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver","Server_Administrator: [NUM] - Instrumentation Severity: Warning, Category: System Health, MessageID: SYS105, Message: Unable to process the event: An OEM diagnostic event occurred. Date and time of event: Sat Apr 23 06:56:15 2022.",,0,1,1,1
+train,DELL LC ,3,board,DMA controller failed.,,0,1,1,1
+train,syslog,3,file system,kernel: XFS (md[NUM]:) Unable to update superblock counters. Freespace may not be correct [path] mount.,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 48, pid=13803, An uncorrectable ECC error has been detected on GPU in GPC6 GCC",,0,1,1,1
+train,DELL LC ,2,"voltage, current",An output under current fault detected on power supply arg1 .,,0,1,1,1
+train,DELL LC ,2,cpu,Uncorrectable Machine Check Exception detected on CPU arg1 .,,0,1,1,1
+train,DELL LC ,2,power,The system is halted because of insufficient power.,,0,1,1,1
+train,DELL LC ,3,storage,Bad block sense error from arg1,,0,1,1,1
+train,DELL LC ,3,nic,The Multi-Chassis Management (MCM) lead chassis is unable to communicate with the backup chassis arg1 because of network issues.,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",Unable to allocated required CMC resources.,,0,1,1,1
+test,DELL LC ,2,board,CMOS failed.,,0,1,1,1
+train,syslog,2,os,abrt-dump-journal-oops: Reported 1 kernel oopses to Abrt,,0,1,1,1
+train,syslog,3,service,systemd: openib[eth ID].service: Failed with result 'exit-code'.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",Unable to connect to the device over arg1 because a connection error occurred.,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: The IBM Spectrum Scale service process is unresponsive [path] node. Normal operation be done.,,0,1,1,1
+test,syslog,3,file system,kernel: LNetError: LOG ID:(o2iblnd.c:[kNUM]:kiblnd_dev_failover()) Failed to bind ens[eth ID]:[ip] to device([NUM]b): -19,,0,1,1,1
+test,DELL LC ,2,fan,The arg1 sensor detected an error with a value of arg2 RPM.,,0,1,1,1
+test,syslog,3,"bios, firmware, driver",kernel: nv_peer_mem: Unknown symbol nvidia_p2p_dma_map_pages (err -22),,0,1,1,1
+train,syslog,3,file system,"mmfs: Error=MMFS_PHOENIX, ID=[ID], Tag=[ID]: reason 46 Failure reason failed for gpfs.sr06 after daemon",,0,1,1,1
+train,HPE IML,3,storage,A write error occurred on the Flash Media in Slot%1 of a USB storage device attached to thesystem,,0,1,1,1
+train,syslog,3,storage,kernel: megaraid_sas [device id]: megasas_disable_intr_fusion called outbound_intr_mask:0x[kNUM],,0,1,1,1
+test,DELL LC ,2,"bus, io module, pci",An over-temperature event detected on I/O module arg1 .,,0,1,1,1
+test,syslog,3,storage,"kernel: nvme nvme1: Device not ready; aborting initialisation, CSTS=[ADDR]",,0,1,1,1
+train,DELL LC ,3,board,The system performance degraded because of thermal protection.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: nv_peer_mem: Unknown symbol nvidia_p2p_dma_unmap_pages (err -22),,0,1,1,1
+test,syslog,3,file system,"kernel: nfs: server [ip] not responding, timed out",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Timed out in [SEC] seconds waiting for a commMsgCheckMessages reply from node [ip] [agpu NODE ID]. Sending expel message.,,0,1,1,1
+train,DELL LC ,2,board,Unable to turn on the server arg1 because of an inconsistency between the chassis and server components.,,0,1,1,1
+test,syslog,3,file system,"kernel: LustreError: LOG ID:(osc_cache.c:962:osc_extent_wait()) extent [ID]@{[0 -> [kNUM][path]], [3|0|+|rpc|wiY|[ID]], [[kNUM]|[kNUM]|+|-|[ID]|[kNUM]|[ID]]} lsr05-OST[kNUM]osc-[ID]: wait ext to 0 timedout, recovery in progress?",,0,1,1,1
+train,DELL LC ,3,"setting, config",The system has detected a storage backplane that is not supported in this system or configuration. The backplanes functionality may be degraded or disabled.,,0,1,1,1
+test,DELL LC ,2,"voltage, current",The arg1 voltage is outside of range.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: nvidia_exit_module+[ADDR][path] [nvidia],,0,1,1,1
+train,HPE IML,3,memory,DIMM Initialization Error: Processor %1 %2,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: Reconnect to [ip] [agpu NODE ID] <c0n[interface ID]> failed,,0,1,1,1
+train,DELL LC ,3,memory,The Non-Volatile Dual In-line Memory Module (NVDIMM) device in the slot arg1 is unable to restore the data that was saved in the previous save operation.,,0,1,1,1
+train,syslog,3,os,gdm: Child process -25089 was already dead.,"https://bugzilla.redhat.com/show_bug.cgi?id=1292440, https://groups.google.com/g/linux.debian.bugs.dist/c/iJ5SiRHRGlo",0,1,1,1
+train,DELL LC ,2,"bios, firmware, driver",System BIOS has halted due to Non-Maskable Interrupt (NMI).,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A PCIe link training failure is observed in arg1 and the link is disabled. The system has halted.,,0,1,1,1
+train,syslog,2,power,"Server_Administrator: [NUM] - Instrumentation Severity: Critical, Category: System Health, MessageID: PSU0908, Message: Power lost [path] unit PS1 Status.",,0,1,1,1
+test,HPE IML,2,fan,"System Fan Removed (Fan %1, Location %2)",,0,1,1,1
+train,syslog,3,switch,nv-fabricmanager: a fatal error occurred [path] port(s) 10 11 32 33 [path] physical id: 11 pci bus id: 00000000:AC:00.0 and requires corresponding ports reset to recover.,,0,1,1,1
+train,DELL LC ,2,battery,The arg1 battery is absent.,,0,1,1,1
+train,DELL LC ,3,storage,Drive arg1 is in the failed array.,,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Drive Array Controller - Memory Error(s)Occurred during controller cache self-test,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A bus time-out was detected on a component at slot arg1 .,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(file.c:[kNUM]:ll_inode_revalidate_fini()) lscr21: revalidate FID [0x[kNUM]:[ADDR]:[ADDR]] error: rc = -4,https://wiki.lustre.org/Lustre_2.12.0_Changelog,0,1,1,1
+test,syslog,3,switch,kernel: mlx5_core [device id]: Event logged [IO_PAGE_FAULT domain=0x[kNUM] address=[ADDR] flags=0x[kNUM]],https://forums.developer.nvidia.com/t/mlx5-core-will-cause-a-leak-of-a-command-resource/226808,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: Found stale mounts for gpfs.sr06,,0,1,1,1
+train,DELL LC ,2,os,Failed to boot.,,0,1,1,1
+train,DELL LC ,2,"bios, firmware, driver",SuperIO failed.,,0,1,1,1
+train,DELL LC ,3,storage,The peripheral sled in slot arg1 initialization is not complete.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(mdc_request.c:667:mdc_replay_open()) @@@ Can't properly replay without open data. req@[ID] x[ID][path]([NUM]) o[kNUM]>lsr05-MDT[kNUM]mdc-[ID]@[ip]@o2ib:12[path] lens 592[path] e 0 to 0 dl [kNUM] ref 3 fl Interpret:RP[path] rc 301[path],,0,1,1,1
+train,DELL LC ,3,fan,Fan arg1 is disabled.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: NVRM: The NVIDIA probe routine was not called for 8 device(s).,,0,1,1,1
+train,HPE IML,3,storage,Drive array error,,0,1,1,1
+test,syslog,3,storage,"kernel: Buffer I/O error on dev nvme1n1, logical block 0, async page read",https://forums.debian.net/viewtopic.php?p=738192,0,1,1,1
+train,DELL LC ,3,board,The storage adapter is absent.,,0,1,1,1
+train,DELL LC ,3,storage,The NVRAM has corrupted data on arg1 .,,0,1,1,1
+train,HPE IML,3,memory,"NVDIMM Error: Processor %1, DIMM %2.NVDIMM set for interleaving disabled but systemconfigured for interleaving enabled. AllNVDIMMs on Processor %3 are disabled.",,0,1,1,1
+train,DELL LC ,2,board,Backplane arg1 arg2 cable is disconnected.,,0,1,1,1
+test,syslog,3,file system,mmsysmon: [E] Event raised: The local file system with the mount point / used for [path] reached a nearly exhausted level with under [NUM] MB free space.,,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Smart Array - Controller failure. %2,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: Found stale mounts for gpfs.ml3,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [sth NODE ID] <c0n[interface ID]>:[0] (Connection by peer). Attempting reconnect.,,0,1,1,1
+train,HPE IML,3,storage,Lost data in the write back cache,,0,1,1,1
+train,DELL LC ,3,power,Chassis Management Controller (CMC) is unable to allocate power to one or more PCIe adapters in the Chassis Infrastructure component.,,0,1,1,1
+test,syslog,3,"bios, firmware, driver",kernel: acpi PNP[kNUM]:00: _OSC: platform does not support [SHPCHotplug AER LTR DPC],https://bbs.archlinux.org/viewtopic.php?id=257499,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Smart Array: Storage enclosure problemdetected: %2. %3,,0,1,1,1
+train,DELL LC ,3,memory,The Non-Volatile Dual In-line Memory Module (NVDIMM) device in the slot arg1 is not responding.,,0,1,1,1
+train,syslog,3,"resource management, scheduler",kernel: [PID](gpu_burn) over core_pipe_limit,,0,1,1,1
+train,syslog,3,file system,"kernel: LNetError: LOG ID:(o2iblnd_[kNUM]:[kNUM]:kiblnd_check_txs_locked()) Timed out tx: active_txs, [SEC] seconds",,0,1,1,1
+train,syslog,3,os,grub2-set-bootflag: Error canonicalizing [path] filename: No such file or directory,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: [kNUM]: lscr21-OST[kNUM]osc-[ID]: operation to node [ip]@o2ib[eth ID] failed: rc = -16,,0,1,1,1
+train,syslog,3,cpu,kernel: Kernel panic - not syncing: RCU Stall,https://access.redhat.com/solutions/5534961,0,1,1,1
+train,DELL LC ,3,power,Unable to turn on the sled in the sled slot arg1 because of insufficient power.,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:c9:00): 45, pid=2364065, Ch 0000000e",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] VERBS RDMA closed connection [ip] ([sth NODE ID]) [path] port [NUM] fabnum [NUM] index [IDX]0 [cookie ID] RDMA send error IBV_WC_RETRY_EXC_ERR,,0,1,1,1
+train,syslog,3,file system,"kernel: LustreError: LOG ID:(mgc_request.c:249:do_config_log_add()) MGC[ip]@o2ib: failed processing log, type 1: rc = -5",,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(vvp_io.c:[kNUM]:vvp_io_init()) lsr05: refresh file layout [0x[kNUM]:0x[kNUM]:[ADDR]] error -4.,,0,1,1,1
+train,syslog,3,switch,kernel: NVSwitch: assertion,,0,1,1,1
+train,DELL LC ,3,memory,"The memory Built-In Self-test (BIST) has detected one or more errors on the DIMM installed on memory slot: arg1 . As a result, the corresponding DIMM has been disabled.",,0,1,1,1
+test,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE GRAPHICS GPCCLIENT_GCC faulted @ 0x[kNUM]_[kNUM] Fault is of type FAULT_PDE  access_TYPE_VIRT_READ",,0,1,1,1
+train,HPE IML,2,fan,"Fan failure (Fan %1, Location %2)",,0,1,1,1
+train,DELL LC ,2,power,Power state change failed on arg1 . (from arg2 to arg3 ),,0,1,1,1
+train,DELL LC ,3,board,Chassis intrusion sensor may have failed.,,0,1,1,1
+train,DELL LC ,3,battery,The storage battery has failed.,,0,1,1,1
+test,DELL LC ,3,"bmc, management module",Unable to initialize iDRAC because of some critical issues.,,0,1,1,1
+test,syslog,3,os,"dracut: dracut module 'resume' will not be installed, because it's in the list to be omitted!",,0,1,1,1
+train,DELL LC ,3,memory,The Non-Volatile Dual In-line Memory Module (NVDIMM) device in the slot arg1 cannot be configured to save data during a power loss because of an issue in the NVDIMM.,,0,1,1,1
+train,syslog,3,service,"systemd: nv_peer_mem[SEC]service: Control process exited, code=exited status=1",,0,1,1,1
+train,DELL LC ,2,os,A soft shut-down initiated by platform event filter.,,0,1,1,1
+train,DELL LC ,2,power,The Power Supply Unit (PSU) arg1 is turned off because it is not compatible with the other PSUs used in the Chassis.,,0,1,1,1
+test,syslog,3,gpu,kernel: NVRM: GPU [device id]: Device is currently unavailable,,0,1,1,1
+train,DELL LC ,2,battery,A CMOS battery loss is detected resulting in an invalid BIOS configuration.,,0,1,1,1
+train,DELL LC ,2,battery,The system board battery has failed.,,0,1,1,1
+train,HPE IML,2,"bus, io module, pci",Temperature exceeded on PCIe disk %1.,,0,1,1,1
+test,DELL LC ,2,cpu,CPU bus parity error detected.,,0,1,1,1
+test,syslog,3,file system,mmfs: [E] VERBS RDMA closed connection [ip] ([sth NODE ID]) [path] port [NUM] fabnum [NUM] sl 0 index [IDX]0 [cookie ID] error 733,,0,1,1,1
+test,syslog,3,"bios, firmware, driver","openib[eth ID]: Module ib_umad belong to kernel-modules which is not a part of MLNX_OFED, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",https://kb.brightcomputing.com/knowledge-base/my-mellanox-infiniband-kernel-modules-are-failing-to-load-with-the-5-0-version-of-the-mellanox-ofed/,0,1,1,1
+train,syslog,3,file system,pulseaudio: E: [pulseaudio] module-protocol-stub.c: Failed to create socket directory '[path]': no space left on device,,0,1,1,1
+train,HPE IML,3,memory,Memory Channel Error,,0,1,1,1
+test,syslog,3,gpu,"NVRM: Xid (PCI:0000:88:00): 79, pid=0, GPU has fallen off the bus.",,0,1,1,1
+train,DELL LC ,3,memory,"The Dual Inline Memory Module (DIMM) in the memory slot arg1 is disabled because of initialization errors caused by uncorrectable memory errors, invalid configuration, and others.",,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A fabric mismatch detected for mezzanine card arg1 .,,0,1,1,1
+test,HPE IML,3,memory,NVDIMM sanitization error,,0,1,1,1
+train,DELL LC ,3,memory,The Non-Volatile Dual In-line Memory Module (NVDIMM) device in the slot arg1 has reached the end of supported life duration and is placed in write-protect mode.,,0,1,1,1
+test,syslog,3,service,systemd: LSF.mount: Failed with result 'timeout'.,,0,1,1,1
+test,syslog,3,file system,fsnotifier: inotify_add_watch([path][eth ID][path]): no space left on device,,0,1,1,1
+train,syslog,3,service,"systemd: nvidia-persistenced.service: Control process exited, code=exited status=([NUM])",,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE GRAPHICS UNRECOGNIZED_CLIENT faulted @ [ADDR]_[kNUM] Fault is of type UNRECOGNIZED_FAULT UNRECOGNIZED_ access_TYPE",,0,1,1,1
+train,syslog,3,file system,"mmfs: [X] File System gpfs.sr06 unmounted by the system with return code 218, reason 0, at line 1226 in [path]",,0,1,1,1
+test,syslog,3,file system,"kernel: LNetError: LOG ID:(o2iblnd_[kNUM]:[kNUM]:kiblnd_check_conns()) Timed out RDMA with [ip]@o2ib[eth ID] ([NUM]:) c: 0, oc: 0, rc: 8",,0,1,1,1
+train,DELL LC ,3,nic,The LAN is disconnected.,,0,1,1,1
+train,DELL LC ,3,memory,"Memory is configured, but not usable.",,0,1,1,1
+test,DELL LC ,3,"bus, io module, pci",A PCIe link training failure is observed in arg1 and device link is disabled.,,0,1,1,1
+train,DELL LC ,3,board,The arg1 sensor state has changed to a failed state with a value of arg2 A.,,0,1,1,1
+train,DELL LC ,3,storage,Drive arg1 is removed.,,0,1,1,1
+test,DELL LC ,3,"bios, firmware, driver",A software error was detected on a component at bus arg1 device arg2 function arg3 .,,0,1,1,1
+train,DELL LC ,3,storage,arg1 SAS expander error: arg2,,0,1,1,1
+train,DELL LC ,2,board,Heat Sink - Heat sink clip not installed.,,0,1,1,1
+train,syslog,3,file system,"mmfs: [E] Killing connection [ip] because the group is not ready for it to rejoin, err 46",,0,1,1,1
+train,syslog,2,battery,Server_Administrator: [NUM] - Storage Service Controller battery is discharging: Battery 0 Controller 0,,0,1,1,1
+train,syslog,3,service,systemd: nvidia-persistenced.service: Processes still around after final SIGKILL. Entering failed mode.,,0,1,1,1
+train,DELL LC ,3,storage,Optical Drive arg1 - Self test: arg2 .,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: [kNUM]: lsr05-OST[kNUM]osc-[ID]: operation to node [ip]@o2ib failed: rc = -11,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 45, pid=[PIDNUM], Ch [kNUM]",,0,1,1,1
+train,syslog,3,service,systemd: nvidia-fabricmanager.service: Failed with result 'exit-code'.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",The arg1 sensor has failed with a value of arg2 Volts.,,0,1,1,1
+train,syslog,3,os,kernel: pci [pci id] BAR [NUM]: failed to assign [mem size 0x[kNUM]],,0,1,1,1
+train,DELL LC ,2,power,The power supply unit (PSU) arg1 is disabled because of a configuration mismatch and therefore the PSU is not supported on the server.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [stnfs NODE ID] <c0n[interface ID]>:[1] (connection by peer). Attempting reconnect.,,0,1,1,1
+test,DELL LC ,3,"resource management, scheduler",Insufficient space on network share.,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 13, pid=19146, Graphics Exception: ChID 000f, Class 0000b1c0, Offset 000001b4, Data 80000660",,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 61, pid=[PIDNUM], [kNUM]([NUM]) [kNUM] [kNUM]",,0,1,1,1
+train,syslog,3,file system,kernel: LNetError: LOG ID:(o2iblnd_[kNUM]:[kNUM]:kiblnd_rejected()) [ip]@o2ib[eth ID] rejected: o2iblnd fatal error,,0,1,1,1
+train,DELL LC ,3,"bios, firmware, driver",Hard Drive - Drive error detected.,,0,1,1,1
+train,syslog,2,board,"Server_Administrator: [NUM] - Instrumentation Severity: Critical, Category: System Health, MessageID: TMP504, Message: The System Board Exhaust Temp sensor has detected an error with a value of 1.0 degrees Celsius.",,0,1,1,1
+train,syslog,3,file system,"mmfs: [X] connection [ip] [agpu NODE ID] <c0n[interface ID]> refused, authentication",,0,1,1,1
+train,syslog,3,file system,kernel: XFS (md[NUM]:) Invalid superblock magic number,,0,1,1,1
+train,syslog,3,"bios, firmware, driver","openib[eth ID]: Module ib_umad does not exist, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+train,syslog,2,os,kernel: watchdog: BUG: soft lockup - CPU#[CPU NUM] stuck for [SEC]s! [crond:[NUM],,0,1,1,1
+train,DELL LC ,3,"bmc, management module",Chassis Management Controller (CMC) is unable to send power allocation information to the component arg1 - arg2 .,,0,1,1,1
+train,syslog,3,file system,kernel: FAT-fs (sdb): Can't find a valid FAT filesystem,,0,1,1,1
+train,DELL LC ,2,"bus, io module, pci",Quick Path Interconnect (QPI) link initialization error detected.,,0,1,1,1
+train,DELL LC ,2,battery,The Coin Cell battery in the front panel is not working.,,0,1,1,1
+train,syslog,3,service,systemd: Failed to start NVIDIA fabric manager service.,,0,1,1,1
+train,syslog,3,service,systemd: Failed to start General Parallel File System.,,0,1,1,1
+test,DELL LC ,3,power,An auxiliary power fault issue is detected in the PCIe adapter that was turned on in PCIe slot arg1 .,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci","A high-severity issue is detected in a component of the bus arg1 , device 0, function arg2 .",,0,1,1,1
+test,HPE IML,3,memory,Uncorrectable Memory Error,,0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 has failed the built-in self-test (BIST).,,0,1,1,1
+train,DELL LC ,3,"voltage, current",The mezzanine card arg1 arg2 voltage is greater than the upper critical threshold.,,0,1,1,1
+test,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 79, pid=[PIDNUM], GPU has fallen off the bus.",,0,1,1,1
+train,DELL LC ,2,"bios, firmware, driver",Unable to load required BIOS files.,,0,1,1,1
+train,syslog,2,"bios, firmware, driver",kernel: ACPI: \_SB_.SCK[kNUM]: Found 2 idle states,https://www.linuxquestions.org/questions/linux-from-scratch-13/lfs-hangs-at-boot-acpi-found-2-idle-states-4175687843/,0,1,1,1
+train,DELL LC ,2,"voltage, current",PSU arg1 reported input under voltage fault and has been turned off.,,0,1,1,1
+test,DELL LC ,2,"bios, firmware, driver",System BIOS has halted.,,0,1,1,1
+train,syslog,3,gpu,"XID 64 Dynamic Page Retirement: Fatal error, unable to retire page (<address>)",,0,1,1,1
+train,DELL LC ,3,power,Chassis Management Controller is unable to turn on the iDRAC on server- arg1 because power required is less than available power.,,0,1,1,1
+train,syslog,3,file system,kernel: LNetError: [kNUM]: Error [kNUM] starting up LNI o2ib,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 95, pid=[PIDNUM], Uncontained: DED CBC ([NUM]x10,[ADDR]). RST: Yes, D-RST: No",,0,1,1,1
+test,DELL LC ,3,storage,"A high-severity issue is detected in the SSD bay arg1 , Slot arg2 .",,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The Mezz card 2 FRU for the server arg1 is not functioning.,,0,1,1,1
+test,syslog,3,"bus, io module, pci",kernel: pcieport [NUM]:a4:[kNUM]: Slot([NUM]:) Link Down,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 74, pid=[PIDNUM], NVLink MINION: link 0 interrupts disabled due to fatal MINION error: INTR_CODE = [ADDR], SUBCODE = [ADDR]",,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:01:00): 95, pid=7062, Uncontained: LTC TAG (0x2,0x0). RST: Yes, D-RST: No",,0,1,1,1
+train,syslog,3,file system,kernel: XFS (md[NUM]:) SB validate failed with error -5.,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE GRAPHICS GPCCLIENT_T1_0 faulted @ 0x[kNUM]_[kNUM] Fault is of type FAULT_PDE  access_TYPE_VIRT_ATOMIC",,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 13, pid=1238, Graphics SM Warp Exception on (GPC 1, TPC 1): Out Of Range Address",,0,1,1,1
+train,DELL LC ,3,cpu,CPU Exception Type 0x07: Math Coprocessor Not Available (Hardware).,,0,1,1,1
+train,DELL LC ,3,"user, APP",CPU Exception Type 0x0E: Page Fault (Software).,,0,1,1,1
+test,syslog,2,fan,"Server_Administrator: [NUM] - Instrumentation Severity: Critical, Category: System Health, MessageID: RDU0002, Message: Fan redundancy is lost.",,0,1,1,1
+test,DELL LC ,2,power,The power supply unit (PSU) arg1 is disabled because of a mismatch in the input voltage and therefore the PSU is not supported on the server.,,0,1,1,1
+train,syslog,3,file system,abrtd: Marking '[path][ip]-[TIMESTAMP].new' not reportable (no 'count' item),https://forums.fedoraforum.org/showthread.php?295214-systemd-and-separate-var-partition,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 74, pid=[PIDNUM], NVLink: Failed to train link 0 to remote PCI:[device id]",,0,1,1,1
+train,DELL LC ,3,power,A power fault issue is detected in the PCIe adapter that was turned on in PCIe slot arg1 .,,0,1,1,1
+train,DELL LC ,3,memory,Memory device at location arg1 failed to power off.,,0,1,1,1
+train,DELL LC ,3,memory,An error occurred during Scalable Memory Interconnect (SMI) initialization on memory riser arg1 .,,0,1,1,1
+train,DELL LC ,2,fan,arg1 RPM is greater than the upper critical threshold.,,0,1,1,1
+test,DELL LC ,2,board,The control panel temperature is outside of range.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",PCIe downtrain is detected on arg1 . Expected link width: arg2 Actual link width: arg3 .,,0,1,1,1
+train,HPE IML,3,memory,NVDIMM Error: Persistent Memory AddressRange Scrub error threshold exceeded onProcessor %1,,0,1,1,1
+test,DELL LC ,3,nic,The network link connection status of InfiniBand in Slot 2. port 1. is unavailable (down),,0,1,1,1
+train,DELL LC ,3,memory,Memory - Memory error detect.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",Fabric mismatch is detected in the I/O Module arg1 .,,0,1,1,1
+train,syslog,3,file system,mount: mount.nfs: Connection out,,0,1,1,1
+train,syslog,3,file system,"mmfs: [E] sdrServ: Communication [path] 107 (<none>)[path], [err 79] Can not access a needed shared library",,0,1,1,1
+train,DELL LC ,2,"bios, firmware, driver",The BIOS watchdog timer reset the system.,,0,1,1,1
+train,syslog,3,file system,kernel: LNetError: LOG ID:(o2iblnd.c:[kNUM]:kiblnd_dev_failover()) Failed to bind ens[eth ID]:[ip] to device([NUM]b[NUM]:) -19,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [agpu NODE ID] <c0n[interface ID]> (connection out). Attempting reconnect.,,0,1,1,1
+test,DELL LC ,3,power,The system performance degraded because of user-defined power capacity has changed.,,0,1,1,1
+test,HPE IML,3,memory,NVDIMM Error - NVDIMMs cannot be initializeddue to internal error (Code : %1). NVDIMMfunctionality might be impacted,,0,1,1,1
+train,HPE IML,3,memory,"DIMM Initialization Error - Processor %1 Channel%2. The identified memory channel could not beproperly trained and has been mapped out.(Major Code:%3, Minor Code:%4).",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Remote host [ip] [agpu NODE ID] <c0n[interface ID]> refused connection IP address [ip] was not in node list file,,0,1,1,1
+test,syslog,3,file system,mmfs: [E] Connection [ip] timed out,,0,1,1,1
+train,DELL LC ,3,power,Chassis Management Controller is unable to turn on server- arg1 because PSU redundancy is lost and the available power is insufficient.,,0,1,1,1
+train,syslog,3,switch,nv-fabricmanager: detected NVSwitch fatal error 20034 [path] 0 [path] pci bus id [ID]:A9:00.0 physical id [ID] port [NUM],,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [vngpuc NODE ID] <c0n[interface ID]>:[0] (Broken pipe). Attempting reconnect.,,0,1,1,1
+train,DELL LC ,3,power,Power supply redundancy is lost.,,0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 : arg2 exception occurred.,,0,1,1,1
+train,syslog,3,file system,"mmfs: [E] Timeout executing mmQuorumLossExit command ""[path]"" args ""[path] mmquorumlossexit sr06.[sth NODE ID] "" with delay 104.857500 secs, num read status 20",,0,1,1,1
+train,syslog,3,os,kernel: pci [pci id] BAR [NUM]: no space for [mem size 0x[kNUM] 64bit pref],,0,1,1,1
+test,DELL LC ,2,"voltage, current",The system board arg1 voltage is greater than the upper critical threshold.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A PCI parity error was detected on a component at slot arg1 .,,0,1,1,1
+train,DELL LC ,3,memory,Memory device at location arg1 is disabled.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The IO Module in slot arg1 is not responding to data requests due to communication error.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",root: nv_peer_mem: Error: the following required module is not loaded: nvidia,,0,1,1,1
+train,DELL LC ,2,cpu,Unsupported processor(s) are installed.,,0,1,1,1
+test,syslog,2,os,kernel: watchdog: BUG: soft lockup - CPU#[CPU NUM] stuck for [SEC]s! [systemd:[NUM],,0,1,1,1
+train,DELL LC ,2,board,Inlet temperature is above critical level for extended duration.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",Processor module arg1 voltage is outside of range.,,0,1,1,1
+train,DELL LC ,2,fan,Fan arg1 RPM is greater than the upper critical threshold.,,0,1,1,1
+train,DELL LC ,3,memory,Multi-bit memory errors detected on a memory device at location(s) arg1 .,,0,1,1,1
+train,HPE IML,3,memory,Data failed to load from the NVDIMM to volatilememory,,0,1,1,1
+train,syslog,3,storage,kernel: nvme nvme1: Removing after probe failure status: -19,https://bugzilla.kernel.org/show_bug.cgi?id=205645,0,1,1,1
+train,syslog,3,file system,kernel: XFS (md[NUM]:) Log inconsistent (didn't find previous h[kNUM]r),,0,1,1,1
+train,syslog,3,service,systemd: gpfs.service: Failed with result 'exit-code'.,,0,1,1,1
+test,DELL LC ,3,power,The input power supply is not available.,,0,1,1,1
+test,HPE IML,3,storage,A read error occurred on the Flash Media in Slot%1 of a USB storage device attached to thesystem,,0,1,1,1
+train,syslog,3,gpu,kernel: NVRM: No NVIDIA devices probed,,0,1,1,1
+train,syslog,3,os,"dracut: dracut module 'ifcfg' will not be installed, because it's in the list to be omitted!",,0,1,1,1
+train,DELL LC ,3,"bios, firmware, driver",Failed to program virtual MAC address on a component at bus arg1 device arg2 function arg3 .,,0,1,1,1
+train,syslog,3,cpu,kernel: smpboot: CPU [CPU NUM] Converting physical 0 to logical die 1,https://forum.proxmox.com/threads/missing-cpu-cores.27219/,0,1,1,1
+train,DELL LC ,3,"setting, config",MRC fatal error.,,0,1,1,1
+train,HPE IML,3,storage,Drive Type 7 Signals 5 Bus 207 is Invalid NVMe Drive Port 4B Box 1 Bay 4,,0,1,1,1
+train,DELL LC ,2,"voltage, current",The system board arg1 voltage is outside of range.,,0,1,1,1
+train,syslog,3,os,"gdm: GdmDisplay: session registered, failing",,0,1,1,1
+train,syslog,3,file system,"mmfs: [E] sdrServ: Communication [path] 120 (<none>)[path], [err 79] Can not access a needed shared library",,0,1,1,1
+train,syslog,2,os,kernel: BUG: Bad rss-counter state mm:[kNUM] idx:0 val:-1,https://access.redhat.com/solutions/6340791,0,1,1,1
+train,HPE IML,2,battery,"Smart Storage Energy Pack discharged to belowminimum voltage, resulting in the inability of theenergy pack to recharge properly (Energy Pack%1, service information: 0x05)",,0,1,1,1
+train,syslog,3,"framework, library",nvidia-persistenced: Failed to open libnvidia-cfg.so.([NUM]): libnvidia-cfg.so.([NUM]): cannot open shared object file: No such file or directory,,0,1,1,1
+train,DELL LC ,3,power,Power Supply arg1 : CRC error detected.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver","openib[eth ID]: Module ib_uverbs does not exist, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+test,DELL LC ,2,power,Cannot communicate with power supply arg1 .,,0,1,1,1
+test,syslog,3,switch,"kernel: nvidia-nvswitch1: SXid (PCI:[device id]): 10003, Fatal, unhandled interrupt",,0,1,1,1
+train,HPE IML,3,memory,Correctable Memory Error Threshold Exceeded (Processor 2. DIMM 1),,0,1,1,1
+train,syslog,2,fan,"Server_Administrator: [NUM] - Instrumentation Severity: Critical, Category: System Health, MessageID: FAN0026, Message: The System Board Fan10A sensor detected an error with a value of 0 RPM.",,0,1,1,1
+train,DELL LC ,3,memory,Memory device at location arg1 is in a degraded state.,,0,1,1,1
+test,syslog,3,file system,"kernel: LustreError: LOG ID:(osc_request.c:[kNUM]:brw_interpret()) lsr05-OST[kNUM]osc-[ID]: too many resent retries for object: 0:[kNUM], rc = [kNUM]",,0,1,1,1
+train,HPE IML,3,storage,Enclosure induced event (enclosure power loss),,0,1,1,1
+train,syslog,2,"voltage, current","Server_Administrator: [NUM] - Instrumentation Severity: Critical, Category: System Health, MessageID: VLT404, Message: The System Board PDB_VRD_PG_ALL sensor detected an error with a value of Bad Volts.",,0,1,1,1
+test,DELL LC ,2,storage,Disk drive bay temperature is greater than the upper critical threshold.,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE GRAPHICS GPCCLIENT_T1_0 faulted @ 0x[kNUM]_[kNUM] Fault is of type FAULT_PDE  access_TYPE_VIRT_WRITE",,0,1,1,1
+train,HPE IML,2,power,System power fault detected (XR: %1 %2 MID:%3),,0,1,1,1
+train,DELL LC ,3,"bmc, management module","CMC rebooted, because the power configuration data could not be accessed.",,0,1,1,1
+train,syslog,3,"bios, firmware, driver","openib[eth ID]: Module rdma_ucm belong to kernel-modules which is not a part of MLNX_OFED, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 95, pid=[PIDNUM], Ch [kNUM]",,0,1,1,1
+train,DELL LC ,3,board,One of the I2C sensor is not responding or is not working properly. The status of Sensor health is critical.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",I/O module arg1 failed to boot.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Remote host [ip] [vngpuc NODE ID] <c0n[interface ID]> refused connection IP address [ip] was not in node list file,,0,1,1,1
+test,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 13, pid=1238, Graphics Exception: ESR 0x50d648=0xd000f 0x50d650=0x0 0x50d644=0xd3eff2 0x50d64c=0x7f",,0,1,1,1
+train,DELL LC ,2,board,The sled arg1 arg2 temperature is greater than the upper critical threshold temperature.,,0,1,1,1
+train,HPE IML,3,storage,Drive array cache module error,,0,1,1,1
+test,syslog,2,"voltage, current","Server_Administrator: [NUM] - Instrumentation Severity: Critical, Category: System Health, MessageID: VLT404, Message: The System Board PS2 PG FAIL sensor detected an error with a value of Bad Volts.",,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (0000:08:00): 58, Edc 00000003",,0,1,1,1
+train,HPE IML,3,storage,Errors detected on drives during previous rebuildor background surface analysis scan.,,0,1,1,1
+train,HPE IML,3,gpu,Server Critical Fault (Service Information: Standby Fault. GPU Board/Modules. GPU Board VRD (01h)),,0,1,1,1
+test,syslog,3,service,systemd: libvirtd-admin.socket: Failed with result 'service-start-limit-hit'.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(obd_mount.c:[kNUM]:lustre_fill_super()) Unable to mount (-19),,0,1,1,1
+train,DELL LC ,3,nic,The active Chassis Management Controller is no longer connected to an external network.,,0,1,1,1
+train,syslog,3,storage,"kernel: blk_update_request: I/O error, dev nvme1n1, sector [NUM] op [ADDR]:(WRITE) flags 0x[kNUM] phys_seg [NUM] prio class 0",,0,1,1,1
+train,DELL LC ,2,board,Backplane arg1 power cable disconnected.,,0,1,1,1
+train,DELL LC ,2,power,Chassis Management Controller turned off the Server arg1 because of insufficient power at inventory.,,0,1,1,1
+train,syslog,3,file system,abrtd: Marking '[path][ip]-[TIMESTAMP]_checked' not reportable (no 'count' item),https://forums.fedoraforum.org/showthread.php?295214-systemd-and-separate-var-partition,0,1,1,1
+train,syslog,3,file system,kernel: XFS (md[NUM]:) Log I/O Error Detected. Shutting down filesystem,,0,1,1,1
+train,DELL LC ,3,nic,The health status of network fabric arg1 having fabric ID as arg2 is in Critical condition.,,0,1,1,1
+test,syslog,3,file system,"kernel: LustreError: LOG ID:(lmv_o[kNUM]:[kNUM]:lmv_fid_alloc()) Can't alloc new fid, rc -19",,0,1,1,1
+test,syslog,3,service,systemd: Failed to start NVIDIA Persistence Daemon.,,0,1,1,1
+train,DELL LC ,2,power,The power supply unit (PSU) arg1 is disabled because of a capacity mismatch and therefore the PSU is not supported on the server.,,0,1,1,1
+train,DELL LC ,3,storage,Bad block replacement error on arg1 .,,0,1,1,1
+train,syslog,3,service,"systemd: LSF.mount: Mount process exited, code=exited status=32",,0,1,1,1
+train,HPE IML,3,memory,DIMM Initialization Error: Processor %1 DIMM%2,,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Smart Array: The following logical drivesare failed: %2.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver","Server_Administrator: [NUM] - Instrumentation Severity: Warning, Category: System Health, MessageID: SYS105, Message: Unable to process the event: A problem was detected related to the previous server boot. Date and time of event: Sat Apr 23 06:56:14 2022.",,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 62, pid=[PIDNUM], [kNUM]([kNUM]) [kNUM] [kNUM]",,0,1,1,1
+test,syslog,3,file system,mmfs: [E] Close connection [ip] [sth NODE ID] <c0n[interface ID]>:[1] (connection by peer). Attempting reconnect.,,0,1,1,1
+train,syslog,3,storage,"kernel: Buffer I/O error on dev sdb1, logical block 124, lost async page write",,0,1,1,1
+train,DELL LC ,2,"voltage, current",An output over current fault detected on power supply arg1 .,,0,1,1,1
+train,HPE IML,2,power,Power supply or power backplane detection error,,0,1,1,1
+train,syslog,3,file system,"mmfs: [E] Timeout executing CallExitScript command ""[path]"" args ""[path] sendRequestToNodes requestExpelData [sth NODE ID] localNode "" with delay 104.857500 secs, num read status 20",,0,1,1,1
+train,HPE IML,3,"bus, io module, pci",Peripheral Component Interconnect Express(PCIe) Isolation Event Detected: A PCIe devicesignaled an error and was disabled,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: [kNUM]: lsr07-MDT[kNUM]mdc-[ID]: operation to node [ip]@o2ib failed: rc = [kNUM],,0,1,1,1
+train,DELL LC ,2,"voltage, current",CPU arg1 voltage regulator module is absent.,,0,1,1,1
+train,DELL LC ,2,board,arg1 exceeded the maximum warning threshold.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Timed out in [SEC] seconds waiting for a commMsgCheckMessages reply from node [ip] [sth NODE ID]. Sending expel message.,,0,1,1,1
+test,syslog,3,file system,mmfs: [E] Close connection [ip] [agpu NODE ID] <c0n[interface ID]>:[0] (connection by peer). Attempting reconnect.,,0,1,1,1
+test,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 13, pid=[PIDNUM], Graphics SM Warp exception (GPC 0, TPC 2, SM [NUM]:) PC Overflow",,0,1,1,1
+train,DELL LC ,3,"bmc, management module",Unable to communicate with iDRAC.,,0,1,1,1
+train,HPE IML,2,fan,"Fan degraded (Fan %1, Location %2)",,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Smart Array: Storage link errorsdetected: %2,,0,1,1,1
+train,DELL LC ,3,file system,NFS Destination access denied.,,0,1,1,1
+test,HPE IML,3,storage,Disk drive is overheating,,0,1,1,1
+test,HPE IML,2,board,Critical temperature threshold exceeded,,0,1,1,1
+train,DELL LC ,3,power,Power loss detected on the Management Module at slot arg1 due to reboot or shutdown.,,0,1,1,1
+train,DELL LC ,3,storage,Consistency check for arg1 has detected multiple uncorrectable medium errors.,,0,1,1,1
+train,DELL LC ,3,storage,SAS cable arg1 to expander arg2 is not connected.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",The arg1 voltage is less than the lower critical threshold.,,0,1,1,1
+train,syslog,3,os,kernel: pci [pci id] BAR [NUM]: failed to assign [io size 0x[kNUM]],,0,1,1,1
+train,HPE IML,2,power,System Board Power Protection Fault,,0,1,1,1
+train,syslog,3,service,"systemd: nvidia-persistenced.service: Main process exited, code=killed, status=([NUM])[path]",,0,1,1,1
+train,DELL LC ,3,storage,The Enclosure Management Module (EMM) arg1 installed in sled that is available in slot arg2 has failed.,,0,1,1,1
+train,DELL LC ,2,board,Thermal - Thermal trip detected.,,0,1,1,1
+train,syslog,3,"resource management, scheduler",kernel: [PID](cbnMD) over core_pipe_limit,https://access.redhat.com/solutions/2046443,0,1,1,1
+test,syslog,3,file system,mmfs: [E] Close connection [ip] [stnfs NODE ID] <c0n[interface ID]>:[1] (Broken pipe). Attempting reconnect.,,0,1,1,1
+train,syslog,3,service,"systemd: gdrcopy.service: Control process exited, code=exited status=1",,0,1,1,1
+train,HPE IML,2,power,"%1 Inadequate power to power on: %2(Enclosure Address %3, Slot %4)",,0,1,1,1
+train,DELL LC ,2,cpu,CPU arg1 temperature is less than the lower critical threshold.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A PCI system error was detected on a component at bus arg1 device arg2 function arg3 .,,0,1,1,1
+train,DELL LC ,2,storage,Non-bootable diskette detected.,,0,1,1,1
+train,DELL LC ,3,power,Server failed to power up due to zero power allocated.,,0,1,1,1
+train,syslog,3,nic,NetworkManager: <error> [LOG ID] manager: (bond[eth ID]) couldn't create the device: Failed to create bond interface 'bond[eth ID]' for 'bond[eth ID]': wrong-type,,0,1,1,1
+train,DELL LC ,2,battery,The coin cell battery in the primary CMC is not working.,,0,1,1,1
+train,syslog,3,os,"dracut: dracut module 'dmraid' will not be installed, because command 'dmraid' could not be found!",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] mmcommon: Unexpected error from gpfsInit. Return code: 149,,0,1,1,1
+train,DELL LC ,3,board,The system performance degraded because cooling capacity has changed.,,0,1,1,1
+train,syslog,3,"resource management, scheduler",kernel: [PID](python3) over core_pipe_limit,,0,1,1,1
+test,DELL LC ,3,"bus, io module, pci","PCIe - PCI device in physical Slot arg1 , PCI Tag arg2 , is present but not responding.",,0,1,1,1
+train,syslog,3,"bus, io module, pci",kernel: : section_type: PCIe error,,0,1,1,1
+train,syslog,3,service,systemd: nvidia-fabricmanager.service: State 'stop-final-sigterm' timed out. Killing.,,0,1,1,1
+train,syslog,3,file system,"kernel: LustreError: LOG ID:(statah[kNUM]:[kNUM]:start_statahead_thread()) can't start ll_sa thread, rc: -4",,0,1,1,1
+train,DELL LC ,2,board,Unable to boot the system because either the backplane signal cable is not installed properly or is damaged.,,0,1,1,1
+train,HPE IML,3,storage,Storage enclosure problem detected,,0,1,1,1
+train,DELL LC ,2,power,The power input for power supply arg1 is outside of range.,,0,1,1,1
+train,DELL LC ,2,power,Power supply arg1 is not present.,,0,1,1,1
+train,syslog,3,storage,kernel: ata1: SATA link down (SStatus 0 SControl 300),,0,1,1,1
+train,DELL LC ,2,"voltage, current",System level current is less than the lower critical threshold.,,0,1,1,1
+train,HPE IML,2,battery,"Smart Storage Battery failure (Battery %1,service information: %2)",,0,1,1,1
+test,DELL LC ,3,storage,Drive arg1 in disk drive bay arg2 is in the failed array.,,0,1,1,1
+train,HPE IML,3,"bus, io module, pci",Hardware Installation Error: Mezzanine %1 is notcorrectly installed,,0,1,1,1
+train,HPE IML,3,"setting, config","HPE Persistent Memory Configuration Error: Thesystem is populated with incompatible MemoryModule types. %1 (Major Code:%2, MinorCode:%3)",,0,1,1,1
+train,syslog,3,service,systemd: gpfs.service: Failed with result 'timeout'.,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: The Spectrum Scale service process not running [path] node. Normal operation be done,,0,1,1,1
+test,DELL LC ,2,battery,The battery on arg1 can no longer recharge.,,0,1,1,1
+train,DELL LC ,3,power,The power supplies are not redundant.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",Chassis power level current is greater than the upper critical threshold.,,0,1,1,1
+train,DELL LC ,2,board,The arg1 temperature is less than the lower critical threshold.,,0,1,1,1
+train,DELL LC ,3,storage,Drive arg1 in disk drive bay arg2 is in the critical array.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",The system board arg1 current is greater than the upper critical threshold.,,0,1,1,1
+test,syslog,3,"bus, io module, pci","Server_Administrator: [NUM] - Instrumentation Severity: Warning, Category: System Health, MessageID: SYS105, Message: Unable to process the event: A fatal error was detected [path] component at bus [ID] device [ID] function Date and time of event: Sun Feb 6 16:08:00 2022.",,0,1,1,1
+train,DELL LC ,3,cpu,The performance of CPU arg1 is automatically readjusted by Chassis Controller because of unacceptable change in the thermal and power conditions.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver","openib[eth ID]: Module mlx5_ib does not exist, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+test,HPE IML,3,storage,Drive array recovery needed,,0,1,1,1
+train,DELL LC ,2,board,The arg1 sensor has detected an error with a value of arg2 degrees Celsius.,,0,1,1,1
+test,DELL LC ,3,memory,All the NVDIMMs are disabled because the value of memory capacity of all the installed NVDIMMs has exceeded the maximum value supported by the processor.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] VERBS RDMA closed connection [ip] ([stnfs NODE ID]) [path] port [NUM] fabnum [NUM] index [IDX]1 [cookie ID] RDMA send error IBV_WC_RETRY_EXC_ERR,,0,1,1,1
+train,syslog,2,os,kernel: watchdog: BUG: soft lockup - CPU#[CPU NUM] stuck for [SEC]s! [collectl:[NUM],,0,1,1,1
+test,DELL LC ,3,fan,The communication with arg1 fan arg2 is lost.,,0,1,1,1
+test,syslog,3,storage,"kernel: nvme nvme0: I/O 11 QID [ID] timeout, completion",,0,1,1,1
+train,syslog,3,"bus, io module, pci",kernel: pcieport [NUM]:c5:[kNUM]: BAR [NUM]: no space for [io size 0x[kNUM]],,0,1,1,1
+train,DELL LC ,3,nic,Fabric arg1 is down.,,0,1,1,1
+test,DELL LC ,3,cpu,Processor detected a problem while performing an Intel Trusted Execution Technology (TXT) operation.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",nv-fabricmanager: fabric manager NVIDIA GPU driver interface version [version] don't match with driver version [version] Please update with matching NVIDIA driver package.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The QuickPath Interconnect (QPI) link arg1 of the processor arg2 has a downgraded clock speed or dropped clock because of an initialization error.,,0,1,1,1
+train,syslog,3,file system,kernel: XFS (md[NUM]:) log mount failed,,0,1,1,1
+train,syslog,3,service,systemd: LSF.mount: Failed with result 'exit-code'.,,0,1,1,1
+train,DELL LC ,3,storage,Unable to turn on the storage sled controller arg1 in slot arg2 because the arg3 module is not functioning.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",System level current is outside of range.,,0,1,1,1
+train,syslog,3,service,gdrcopy: Checking required modules: module nvidia is not loaded,,0,1,1,1
+test,DELL LC ,2,board,The arg1 sensor has failed with a value of arg2 degrees Celsius.,,0,1,1,1
+train,DELL LC ,2,board,The arg1 sensor has failed with value the arg2 degrees Celsius.,,0,1,1,1
+train,syslog,3,file system,"mmfs: Error=MMFS_PHOENIX, ID=[ID], Tag=[ID]: reason 668 Failure Reason [E] Lost membership in cluster sr06.[sth NODE ID]. Unmounting file systems.",,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: The Spectrum Scale service process is unresponsive [path] node. Normal operation be done,,0,1,1,1
+train,HPE IML,2,board,Insufficient server cooling,,0,1,1,1
+train,DELL LC ,3,board,The PERC storage adapter in arg1 is not supported by the installed storage backplane.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",PSU arg1 reported input over current fault and has been turned off.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver","openib[eth ID]: Module ib_uverbs belong to kernel-modules which is not a part of MLNX_OFED, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+train,HPE IML,3,storage,Logical drives previously failed.,,0,1,1,1
+train,DELL LC ,3,power,"The power input for power supply arg1 is outside of the allowable range, but it is attached to the system.",,0,1,1,1
+test,syslog,3,file system,"kernel: LustreError: [kNUM]: MGC[ip]@o2ib[eth ID]: The configuration log 'lscr[kNUM]lient' failed (-4). This may be the result of communication between this node and the MGS, a bad configuration, or other errors. See the syslog for more information.",,0,1,1,1
+train,DELL LC ,2,power,The power supply unit (PSU) arg1 is disabled because of a generation mismatch and therefore the PSU is not supported on the server.,,0,1,1,1
+train,DELL LC ,2,board,Backplane arg1 signal cable disconnected.,,0,1,1,1
+train,DELL LC ,3,storage,"arg1 Drive arg2 - S/N arg3 , incorrect status = arg4 \n arg5 .",,0,1,1,1
+train,syslog,3,switch,kernel: mlx5_core [device id]: print_health_info:468:([PID]): synd [ADDR]: unrecognized error,,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Smart Array: Data in write cache hasbeen lost,,0,1,1,1
+train,DELL LC ,3,memory,Unable to complete the Post Package Repair (PPR) operation because of an issue in the DIMM memory slot arg1 .,,0,1,1,1
+train,syslog,3,service,systemd: gdrcopy.service: Failed with result 'exit-code'.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: ACPI: Skipping parse of AML opcode: OpcodeName unavailable ([NUM]x[kNUM]),https://bugzilla.kernel.org/show_bug.cgi?id=215101,0,1,1,1
+train,HPE IML,3,memory,NVDIMM error during a data backup,,0,1,1,1
+test,syslog,2,os,abrt-dump-journal-oops: abrt-dump-journal-oops: Found oopses: 2,,0,1,1,1
+train,DELL LC ,3,storage,Bad block extended sense error on arg1 .,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:01:00): 94, pid=7062, Contained: CE User Channel (0x9). RST: No, D-RST: No",,0,1,1,1
+train,syslog,3,"bios, firmware, driver","openib[eth ID]: Module rdma_cm does not exist, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+train,DELL LC ,3,fan,The fan area is open.,,0,1,1,1
+train,DELL LC ,3,memory,One or more Uncorrectable Memory errors occurred in the previous boot.,,0,1,1,1
+test,DELL LC ,2,power,The system performance degraded because power draw exceeds the power threshold.,,0,1,1,1
+test,DELL LC ,2,power,Power supply arg1 voltage rating does not match the systems requirements.,,0,1,1,1
+train,syslog,3,service,"systemd: LSF.mount: Mount process exited, code=exited status=16",,0,1,1,1
+train,DELL LC ,3,storage,A block on arg1 was punctured by the controller.,,0,1,1,1
+train,DELL LC ,3,nic,The Test Network Connection ping test timed-out.,,0,1,1,1
+test,HPE IML,2,power,Storage system power supply failed,,0,1,1,1
+train,DELL LC ,3,nic,Unable to connect to FTP server.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",nv-fabricmanager: GPU or NVSwitch failure occurred and degraded mode configuration to abort Fabric Manager,,0,1,1,1
+test,DELL LC ,2,cpu,CPU arg1 temperature is greater than the upper critical threshold.,,0,1,1,1
+train,DELL LC ,3,"voltage, current",The memory module arg1 arg2 voltage is less than the lower critical threshold.,,0,1,1,1
+train,DELL LC ,3,storage,Unable to initialize the selected physical disk drive(s).,,0,1,1,1
+test,DELL LC ,3,memory,The Non-Volatile Dual In-line Memory Module (NVDIMM) device in the slot arg1 is not responding and is disabled.,,0,1,1,1
+train,HPE IML,3,"bus, io module, pci",Unrecoverable I/O Error has occurred. System Firmware will log additional details in a separate IML message entry if possible.,,0,1,1,1
+train,HPE IML,3,memory,"NVDIMM Error: Proc %1, DIMM %2 is NOTconfigured for Sub-NUMA Clustering",,0,1,1,1
+train,DELL LC ,3,memory,Low memory condition detected.,,0,1,1,1
+train,DELL LC ,2,power,The system halted because system power exceeds capacity.,,0,1,1,1
+train,syslog,3,file system,pmie_daily: mktemp: failed to create directory via template ??path]?? no space left on device,,0,1,1,1
+train,syslog,3,gpu,"XID 63 Dynamic Page Retirement: New retired page, reload the driver to activate. (<address>)",,0,1,1,1
+train,DELL LC ,3,battery,The storage battery for disk drive bay arg1 has failed.,,0,1,1,1
+train,syslog,3,file system,"mmfs: [E] Node list error. Can not find all nodes in list 1,1382,1383,1384,1385,1386,1387,1388,1389,1390,1391,1392,1394,1396,1397,1398,1399,1400,1401,1402,1403,1404,1405,1406,1407,1408,1409,1410,1411,1412,1413,1414,1415,1416,1417,1418,1419,1420,1421,1422,1423,1424,1425,1426,1427,1428,1429,1430,1431,1432,1433,1434,1436,1437,1438,1439,1440,1441,1442,1443,1444,1445,1446,1447,1448,1449,1451,1452,1453,1454,1455,1456,1457,1458,1459,1461,1462,1463,1464,1465,1466,1468,1469,1470,1471,1472,1473,1474,1475,1476,1477,1479,1480,1481,1482,1483,1484,1485,1486,1487,1488,1489,1490,1491,1492,1493,1494,1495,1496,1497,1498,1499,1500,1501,1502,1503,1504,1505,1506,1507,1508,1509,1510,1511,1512,1513,1514,1515,1516,1517,1518,1520,1521,1522,1523,1524,1525,1526,1527,1528,1529,1530,1531,1532,1533,1534,1535,1536,1537,1538,1539,1540,1541,1542,1543,1544,1545,1546,1547,1548,1549,1550,1551,1552,1553,1554,1555,1556,1557,1558,1559,1560,1561,1562,1563,1564,1565,1566,1567,1568,1569,1570,1571,1572,1573,1574,1575,1576,1577,1578,1579,1580,1581,1582,1583,1584,1585,1586,1587,1588,1589,1590,1591,1592,1593,1594,1595,1596,1597,1598,1599,1600,1601,1602,1603,1604,1605,1606,1607,1608,1609,1610,1611,1612,1613,1614,1615,1616,1617,1618,1619,1620,1621,1622,1623,1624,1625,1626,1627,1628,1629,1630,1631,1632,1633,1634,1635,1636,1637,1638,1639,1640,1641,1642,1643,1644,1645,1646,1647,1648,1649,1650,1651,1652,1653,1654,1655,1656,1657,1658,1659,1660,1661,1662,1663,1664,1665,1666,1667,1668,1669,1670,1671,1672,1673,1674,1675,1676,1677,1678,1679,1680,1681,1682,1683,1684,1685,1686,1687,1688,1689,1690,1691,1692,1693,1694,1695,1696,1697,1698,1699,1700,1701,1702,1703,1704,1705,1706,1707,1708,1709,1710,1711,1712,1713,1714,1715,1716,1717,1718,1719,1720,1721,1722,1723,1724,1725,1726,1727,1728,1729,1730,1731,1732,1733,1734,1735,1736,1737,1738,1739,1740,1741,1742,1743,1744,1745,1746,1747,1748,1749,1750,1751,1752,1753,1754,1755,1756,1757,1758,1759,1760,1761,1762,1763,1764,1765,1766,1767,1768,1769,1770,1771,1772,1773,1774,1775,1776,1777,1778,1779,1780,1781,1782,1783,1784,1785,1786,1787,178",,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(obd_mount.c:202:lustre_start_simple()) MGC[ip]@o2ib[eth ID] setup error -2,,0,1,1,1
+train,syslog,3,switch,kernel: nvidia-nvswitch1: Failed to initialize device : -8,,0,1,1,1
+train,syslog,3,service,gdrcopy: Checking required modules: libkmod: kmod_module_get_holders: could not open '[path]': No such file or directory,,0,1,1,1
+train,DELL LC ,3,memory,A hardware mismatch detected for memory riser.,,0,1,1,1
+train,syslog,3,service,"systemd: gpfs.service: Main process exited, code=killed, status=9[path]",,0,1,1,1
+test,syslog,3,"setting, config",kernel: device veth[eth ID] entered promiscuous mode,,0,1,1,1
+test,syslog,3,nic,mmsysmon: [E] Event raised: NIC ib[eth ID] is down,,0,1,1,1
+train,HPE IML,3,nic,"Network adapter link down (Chassis %1, Slot%2, Port %3)",,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A bus fatal error was detected on a component at slot arg1 .,,0,1,1,1
+train,DELL LC ,2,cpu,CPU bus initialization error detected.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: [kNUM]: lsr07-OST[kNUM]osc-[ID]: operation to node [ip]@o2ib failed: rc = [kNUM],,0,1,1,1
+test,HPE IML,3,storage,A PCI device at NVMe Drive Port 4B Box 1 Bay 4 Bus 207. Device 0. Function 0 has been removed from the system or powered off,,0,1,1,1
+train,DELL LC ,3,"voltage, current",The memory module arg1 voltage is greater than the upper critical threshold.,,0,1,1,1
+train,DELL LC ,2,board,arg1 has crossed the minimum warning threshold.,,0,1,1,1
+train,DELL LC ,2,battery,The arg1 battery has failed.,,0,1,1,1
+test,DELL LC ,2,power,The Non-Volatile Dual In-line Memory Module (NVDIMM) devices are placed in write-protect mode because the system may not provide sufficient power to save data in case of power loss.,,0,1,1,1
+test,DELL LC ,2,"voltage, current",An output over voltage fault detected on power supply arg1 .,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: can: request_module (can-proto-6) failed.,,0,1,1,1
+test,HPE IML,2,board,"%1 Overheating (Temperature Sensor %2,Location %3, Temperature %4, %5)",,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The Intel Management Engine has reported an internal system error.,,0,1,1,1
+train,DELL LC ,3,"bios, firmware, driver",Unable to synchronize control panel firmware due to internal error.,,0,1,1,1
+train,syslog,3,os,"dracut: dracut module 'earlykdump' will not be installed, because it's in the list to be omitted!",https://bugzilla.redhat.com/show_bug.cgi?id=1961935,0,1,1,1
+test,HPE IML,3,memory,Uncorrectable memory error was detected priorto this system boot,,0,1,1,1
+train,HPE IML,2,power,"Storage Enclosure power supply failure (PowerSupply %2, Box %3, %4)",,0,1,1,1
+train,syslog,3,switch,"kernel: nvidia-nvswitch5: SXid (PCI:[device id]): [kNUM], SOE Watchdog error",,0,1,1,1
+train,DELL LC ,3,power,"Chassis Management Controller unable to turn on arg1 - arg2 at priority arg3 because of insufficient power. Minimum power needed is arg4 AC Watt, but only arg5 AC Watt is available.",,0,1,1,1
+train,syslog,3,service,systemd: nvidia-fabricmanager.service: Processes still around after SIGKILL. Ignoring.,,0,1,1,1
+train,syslog,3,service,"systemd: nvidia-fabricmanager.service: Control process exited, code=exited status=1",,0,1,1,1
+test,syslog,3,file system,umount: umount: [path] umount(2) system call failed: Stale file handle.,https://unix.stackexchange.com/questions/433051/mount-nfs-stale-file-handle-error-cannot-umount,0,1,1,1
+train,syslog,3,os,"dracut: dracut module 'busybox' will not be installed, because command 'busybox' could not be found!",,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The Mezz card 3 FRU for the server arg1 is not functioning.,,0,1,1,1
+train,HPE IML,2,power,"%1 Power request denied: %2 %3 (EnclosureSerial Number %4, Bay %5)",,0,1,1,1
+train,DELL LC ,3,memory,Parity memory errors detected on a memory device at location arg1 .,,0,1,1,1
+train,syslog,2,os,abrt-dump-journal-oops: Reported 3 kernel oopses to Abrt,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: nvidia_peermem: Unknown symbol nvidia_p2p_free_dma_mapping (err -22),,0,1,1,1
+train,HPE IML,3,storage,Controller I/O timeout failure,,0,1,1,1
+train,syslog,2,board,"Server_Administrator: [NUM] - Instrumentation Severity: Critical, Category: System Health, MessageID: TMP504, Message: The System Board Inlet Temp sensor has detected an error with a value of 44.0 degrees Celsius.",,0,1,1,1
+test,DELL LC ,2,board,"The riser board cable or interconnect is not connected, or is improperly connected.",,0,1,1,1
+train,DELL LC ,3,nic,Unable to start network connection because a communication error occurred.,,0,1,1,1
+test,DELL LC ,2,os,Missing kernel module arg1 . Failover condition detected.,,0,1,1,1
+train,HPE IML,3,"bios, firmware, driver",HPE Persistent Memory Configuration Error:Processor %1 DIMM %2 ( SN: %3 ) failed toapply the goal configuration due to to FirmwareError Code 0x%,,0,1,1,1
+train,DELL LC ,2,board,"The system board arg1 cable or interconnect is not connected, or is improperly connected.",,0,1,1,1
+train,HPE IML,3,memory,"HPE Persistent Memory %1 Failure: Processor%2, DIMM %3 (SN : %4)",,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(ldlm_resour[kNUM]:[kNUM]:ldlm_resource_complain()) MGC[ip]@o2ib[eth ID]: namespace resource [0x[kNUM]LOG IDx3:[ADDR]].[ADDR] ([ID]) refcount nonzero ([NUM]) after lock cleanup; forcing cleanup.,,0,1,1,1
+train,syslog,3,file system,"rpc.mountd: Caught signal 15, un-registering and exiting.",,0,1,1,1
+train,syslog,2,os,abrt-dump-journal-oops: Reported 2 kernel oopses to Abrt,,0,1,1,1
+train,DELL LC ,2,"voltage, current",The system board arg1 temperature is outside of range.,,0,1,1,1
+train,syslog,3,nic,mmsysmon: [E] Event raised: NIC ens[eth ID] is down,,0,1,1,1
+train,syslog,3,gpu,"nvidia-persistenced: Failed to query NVIDIA devices. Please ensure that the NVIDIA device [device ID]iles ([path]*) exist, and that user ([NUM]) has read and write permissions for those files.",,0,1,1,1
+train,syslog,3,"bios, firmware, driver",nv-fabricmanager: failed to allocate handle (client) to NVIDIA GPU driver,,0,1,1,1
+test,syslog,3,file system,kernel: XFS (md[NUM]:) xfs_do_force_shutdown([NUM]x2) called from line [kNUM] of file fs[path] Return address = [kNUM],,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A bus fatal error was detected on a component at bus arg1 device arg2 function arg3 .,,0,1,1,1
+train,syslog,3,service,journal: Failed connect to PipeWire: No node factory discovered,,0,1,1,1
+train,syslog,3,storage,kernel: mpt3sas_cm1: SAS host is non-operational !!!!,https://forums.unraid.net/topic/111058-sas-host-is-non-operational/,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(file.c:218:ll_close_inode_openhandle()) lsr[kNUM]lilmv-[ID]: inode [0x[kNUM]:0xLOG IDx0] mdc close failed: rc = -5,,0,1,1,1
+test,syslog,3,file system,kernel: LustreError: LOG ID:(vvp_io.c:[kNUM]:vvp_io_init()) lsr05: refresh file layout [0x[kNUM]:0x[kNUM]:[ADDR]] error -5.,,0,1,1,1
+train,HPE IML,3,memory,Uncorrectable memory error threshold exceeded,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",Unable to perform the operation due to an unknown error in iDRAC.,,0,1,1,1
+train,DELL LC ,3,board,The Inlet Temp Sensor is not responding or is not working properly. The status of Sensor health is critical.,,0,1,1,1
+test,syslog,3,switch,kernel: nvidia-nvswitch1: Failed to initialize device : -19,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Command: err 46: tsremount gpfs.sr06,,0,1,1,1
+train,HPE IML,3,"bus, io module, pci",Uncorrectable PCI Express Error Detected. Slot 8 (Segment 0x0. Bus 0x88. Device 0x0. Function 0x0). Uncorrectable Error Status: 0x4000,,0,1,1,1
+train,DELL LC ,2,os,Operating System/Hypervisor Installation did not complete successfully.,,0,1,1,1
+train,HPE IML,2,board,"External chassis overheating (Chassis %1,Temperature Sensor %2, Location %3,Temperature %4)",,0,1,1,1
+train,DELL LC ,2,"voltage, current",CPU arg1 arg2 voltage is greater than the upper critical threshold.,,0,1,1,1
+train,syslog,3,service,systemd: nvidia-persistenced.service: Failed with result 'exit-code'.,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 63, pid=1323, Row Remapper: New row marked for remapping, reset gpu to activate.",,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(llog.c:825:llog_process_or_fork()) MGC[ip]@o2ib[eth ID]: cannot start thread: rc = -4,,0,1,1,1
+train,DELL LC ,3,storage,An unrecoverable disk media error occurred on arg1 .,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The Management Module cannot communicate with the arg1 control panel because of internal issues.,,0,1,1,1
+train,syslog,3,file system,kernel: LNetError: LOG ID:(o2iblnd_[kNUM]:[kNUM]:kiblnd_rejected()) [ip]@o2ib rejected: o2iblnd fatal error,,0,1,1,1
+test,syslog,3,os,"dracut: dracut module 'cifs' will not be installed, because command 'mount.cifs' could not be found!",,0,1,1,1
+train,syslog,3,service,systemd: nvidia-fabricmanager.service: Failed with result 'timeout'.,,0,1,1,1
+train,DELL LC ,3,nic,Unable to establish a network connection with the target device.,,0,1,1,1
+train,DELL LC ,3,storage,Hard drive not detected in the Management Module at slot arg1 .,,0,1,1,1
+train,syslog,3,"bios, firmware, driver","kernel: LNetError: LOG ID:(api-ni.c:[kNUM]:lnet_startup_lndnet()) Can't load LND o2ib, module ko2iblnd, rc=256",https://github.com/Seagate/cortx-motr/issues/17,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",An I/O channel check error was detected.,,0,1,1,1
+train,DELL LC ,2,"bus, io module, pci",System fault event has occurred in the IO Module in slot arg1 .,,0,1,1,1
+test,DELL LC ,2,power,Server arg1 was shutdown due to insufficient power.,,0,1,1,1
+train,HPE IML,2,board,"Critical temperature threshold exceeded(Temperature Sensor %1, Location %2,Temperature %3C %4)",,0,1,1,1
+train,DELL LC ,3,memory,The Non-Volatile Dual In-Line Memory Module (NVDIMM) in the memory slot arg1 has encountered a transient fatal failure during the previous boot.,,0,1,1,1
+train,syslog,3,file system,auditd: Audit daemon no space left on logging partition,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",One or more PCI System errors (SERR) have occurred.,,0,1,1,1
+test,syslog,3,nic,collectl: Error 'Broken pipe' writing to socket,,0,1,1,1
+train,DELL LC ,2,cpu,The UPI topology of the server is degraded.,,0,1,1,1
+train,syslog,3,storage,kernel: ata[kNUM]: failed to read native max address (err_mask=[ADDR]),https://forums.opensuse.org/t/failed-to-read-native-max-adress-err-mask-0x4-during-boot/20585,0,1,1,1
+test,DELL LC ,3,"bmc, management module",Internal Error (IErr) has occurred in the Management Module at slot arg1 .,,0,1,1,1
+train,HPE IML,3,memory,"NVDIMM Error: Processor %1, DIMM %2.NVDIMM is configured for a different processortype. All NVDIMMs on Processor %3 aredisabled",,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(ldlm_resour[kNUM]:[kNUM]:ldlm_resource_complain()) lscr21-OST[kNUM]osc-[ID]: namespace resource [[ADDR]LOG IDx[kNUM]:[ADDR]].[ADDR] ([ID]) refcount nonzero ([NUM]) after lock cleanup; forcing cleanup.,,0,1,1,1
+test,syslog,3,file system,mmfs: [E] The node number [NODE NUM] is not defined in the node list,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",Unable to turn on the server because an NDC or Mezzanine card is incompatible with the I/O Module or PCIe subsystem.,,0,1,1,1
+train,syslog,2,power,"Server_Administrator: [NUM] - Instrumentation Severity: Critical, Category: System Health, MessageID: RDU0012, Message: Power supply redundancy is lost.",,0,1,1,1
+train,DELL LC ,3,storage,"Hard Drive arg1 - S/N arg2 , self test did not complete.",,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: IBM Spectrum Scale port [NUM] is not active.,,0,1,1,1
+train,HPE IML,3,storage,Slot X Drive Array: Write-Back Cache backuppreviously failed,,0,1,1,1
+test,syslog,3,service,systemd: multipathd.socket: Failed with result 'trigger-limit-hit'.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: [kNUM]: MGC[ip]@o2ib: connection MGS (at [ip]@o2ib) was lost; in progress operations using this service will fail,,0,1,1,1
+train,syslog,3,file system,"mmfs: [X] File System gpfs.sr06 unmounted by the system with return code 16, reason 1546663165, at line 1132 in [path]",,0,1,1,1
+test,syslog,3,"bios, firmware, driver",kernel: pcieport [NUM]:8a:[kNUM]: can't change power state from D0 to D3hot (config space inaccessible),https://forums.developer.nvidia.com/t/bug-cant-change-power-state-from-d3cold-to-d0-config-space-inaccessible-stuck-at-boot/112912/3,0,1,1,1
+train,syslog,3,"bios, firmware, driver",nv-fabricmanager: failed to establish control connection all the local fabric managers,,0,1,1,1
+train,HPE IML,3,storage,Slot X Drive Array: Cache Module Self-Test erroroccurred,,0,1,1,1
+test,syslog,3,"bios, firmware, driver","openib[eth ID]: Module mlx5_ib belong to kernel-modules which is not a part of MLNX_OFED, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+train,syslog,3,file system,kernel: LNetError: LOG ID:(lib-move.c:[kNUM]:lnet_handle_find_routed_path()) no route to [ip]@o2ib[eth ID] from <?>,,0,1,1,1
+train,DELL LC ,3,storage,Patrol Read found an uncorrectable media error on arg1 .,,0,1,1,1
+train,syslog,3,"resource management, scheduler",kernel: [PID](lmp) over core_pipe_limit,,0,1,1,1
+train,syslog,3,storage,kernel: mpt3sas_cm0: SAS host is non-operational !!!!,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(file.c:[kNUM]:ll_inode_revalidate_fini()) lsr05: revalidate FID [0x[kNUM]:0x[kNUM]:[ADDR]] error: rc = -5,,0,1,1,1
+train,syslog,3,os,kernel: pci [pci id] BAR [NUM]: failed to assign [mem size 0x[kNUM] pref],,0,1,1,1
+train,DELL LC ,3,memory,The Non-Volatile Dual In-line Memory Module (NVDIMM) device in the slot arg1 is unable to save the data during the previous system shutdown operation or power loss.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A fatal IO error detected on a component at bus arg1 device arg2 function arg3 .,,0,1,1,1
+test,syslog,3,service,nm-dispatcher: exiting but there are still 1 requests pending,,0,1,1,1
+test,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 13, pid=[PIDNUM], Graphics SM Warp exception (GPC 0, TPC 0, SM [NUM]:) Misaligned Address",,0,1,1,1
+train,DELL LC ,2,fan,Fan arg1 RPM is outside of range.,,0,1,1,1
+train,syslog,3,service,systemd: Failed to start Network Manager.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Unable to contact any quorum nodes during cluster probe.,,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Error - The UEFI driver for the devicestopped because the NVM image is newer thanexpected,,0,1,1,1
+train,DELL LC ,3,memory,Multi-bit memory errors detected on a Dual In-line Memory Module (DIMM) device arg1 .,,0,1,1,1
+train,syslog,3,file system,kernel: FAT-fs (sdb[NUM]:) Directory bread(block [kNUM]) failed,,0,1,1,1
+test,DELL LC ,3,memory,Unable to initialize the memory because one or more errors have occurred during the NVDIMM initialization in the slot arg1 .,,0,1,1,1
+train,DELL LC ,2,board,Backplane arg1 arg2 connector incorrectly connected to the motherboard SATA controller.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",Unable to turn on the server arg1 because of an inconsistency between the I/O module and mezzanine card.,,0,1,1,1
+train,syslog,3,file system,pmie_check: mktemp: failed to create directory via template ??path]?? no space left on device,,0,1,1,1
+train,DELL LC ,2,board,The backplane is absent.,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 13, pid=[PIDNUM], Graphics Exception: ESR 0x[kNUM]=0x[kNUM] 0x[kNUM]=[ADDR] 0x[kNUM]=0x[kNUM] 0x[kNUM]=0x[kNUM]",,0,1,1,1
+train,DELL LC ,3,power,"Power supply arg1 is operating at 110 volts, and could cause a circuit breaker fault.",,0,1,1,1
+test,DELL LC ,2,os,The arg1 controller is stuck in boot mode.,,0,1,1,1
+train,DELL LC ,3,board,Unable to complete the requested operation because of an issue in communicating with the lead chassis.,,0,1,1,1
+train,DELL LC ,3,power,Chassis Management Controller is unable to turn on arg1 - arg2 because of insufficient power.,,0,1,1,1
+test,syslog,3,file system,kernel: FAT-fs (sdb[NUM]:) Can't find a valid FAT filesystem,,0,1,1,1
+train,HPE IML,2,storage,"%1 Storage system overheating (%2Slot %3,Temperature Sensor %4, Location %5,Temperature %6)",,0,1,1,1
+test,HPE IML,3,"bios, firmware, driver",Slot %1 Smart Array: Storage enclosurefirmware problem detected: %2. %3,,0,1,1,1
+train,DELL LC ,3,"voltage, current",Disk drive bay arg1 current is outside of range.,,0,1,1,1
+train,DELL LC ,3,memory,The Complex Programmable Logic Device (CPLD) cannot arm for the Asynchronous DRAM Refresh (ADR) signal. It might be due to Intel Persistent Memory DIMMs failed to initialize.,,0,1,1,1
+train,HPE IML,2,power,Power fault detected: M.2 riser,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The Management Engine is not responding.,,0,1,1,1
+train,DELL LC ,2,power,Chassis Management Controller is unable to turn on server- arg1 because the power supply redundancy is lost and Performance Over Power Redundancy feature is disabled and the power required is less than the available power.,,0,1,1,1
+test,syslog,3,"bios, firmware, driver",kernel: power_meter ACPI[kNUM]:00: Ignoring unsafe software power cap!,https://access.redhat.com/solutions/3054341,0,1,1,1
+train,syslog,3,service,"systemd: openib[eth ID].service: Main process exited, code=exited, status=2[path]",,0,1,1,1
+train,syslog,3,gpu,kernel: nvidia [device id]: aer_uncor_severity: 0x[kNUM],,0,1,1,1
+train,syslog,2,power,"Server_Administrator: [NUM] - Instrumentation Severity: Critical, Category: System Health, MessageID: PSU101, Message: Power supply PS2 Status is not present.",,0,1,1,1
+train,HPE IML,3,"bus, io module, pci",PCIe Slot Training Failure,,0,1,1,1
+train,syslog,3,service,systemd: libvirtd.socket: Failed with result 'service-start-limit-hit'.,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE CE4 HUBCLIENT_HSCE0 faulted @ 0x[kNUM]_[kNUM] Fault is of type FAULT_PDE  access_TYPE_VIRT_WRITE",,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The Chassis Management Controller (CMC) is unable to communicate with the PCIe switch board.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The IO Module in slot arg1 has exceeded temperature threshold.,,0,1,1,1
+test,DELL LC ,3,"bus, io module, pci",IO module arg1 is removed.,,0,1,1,1
+test,DELL LC ,3,battery,The storage battery is absent.,,0,1,1,1
+test,DELL LC ,3,memory,Memory device at location arg1 is throttled.,,0,1,1,1
+test,syslog,3,file system,kernel: LustreError: LOG ID:(mgc_request.c:[kNUM]:mgc_process_config()) MGC[ip]@o2ib[eth ID]: can't process params llog: rc = -4,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [agpu NODE ID] <c0n[interface ID]> (connection by peer). Attempting reconnect.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",An over current fault detected on power supply arg1 .,,0,1,1,1
+train,DELL LC ,3,memory,A failing memory buffer has been detected during Scalable Memory Interconnect (SMI) initialization on memory riser arg1 .,,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:08:00): 56, pid=64268, CMDre 00000001 00000080 00000000 00000005 00000034",,0,1,1,1
+train,HPE IML,2,cpu,Uncorrectable UPI error was detected onprocessor %1,,0,1,1,1
+train,DELL LC ,2,os,Unable to stop all APs. The system may be unstable and should be rebooted.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: ? nvidia_exit_module+[ADDR][path] [nvidia],,0,1,1,1
+train,DELL LC ,3,storage,Drive arg1 is removed from disk drive bay arg2 .,,0,1,1,1
+train,DELL LC ,2,board,The system board arg1 temperature is less than the lower critical threshold.,,0,1,1,1
+train,DELL LC ,3,"voltage, current",A DIMM with unsupported voltage is installed on memory slot arg1 .,,0,1,1,1
+train,DELL LC ,2,nic,Temperature of NIC adapter in slot arg1 is greater than normal operating range possibly due to an issue in the cooling system or a fan that is no longer functioning correctly.,,0,1,1,1
+test,syslog,3,file system,mmfs: [E] Close connection [ip] [vngpuc NODE ID] <c0n[interface ID]>:[0] (connection by peer). Attempting reconnect.,,0,1,1,1
+test,syslog,3,switch,nv-fabricmanager: detected NVSwitch non-fatal error 19084 [path] 0 [path] pci bus id [ID]:A9:00.0 physical id [ID] port [NUM],,0,1,1,1
+test,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE GRAPHICS GPCCLIENT_T1_10 faulted @ 0x[kNUM]_[kNUM] Fault is of type FAULT_PTE  access_TYPE_VIRT_WRITE",,0,1,1,1
+train,DELL LC ,2,"bios, firmware, driver",Power management firmware initialization error.,,0,1,1,1
+train,DELL LC ,3,fan,Fan redundancy is lost.,,0,1,1,1
+train,HPE IML,3,storage,Non-Volatile Memory corruption detected,,0,1,1,1
+train,DELL LC ,2,fan,The arg1 sensor has failed with a value of arg2 RPM.,,0,1,1,1
+train,DELL LC ,3,power,Power supply unit arg1 rating exceeds the system power distribution limits.,,0,1,1,1
+train,DELL LC ,2,board,The system inlet temperature is less than the lower critical threshold.,,0,1,1,1
+train,syslog,3,storage,"Server_Administrator: [NUM] - Storage Service Severity: Critical, Category: Storage, MessageID: ENC23, Message: has - Issue with PHY Slot 1.",,0,1,1,1
+test,syslog,3,switch,"kernel: nvidia-nvswitch0: SXid (PCI:[device id]): 20034, Fatal, Link 25 LTSSM Fault Up",,0,1,1,1
+train,HPE IML,2,power,"%1 Inadequate power to power on: %2(Enclosure Serial Number %3, Bay %4)",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [agpu NODE ID] <c0n[interface ID]>:[1] (connection by peer). Attempting reconnect.,,0,1,1,1
+train,syslog,3,file system,"mmfs: [E] Killing connection [ip], err 120",,0,1,1,1
+train,DELL LC ,3,memory,The system memory has faced an uncorrectable multi-bit memory errors in the non-execution path of a memory device at the location arg1 .,,0,1,1,1
+train,syslog,3,service,systemd: libvirtd.service: Failed with result 'exit-code'.,,0,1,1,1
+train,syslog,3,storage,"mmfs: Error=MMFS_DISKFAIL, ID=[ID], Tag=[ID]: Disk failure. Volume gpfs.sr06. rc = 5. Physical volume DATANSD31",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [agpu NODE ID] <c0n[interface ID]>:[0] (Broken pipe). Attempting reconnect.,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 13, pid=[PIDNUM], Graphics SM Warp Exception (GPC 0, TPC 0, SM [NUM]:) MMU NACK Errors",,0,1,1,1
+test,syslog,3,"bios, firmware, driver",kernel: nvidia: module license 'NVIDIA' taints kernel.,https://forums.developer.nvidia.com/t/failing-to-load-nvidia-driver/221166,0,1,1,1
+train,syslog,2,os,kernel: watchdog: BUG: soft lockup - CPU#[CPU NUM] stuck for [SEC]s! [cu[kNUM]vtHandlr:[NUM],,0,1,1,1
+test,syslog,3,file system,mmsysmon: [E] Event raised: Physical link of the NIC eno[eth ID] is down,,0,1,1,1
+train,DELL LC ,3,board,One or more graphics processing unit (GPU) adapters are not operating correctly because the power cables between the GPU adapters and motherboard are not correctly connected.,,0,1,1,1
+train,DELL LC ,3,memory,UEFI: Memory error detected. :OR: LEGACY: Memory - integrity test discrepancy.,,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Error - The UEFI driver for the devicedetected a newer version of the NVM image thanexpected.,,0,1,1,1
+train,DELL LC ,2,power,Power required by the system exceeds the power supplied by the Power Supply Units (PSUs).,,0,1,1,1
+train,syslog,3,file system,"kernel: LNetError: LOG ID:(o2iblnd_[kNUM]:[kNUM]:kiblnd_check_conns()) Timed out RDMA with [ip]@o2ib[eth ID] ([NUM]:) c: 3, oc: 0, rc: 8",https://jira.whamcloud.com/browse/LU-14987,0,1,1,1
+train,DELL LC ,2,board,System board - CMOS battery failure detected.,,0,1,1,1
+train,syslog,3,file system,rpc.statd: Failed to insert: writing [path][ip]: no space left on device,,0,1,1,1
+train,syslog,3,storage,kernel: megaraid_sas [device id]: [kNUM] ([NUM]s[path]) - Enclosure PD 86(c None[path]) phy bad for slot 1,,0,1,1,1
+train,HPE IML,3,nic,iSCSI link/session is down,,0,1,1,1
+train,HPE IML,3,"setting, config",NVDIMM Error: Unsupported NVDIMM-Nconfiguration detected,,0,1,1,1
+test,DELL LC ,2,power,Unable to turn on the server because of current power settings in the chassis.,,0,1,1,1
+test,syslog,3,file system,kernel: XFS (md[NUM]:) Please unmount the filesystem and rectify the problem(s),,0,1,1,1
+train,DELL LC ,3,power,The power supplies are not redundant. Insufficient resources to maintain normal operations.,,0,1,1,1
+train,HPE IML,3,storage,Drive array reports incorrect drive replacement,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE GRAPHICS GPCCLIENT_T1_0 faulted @ 0x[kNUM]_[kNUM] Fault is of type FAULT_PDE  access_TYPE_VIRT_READ",,0,1,1,1
+train,DELL LC ,2,power,Unable to turn on the server because the power supplied by the Chassis Manager is insufficient.,,0,1,1,1
+test,syslog,3,file system,kernel: LNetError: LOG ID:(o2iblnd_[kNUM]:[kNUM]:kiblnd_cm_callback()) [ip]@o2ib DISCONNECTED,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [vngpuc NODE ID] <c0n[interface ID]> (connection out). Attempting reconnect.,,0,1,1,1
+test,syslog,3,"bios, firmware, driver",root: : Error: Module gdrdrv does not exist,,0,1,1,1
+train,DELL LC ,3,nic,The arg1 connection is down. Error code: arg2 .,,0,1,1,1
+test,syslog,3,switch,kernel: mlx5_core [device id]: poll_health:853:([PID]): device's health compromised - reached miss count,,0,1,1,1
+train,DELL LC ,2,storage,Invalid boot sector found.,,0,1,1,1
+test,DELL LC ,3,memory,Persistent correctable memory error limit reached for a memory device at location(s) arg1 .,,0,1,1,1
+train,syslog,3,file system,kernel: LNetError: LOG ID:(o2iblnd_cbAug 24 17:52:19 [agpu NODE ID] kernel: Linux version [version][kNUM]l8_4.x86_64 (mockbuild@x86-vm[kNUM]uild.eng.bos.redhat.com) (gcc version [version] [kNUM] (Red Hat [ADDR][kNUM]) (GCC)) #1 SMP M[path] 18 14:34:11 EDT [kNUM],,0,1,1,1
+test,DELL LC ,3,memory,Stuck bit memory error detected on a memory device at location arg1 .,,0,1,1,1
+train,HPE IML,2,power,External chassis power supply not functioning,,0,1,1,1
+train,DELL LC ,2,battery,Battery - Battery issue detected.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",Chassis power level current is less than the lower critical threshold.,,0,1,1,1
+train,HPE IML,3,memory,"MemBIST RMT: %1 margin out of range at CPU%2 DIMM %3, Count %4",,0,1,1,1
+test,DELL LC ,2,power,The system power is automatically recovered because of an AC brownout in the power supply unit (PSU).,,0,1,1,1
+train,HPE IML,3,memory,Memory initialization error,,0,1,1,1
+train,DELL LC ,2,"bus, io module, pci",QuickPath Interconnect (QPI) fatal error.,,0,1,1,1
+train,syslog,3,file system,fsnotifier: inotify_add_watch([path]): no space left on device,,0,1,1,1
+train,syslog,3,switch,"kernel: nvidia-nvswitch0: SXid (PCI:[device id]): 22013, Non-fatal, Link 09 Minion DLREQ interrupt",,0,1,1,1
+train,syslog,3,service,kernel: lockd: unexpected unlock status: 7,,0,1,1,1
+test,syslog,3,"framework, library",journal: Locale not supported by C library.#012#011Using the fallback 'C' locale.,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: Physical link of the NIC docker[eth ID] is down,,0,1,1,1
+test,syslog,3,os,kernel: pci [pci id] BAR [NUM]: failed to assign [mem size 0x[kNUM] 64bit],,0,1,1,1
+train,DELL LC ,3,memory,An internal memory error has occurred and a failover condition is detected.,,0,1,1,1
+train,syslog,3,switch,nv-fabricmanager: NVSwitch port connected to GPU index [IDX] pci bus id [ID]:8B:00.0 experienced an NVLink fatal error and requires port reset to recover. All the running CUDA jobs [path] GPU will be affected.#012Resetting the specified GPU may clear the issue. Please refer to your system user [USER ID] for GPU reset instructions.,,0,1,1,1
+train,DELL LC ,2,cpu,"CPU Stress Thermal condition. Limit arg1 C, Actual arg2 C.",,0,1,1,1
+train,DELL LC ,2,os,A critical stop occurred during OS load.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",Unable to turn on the server because a PCIe card or Mezzanine card is not installed.,,0,1,1,1
+test,syslog,3,"bios, firmware, driver",kernel: nvidia_peermem: Unknown symbol ib_register_peer_memory_client (err 0),,0,1,1,1
+train,syslog,3,switch,"kernel: mlx5_core [device id]: mlx5_health_try_recover:382:([PID]): health recovery flow aborted, PCI reads still not working",,0,1,1,1
+train,syslog,3,"bios, firmware, driver","openib[eth ID]: Module rdma_cm belong to kernel-modules which is not a part of MLNX_OFED, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+train,syslog,3,gpu,kernel: NVRM: GPU [device id]: GPU has fallen off the bus.,,0,1,1,1
+train,syslog,3,service,systemd: NetworkManager.service: Failed with result 'timeout'.,,0,1,1,1
+train,syslog,3,file system,unbound-anchor: [1640012460] libunbound[2036953:0] error: could not fflush([path]): no space left on device,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",nv-fabricmanager: Got error 11 while waiting for child process to finish fabric manager initialization.,,0,1,1,1
+test,DELL LC ,3,storage,Hard/Optical Drive arg1 - incorrect status: arg2 arg3 .,,0,1,1,1
+train,DELL LC ,3,"voltage, current",Disk drive bay arg1 current is greater than the upper critical threshold.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",nv-fabricmanager: failed to allocate handle (client) to NVIDIA GPU driver. Make sure that the NVIDIA driver is installed and running,,0,1,1,1
+train,syslog,3,storage,kernel: megaraid_sas [device id]: [kNUM] ([NUM]s[path]) - Enclosure PD 86(c None[path]) phy bad for slot 4,https://www.ibm.com/support/pages/hard-drive-amber-leds-serveraid-mr10i-controller-servers,0,1,1,1
+train,DELL LC ,3,cpu,A link width degradation has occurred in the CPU interconnect arg1 .,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] mmcommon: [E] The command was unable to reach the CCR service [path] quorum node. Ensure the CCR service (mmfsd or mmsdrserv daemon) is running [path] quorum nodes and the communication is not blocked by the firewall.,,0,1,1,1
+train,HPE IML,2,"bus, io module, pci",Temperature exceeded on PCIe disk %1,,0,1,1,1
+train,DELL LC ,2,fan,Fan arg1 is removed.,,0,1,1,1
+test,HPE IML,3,nic,All links are down in adapter %1 in slot %2,,0,1,1,1
+train,syslog,3,file system,kernel: fat__get_entry: [NUM] callbacks suppressed,,0,1,1,1
+test,syslog,3,file system,mmsysmon: [E] Event raised: Reconnect to [ip] [sth NODE ID] <c0n[interface ID]> failed,,0,1,1,1
+train,HPE IML,3,storage,One or more storage cables have failed,,0,1,1,1
+train,syslog,3,"bus, io module, pci",kernel: pcieport [NUM]:a0:[kNUM]: can't derive routing for PCI INT A,https://bugzilla.kernel.org/show_bug.cgi?id=212261,0,1,1,1
+train,HPE IML,3,storage,Drive array disk drives not responding,,0,1,1,1
+test,syslog,3,service,systemd: Failed to start SHARP Daemon (sharpd). Version: 2.5.0.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Remount failed for device gpfs.sr06: No such file or directory,,0,1,1,1
+train,DELL LC ,2,power,The Power Supply Unit (PSU) arg1 is turned off because it is not supported by the Chassis.,,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Smart Array: Controller Degraded %2,,0,1,1,1
+train,DELL LC ,3,"voltage, current",Disk drive bay arg1 current is less than the lower critical threshold.,,0,1,1,1
+train,HPE IML,3,memory,"NVDIMM Error: Proc %1, DIMM %2 is configuredfor Sub-NUMA Clustering",,0,1,1,1
+train,DELL LC ,2,power,A power supply wattage mismatch is detected; power supply arg1 is rated for arg2 watts.,,0,1,1,1
+train,DELL LC ,2,memory,No memory is detected.,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: NVRM: failed to initialize module.,,0,1,1,1
+train,DELL LC ,2,board,arg1 has exceeded the maximum failure threshold.,,0,1,1,1
+train,syslog,3,storage,"kernel: blk_update_request: I/O error, dev sdb, sector [NUM] op [ADDR]:(READ) flags [ADDR] phys_seg [NUM] prio class 0",,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(mdc_request.c:[kNUM]:mdc_read_page()) lsr05-MDT[kNUM]mdc-[ID]: [0x[kNUM]:0x[kNUM]:[ADDR]] lock enqueue fails: rc = -4,,0,1,1,1
+train,HPE IML,3,storage,Slot X Drive Array: Drives disabled due to cachedata loss,,0,1,1,1
+test,DELL LC ,2,fan,arg1 RPM is less than the lower critical threshold.,,0,1,1,1
+test,DELL LC ,3,memory,Memory - Previous uncorrectable memory error.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",A fatal IO error detected on a component at slot arg1 .,,0,1,1,1
+train,DELL LC ,3,board,Interrupt controller failed.,,0,1,1,1
+test,DELL LC ,2,board,The arg1 cable is incorrectly connected to backplane arg2 connector arg3 .,,0,1,1,1
+train,DELL LC ,3,memory,The NVDIMM installed in slot arg1 is in critical condition.,,0,1,1,1
+train,DELL LC ,3,memory,"The event log indicates degraded or disabled ECC functionality. Memory testing cannot continue until the problems are corrected, the log cleared and the system rebooted.",,0,1,1,1
+test,syslog,3,"bios, firmware, driver","openib[eth ID]: Module rdma_ucm does not exist, skipping...#033[60G[#033[1;31mFAILED#033[0;39m]",,0,1,1,1
+train,DELL LC ,3,memory,All the NVDIMMs are disabled because the installed processor does not support the Intel Persistent Memory DIMMs.,,0,1,1,1
+test,syslog,3,switch,kernel: mlx5_core [device id]: mlx5_error_sw_reset:239:([PID]): start,,0,1,1,1
+train,DELL LC ,3,memory,Memory errors detected. Limit exceeded. Additional errors will not be resolved.,,0,1,1,1
+test,DELL LC ,3,"bmc, management module",Chassis Management Controller is unable to send power allocation information to arg1 - arg2 at priority arg3 .,,0,1,1,1
+train,HPE IML,3,memory,HPE Persistent Memory Initialization Error,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: nv_peer_mem: Unknown symbol nvidia_p2p_free_dma_mapping (err -22),,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Read Callback err 2. No user [USER ID] event is registered,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] VERBS RDMA closed connection [ip] ([sth NODE ID]) [path] port [NUM] fabnum [NUM] index [IDX]0 [cookie ID] RDMA send error IBV_WC_WR_FLUSH_ERR,,0,1,1,1
+train,DELL LC ,3,"bmc, management module",The iDRAC on the sled arg1 is not communicating with the Management Module(MM).,,0,1,1,1
+test,syslog,3,service,journal: Failed connect to PipeWire: Couldn't connect to PipeWire,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [agpu NODE ID] <c0n[interface ID]>:[1] (connection out). Attempting reconnect.,,0,1,1,1
+test,DELL LC ,3,storage,"The storage arg1 cable is not connected, or is improperly connected.",,0,1,1,1
+train,DELL LC ,3,storage,Fault detected on drive arg1 in disk drive bay arg2 .,,0,1,1,1
+train,DELL LC ,3,power,The system performance degraded because power exceeds capacity.,,0,1,1,1
+train,syslog,3,service,gdrcopy: module nvidia is not loaded,,0,1,1,1
+train,HPE IML,3,storage,%1 %2 Error: Rx/Tx is disabled on this device,,0,1,1,1
+train,HPE IML,3,memory,Unsupported NVDIMM detected,,0,1,1,1
+train,DELL LC ,2,battery,Battery - The battery cannot provide sufficient power.,,0,1,1,1
+test,HPE IML,2,power,The system power supply or power source ismalfunctioning,,0,1,1,1
+train,syslog,3,nic,sm-notify: nsm_rpc_sendto: sendto failed: Network is unreachable,,0,1,1,1
+test,syslog,3,os,kernel: pci [pci id] BAR [NUM]: no space for [mem size 0x[kNUM] 64bit],,0,1,1,1
+train,DELL LC ,2,fan,Fan failure detected on power supply arg1 .,,0,1,1,1
+train,syslog,3,service,"systemd: openib[eth ID].service: Main process exited, code=exited, status=3[path]",,0,1,1,1
+train,syslog,3,"resource management, scheduler",kernel: [PID](python) over core_pipe_limit,,0,1,1,1
+train,HPE IML,3,memory,NVDIMM erase error,,0,1,1,1
+train,DELL LC ,2,"bios, firmware, driver",Unable to read or change any of the system BIOS configuration settings.,,0,1,1,1
+test,syslog,3,service,systemd: remote-fs.target: Job remote-fs.target[path] failed with result 'dependency'.,,0,1,1,1
+test,DELL LC ,2,"voltage, current",An under voltage fault detected on power supply arg1 .,,0,1,1,1
+train,syslog,3,"bios, firmware, driver",kernel: NVRM: The NVIDIA probe routine failed for 1 device(s).,https://github.com/probonopd/system/issues/1,0,1,1,1
+train,syslog,3,file system,unbound-anchor: [1637420413] libunbound[3094810:0] error: could not fflush([path]): no space left on device,,0,1,1,1
+train,syslog,3,nic,mmsysmon: [E] Event raised: No relevant NICs detected,,0,1,1,1
+train,syslog,2,battery,Server_Administrator: [NUM] - Storage Service Controller event log: Battery relearn pending: Battery is under charge: Controller 0 (PERC H745 Adapter),,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: LOG ID:(client.c:[kNUM]:ptlrpc_import_delay_req()) @@@ invalidate in flight req@[ID] x[ID][path]([NUM]) o[kNUM]>lsr05-OST[kNUM]osc-[ID]@[ip]@o2ib:28[path] lens 328[path] e 0 to 1 dl [kNUM] ref 1 fl Rpc:X[path] rc 0[path],,0,1,1,1
+train,DELL LC ,3,power,The peripheral sled in the slot arg1 has a power issue and is automatically turned off.,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 13, pid=[PIDNUM], Graphics SM Warp Exception (GPC 0, TPC 2, SM [NUM]:) Misaligned PC",,0,1,1,1
+train,syslog,3,storage,"kernel: Buffer I/O error on dev sdb1, logical block 0, lost sync page write",,0,1,1,1
+test,HPE IML,3,nic,"Network adapter link down (Slot %1, Port %2)",,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 31, pid=19159, Ch 00000008, intr 10000000. MMU Fault: ENGINE GRAPHICS GPCCLIENT_T1_6 faulted @ 0x25_abf64000. Fault is of type FAULT_PTE ACCESS_TYPE_READ",,0,1,1,1
+train,syslog,2,file system,kernel: FAT-fs (sdb[NUM]:) unable to read boot sector,,0,1,1,1
+train,DELL LC ,2,fan,Fan arg1 RPM is less than the lower critical threshold.,,0,1,1,1
+test,DELL LC ,3,"bus, io module, pci",The IO Module in slot arg1 has encountered a critical issue with its application software. Error Code: arg2 .,,0,1,1,1
+train,HPE IML,3,"bus, io module, pci",Uncorrectable PCI Express Error detected,,0,1,1,1
+test,DELL LC ,3,nic,Unable to complete the operation because the network interface is not ready.,,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Smart Array - Memory error occurredduring self-test,,0,1,1,1
+train,DELL LC ,3,memory,The SAS IOM arg1 has detected multiple ECC memory errors.,,0,1,1,1
+train,DELL LC ,3,storage,Unable to read or write the file because an I/O error occurred.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [vngpuc NODE ID] <c0n[interface ID]>:[1] (connection by peer). Attempting reconnect.,,0,1,1,1
+train,syslog,3,service,systemd: libvirtd-admin.socket: Found dependency [path][path],,0,1,1,1
+test,syslog,3,file system,kernel: LustreError: LOG ID:(file.c:218:ll_close_inode_openhandle()) lsr[kNUM]lilmv-[ID]: inode [0x[kNUM]:0x[kNUM]:[ADDR]] mdc close failed: rc = [kNUM],https://jira.whamcloud.com/browse/LU-6627,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Message ID [Message ID] was lost by node [ip] [sth NODE ID] wasLost 2,,0,1,1,1
+train,syslog,3,service,systemd: libvirtd-ro.socket: Failed with result 'service-start-limit-hit'.,,0,1,1,1
+test,syslog,3,gpu,"NVRM: Xid (PCI:0000:01:00): 68, CCMDs 00000019 0000c2b0",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] VERBS RDMA closed connection [ip] ([vngpuc NODE ID]) [path] port [NUM] fabnum [NUM] index [IDX]0 [cookie ID] RDMA send error IBV_WC_RETRY_EXC_ERR,,0,1,1,1
+train,DELL LC ,3,power,"Chassis Management Controller (CMC) is unable to turn on the component arg1 - arg2 because of insufficient power. The minimum required power is arg3 AC Watts, but only arg4 AC Watts is available.",,0,1,1,1
+train,syslog,3,file system,"kernel: LustreError: LOG ID:(osc_cache.c:962:osc_extent_wait()) ### extent: [ID] ns: lsr05-OST[kNUM]osc-[ID] lock: [ID][path][ID] lrc: 10[path],0 mode: PW[path] res: [0x[kNUM]:[ADDR]:[ADDR]].[ADDR] rrc: 2 type: EXT [0->[ID][kNUM]] (req 0->[kNUM]) flags: [ADDR]0 nid: local remote: 0x[ID] expref: -99 [PID] timeout: 0 lvb_type: 1",,0,1,1,1
+train,HPE IML,3,storage,"Drive array controller failure (chassis %1, Slot%2)",,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 31, pid=[PIDNUM], Ch [kNUM], intr [kNUM] MMU Fault: ENGINE GRAPHICS GPCCLIENT_GCC faulted @ [ADDR]_[kNUM] Fault is of type FAULT_PDE  access_TYPE_VIRT_READ",,0,1,1,1
+train,DELL LC ,2,power,Power supply arg1 vendor type mismatch detected.,,0,1,1,1
+train,DELL LC ,3,"bmc, management module","Unable to failover, CMC arg1 in unknown state.",,0,1,1,1
+test,DELL LC ,3,"voltage, current",The memory module arg1 arg2 voltage is greater than the upper critical threshold.,,0,1,1,1
+train,DELL LC ,3,nic,The Test Network Connection operation completed with errors.,,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: Reconnect to [ip] [stnfs NODE ID] <c0n[interface ID]> failed,,0,1,1,1
+train,DELL LC ,3,memory,A Critical event was detected on the Non-Volatile Dual In-line Memory Module (NVDIMM) device in the slot arg1 .,,0,1,1,1
+test,syslog,3,file system,"mmfs: [E] Node [ip] ([agpu NODE ID]) has been deleted from the cluster, but it has been detected as still up. Deletion that node may not have completed successfully. Manually bring GPFS down [path] node.",,0,1,1,1
+train,DELL LC ,2,memory,The memory module arg1 temperature is outside of range.,,0,1,1,1
+train,HPE IML,3,memory,NVDIMM disabled,,0,1,1,1
+train,HPE IML,3,board,Storage backplane Box Number 0 management failure (Failure type - UBM failure),,0,1,1,1
+train,DELL LC ,2,cpu,The CPU in the arg1 socket is not properly fused.,,0,1,1,1
+train,syslog,3,file system,kernel: LustreError: [kNUM]: lsr05-MDT[kNUM]mdc-[ID]: operation to node [ip]@o2ib failed: rc = -16,,0,1,1,1
+test,syslog,3,file system,kernel: LustreError: [kNUM]: lsr05-OST[kNUM]osc-[ID]: This client was evicted by lsr05-OST[kNUM]; in progress operations using this service will fail.,,0,1,1,1
+train,syslog,3,cpu,kernel: : section_type: IA32[path] processor error,,0,1,1,1
+train,syslog,3,file system,kernel: LNetError: LOG ID:(lib-move.c:[kNUM]:lnet_select_preferred_best_ni()) no path to [ip]@o2ib[eth ID] from net o2ib[eth ID],,0,1,1,1
+test,DELL LC ,3,memory,"Memory device has failed. Memory device location: arg1 , Possible memory module event cause: arg2 .",,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:84:00): 13, pid=7928, Graphics SM Global Exception on (GPC 2, TPC 0, SM 1): Multiple Warp Errors",,0,1,1,1
+test,syslog,3,file system,rsyslogd: imjournal: fopen() failed for path: '[path]': no space left on device [v8.1911.0-6.el8 try https:[path] ],,0,1,1,1
+train,syslog,3,gpu,"NVRM: Xid (PCI:0000:02:00): 57, Failed shmoo sddr3 link training",,0,1,1,1
+test,DELL LC ,3,memory,BIOS POST memory test failed.,,0,1,1,1
+test,HPE IML,3,"bus, io module, pci",Unrecoverable I/O error has occurred,,0,1,1,1
+train,DELL LC ,3,memory,The Non-Volatile Dual In-line Memory Module (NVDIMM) device in the slot arg1 was unable to be initialized.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [stnfs NODE ID] <c0n[interface ID]>:[0] (Connection by peer). Attempting reconnect.,,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [stnfs NODE ID] <c0n[interface ID]> (Broken pipe). Attempting reconnect.,,0,1,1,1
+train,DELL LC ,2,"voltage, current",CPU arg1 voltage regulator module failed.,,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",The health of IO module in the slot arg1 is in Critical state.,,0,1,1,1
+train,DELL LC ,3,nic,An internal network error occurred.,,0,1,1,1
+train,DELL LC ,2,power,The temperature for power supply arg1 is outside of range.,,0,1,1,1
+train,HPE IML,3,memory,"NVDIMM Error: Processor %1, DIMM %2",,0,1,1,1
+train,HPE IML,3,storage,Slot %1 Smart Array: Cache Module Self-TestError Occurred. %2,,0,1,1,1
+train,DELL LC ,3,"voltage, current",The memory module arg1 voltage is less than the lower critical threshold.,,0,1,1,1
+test,DELL LC ,2,board,The system is being shut down for thermal protection.,,0,1,1,1
+train,DELL LC ,2,board,The arg1 temperature is outside of range.,,0,1,1,1
+train,syslog,3,file system,"mmsysmon: [E] Event raised: The local filesystem with the mount point / used for [path] reached a nearly exhausted level, which is less than [NUM] MB free space.",,0,1,1,1
+train,syslog,3,file system,mmfs: [E] Close connection [ip] [agpu NODE ID] <c0n[interface ID]>:[1] (Broken pipe). Attempting reconnect.,,0,1,1,1
+train,syslog,3,os,kernel: pci [pci id] BAR [NUM]: failed to assign [mem size 0x[kNUM] 64bit pref],,0,1,1,1
+train,DELL LC ,2,memory,The memory module arg1 temperature is greater than the upper critical threshold.,,0,1,1,1
+test,syslog,3,service,abrtd: Lock file '.lock' is locked by [PID],https://access.redhat.com/discussions/3101531?tour=8,0,1,1,1
+train,DELL LC ,3,"bus, io module, pci",Unable to turn on the server because a Mezzanine card is incompatible with the I/O Module or PCIe subsystem.,,0,1,1,1
+train,syslog,3,nic,mmsysmon: [E] Event raised: NIC virbr[eth ID]-nic is down,,0,1,1,1
+test,DELL LC ,2,"voltage, current",The power input for CPU arg1 voltage regulator module is outside of range.,,0,1,1,1
+test,DELL LC ,3,storage,An issue is observed on the Hard-drive/SSD backplane.,,0,1,1,1
+train,syslog,3,gpu,"kernel: NVRM: Xid (PCI:[device id]): 13, pid=[PIDNUM], Graphics SM Global Exception (GPC 0, TPC 0, SM [NUM]:) Multiple Warp Errors",,0,1,1,1
+train,syslog,3,file system,mmsysmon: [E] Event raised: Physical link of the NIC ib[eth ID] is down,,0,1,1,1
+train,DELL LC ,2,board,The sled arg1 arg2 temperature is less than the lower critical threshold temperature.,,0,1,1,1
+train,DELL LC ,3,unknown,The health of sled in the sled slot arg1 is in Critical state.,,0,1,1,1
+train,DELL LC ,2,unknown,Server arg1 is removed.,,0,1,1,1
+test,HPE IML,3,unknown,Uncorrectable error was detected,,0,1,1,1
+train,DELL LC ,3,unknown,arg1 is sending inconsistent responses to the controller.,,0,1,1,1
+train,DELL LC ,3,unknown,arg1 is not functioning correctly.,,0,1,1,1
+train,DELL LC ,3,unknown,Unable to allocate resources.,,0,1,1,1
+train,DELL LC ,2,unknown,The arg1 is removed from slot arg2 .,,0,1,1,1
+train,DELL LC ,3,unknown,Consistency check for arg1 has completed with uncorrectable errors.,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 is not responding.,,0,1,1,1
+train,DELL LC ,2,unknown,A hardware incompatibility is detected between arg1 arg2 and arg3 arg4 .,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 is shutdown.,,0,1,1,1
+train,HPE IML,3,unknown,Trusted Platform Module (TPM) self-test error,,0,1,1,1
+test,DELL LC ,3,unknown,Resource allocation error.,,0,1,1,1
+test,DELL LC ,3,unknown,Unable to complete the operation because of an unknown issue.,,0,1,1,1
+train,DELL LC ,3,unknown,The arg1 is not installed correctly.,,0,1,1,1
+train,DELL LC ,3,unknown,Unable to run the command because of a general issue.,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 has a hardware error.,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer expired.,,0,1,1,1
+train,DELL LC ,3,unknown,General failure.,,0,1,1,1
+train,HPE IML,3,unknown,Intel Trusted Execution Error: Intel TXT BIOSACM has reported an error (code:0x%1),,0,1,1,1
+train,DELL LC ,3,unknown,An internal system error has occurred.,,0,1,1,1
+train,DELL LC ,3,unknown,An internal error occurred and a failover condition is detected.,,0,1,1,1
+train,syslog,2,unknown,kernel: Do you have a strange power saving mode enabled?,https://lore.kernel.org/all/Yi8f9PYNEHksy3io@hirez.programming.kicks-ass.net/T/,0,1,1,1
+train,HPE IML,3,unknown,Uncorrectable Machine Check Exception (Processor 1. APIC ID 0x00000032. Bank 0x00000005. Status 0xBEA00000'00000108. Address 0x01FFFFFF'97AEF5C6. Misc 0xD01C0000'00000000),,0,1,1,1
+train,DELL LC ,3,unknown,Communication with arg1 is intermittent.,,0,1,1,1
+test,DELL LC ,3,unknown,Server arg1 health changed to a critical state from either a normal or warning state.,,0,1,1,1
+train,HPE IML,3,unknown,System initialization error,,0,1,1,1
+test,DELL LC ,3,unknown,Intel Trusted Execution Technology (TXT) fatal error.,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer expired at arg1 .,,0,1,1,1
+train,DELL LC ,2,unknown,The system was reset due to a timeout from the watchdog timer.,,0,1,1,1
+train,syslog,2,unknown,"kernel: perf: Dynamic interrupt throttling disabled, can hang your system!",,0,1,1,1
+test,DELL LC ,3,unknown,Unable to service the request because of an internal system error.,,0,1,1,1
+test,HPE IML,3,unknown,"Improperly seated or missing device (%1, %2)",,0,1,1,1
+train,DELL LC ,2,unknown,arg1 in slot arg2 is offline.,,0,1,1,1
+test,DELL LC ,3,unknown,Timeout waiting for the device to respond.,,0,1,1,1
+test,DELL LC ,2,unknown,arg1 is switched OFF.,,0,1,1,1
+test,DELL LC ,3,unknown,A fatal error was detected on a component at slot arg1 .,,0,1,1,1
+train,HPE IML,3,unknown,Uncorrectable Machine Check Exception Extended Registers (Conf 0x00000003'000001F9. Ipid 0x000500B0'00000032. Synd 0x00000000'4D000000. DeStat 0x00000000'00000000. DeAddr 0x00000000'00000000 Misc1 0x0000000000000000),,0,1,1,1
+train,DELL LC ,3,unknown,The peripheral device in slot arg1 is in critical state.,,0,1,1,1
+train,DELL LC ,2,unknown,The arg1 has turned off because the critical temperature threshold is exceeded.,,0,1,1,1
+train,DELL LC ,3,unknown,Background Initialization (BGI) completed with uncorrectable errors on arg1 .,,0,1,1,1
+test,DELL LC ,2,unknown,The watchdog timer performed an AC power cycle on the system at arg1 .,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 was removed,,0,1,1,1
+train,DELL LC ,3,unknown,An unknown system hardware failure detected.,,0,1,1,1
+train,DELL LC ,3,unknown,The FRU on server arg1 is not functioning.,,0,1,1,1
+train,HPE IML,3,unknown,A critical system health error requires the systemto be shut down,,0,1,1,1
+test,DELL LC ,3,unknown,A Machine-Check Exception (MCE) error has occurred.,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer power cycled the system.,,0,1,1,1
+test,DELL LC ,3,unknown,An unexpected error occurred.,,0,1,1,1
+train,DELL LC ,3,unknown,Parity error.,,0,1,1,1
+train,DELL LC ,2,unknown,System Shutdown.,,0,1,1,1
+train,DELL LC ,3,unknown,A Flash corruption occurred in both the partitions of the component arg1 .,,0,1,1,1
+train,HPE IML,3,unknown,Intel Trusted Execution Error: Intel TXTSINITACM has reported an error (code:0x%1),,0,1,1,1
+train,DELL LC ,3,unknown,The sled arg1 is removed from slot arg2 .,,0,1,1,1
+train,HPE IML,3,unknown,A critical error occurred,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer restarted the system at arg1 .,,0,1,1,1
+train,DELL LC ,3,unknown,Server arg1 health changed to a non-recoverable state.,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer reset the system.,,0,1,1,1
+train,HPE IML,3,unknown,Unsupported Hardware Detected,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer powered off the system.,,0,1,1,1
+train,DELL LC ,3,unknown,One or more Machine Check errors occurred in the previous boot.,,0,1,1,1
+train,HPE IML,3,unknown,An unexpected shutdown was detected prior tothis boot,,0,1,1,1
+train,syslog,3,unknown,kernel: BERT: Error records from previous boot:,,0,1,1,1
+train,DELL LC ,3,unknown,Unable to read because the Field Replaceable Unit (FRU) is not functioning on the sled arg1 .,,0,1,1,1
+train,HPE IML,3,unknown,Uncorrectable Error detected on the previousboot,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 is not functional and is powered off.,,0,1,1,1
+train,DELL LC ,3,unknown,The arg1 is in read-only mode.,,0,1,1,1
+train,HPE IML,3,unknown,X64 Exception Type 0x%1 (%2) occurred duringthe previous boot. Image name: %3,,0,1,1,1
+train,DELL LC ,3,unknown,PCIe adapter arg1 in slot arg2 was removed while powered on.,,0,1,1,1
+test,DELL LC ,2,unknown,The watchdog timer turned off the system at arg1 .,,0,1,1,1
+test,DELL LC ,2,unknown,arg1 has been removed.,,0,1,1,1
+train,DELL LC ,3,unknown,The arg1 reliability has degraded.,,0,1,1,1
+train,DELL LC ,3,unknown,The operation was not successful.,,0,1,1,1
+train,DELL LC ,2,unknown,arg1 was removed.,,0,1,1,1
+train,DELL LC ,3,unknown,Server arg1 health changed to a critical state from a non-recoverable state.,,0,1,1,1
+train,HPE IML,3,unknown,Hardware installation error,,0,1,1,1
+train,DELL LC ,3,unknown,POST fatal error detected.,,0,1,1,1
+train,DELL LC ,3,unknown,One or more chipset errors have occurred.,,0,1,1,1
+train,DELL LC ,3,unknown,The value of arg1 is greater than the upper critical threshold.,,0,1,1,1
+train,DELL LC ,3,unknown,arg1 initialization has failed.,,0,1,1,1
+train,DELL LC ,2,unknown,The watchdog timer interrupt was initiated.,,0,1,1,1
+test,DELL LC ,2,unknown,The arg1 is absent.,,0,1,1,1
+test,DELL LC ,3,unknown,A failure is detected on arg1 .,,0,1,1,1
+train,DELL LC ,3,unknown,Security subsystem errors detected for arg1 .,,0,1,1,1
+train,DELL LC ,2,unknown,The arg1 is removed.,,0,1,1,1
+train,DELL LC ,3,unknown,The system performance degraded.,,0,1,1,1
+train,DELL LC ,3,unknown,The arg1 arg2 operation was not successful.,,0,1,1,1
+train,DELL LC ,3,unknown,Server arg1 health changed to a non-recoverable state from a less severe state.,,0,1,1,1
+train,DELL LC ,2,unknown,The arg1 device may not function as expected because the device health status turned to Critical.,,0,1,1,1
+train,DELL LC ,3,unknown,Communication with arg1 was lost.,,0,1,1,1
