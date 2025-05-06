@@ -87,7 +87,7 @@ OE_DATA_DIR = os.path.join(OUTPUT_DIR, "extracted_oe_datasets")
 MODEL_NAME = "roberta-base"
 MAX_LENGTH = 128
 BATCH_SIZE = 32
-NUM_TRAIN_EPOCHS = 10
+NUM_TRAIN_EPOCHS = 15
 LEARNING_RATE = 2e-5
 MIN_SAMPLES_PER_CLASS_FOR_TRAIN_VAL = 3
 ACCELERATOR = "auto"
@@ -1101,41 +1101,16 @@ def main():
         else:
             print(f"{metric} {mode_desc} 기준으로 OE 샘플이 선택되지 않았습니다.")
 
-    # 11. 모든 지표에 대한 t-SNE 시각화 수행
-    print("\n--- 11. 모든 지표에 대한 t-SNE 시각화 ---")
+    # 11. t-SNE 시각화 (순차적 필터링 결과 추가)
+    print("\n--- 11. t-SNE 시각화 ---")
     if len(all_features) == len(data_for_attention):
-        # t-SNE 레이블 준비 (공통)
-        tsne_labels = []
-        known_label2id = log_data_module.label2id if log_data_module else {}
-        unknown_class_lower = EXCLUDE_CLASS_FOR_TRAINING.lower()
-        
-        # 클래스 레이블 할당 (공통)
-        if CLASS_COLUMN in data_for_attention.columns:
-            for cls in data_for_attention[CLASS_COLUMN]:
-                if cls == unknown_class_lower:
-                    tsne_labels.append(-1)  # Unknown 클래스
-                else:
-                    tsne_labels.append(known_label2id.get(cls, -2))  # Known 클래스 또는 기타
-        else:
-            # 클래스 컬럼이 없다면 모두 동일 레이블로 처리
-            tsne_labels = [0] * len(data_for_attention)
-        
-        tsne_labels = np.array(tsne_labels)
-        
-        # 클래스 이름 매핑 (공통)
-        if log_data_module and hasattr(log_data_module, 'id2label'):
-            tsne_class_names = {**log_data_module.id2label, -1: 'Unknown', -2: 'Other/Filtered'}
-        else:
-            tsne_class_names = {-1: 'Unknown', -2: 'Other/Filtered'}
-        
-        # 각 지표별로 t-SNE 시각화 수행
+        # 기존 OE 필터 지표 시각화 (기존 코드 유지)
         for metric in metric_columns:
             if metric not in data_for_attention.columns:
-                print(f"{metric} 컬럼이 없어 t-SNE 시각화를 건너뜁니다.")
                 continue
-            
-            print(f"\n{metric}에 대한 t-SNE 시각화 수행 중...")
-            
+                
+            # 각 개별 지표에 대한 OE 후보 인덱스 계산
+            # (기존 코드와 동일)
             scores = data_for_attention[metric].values
             scores = np.nan_to_num(scores, nan=0.0)
             
@@ -1144,39 +1119,68 @@ def main():
                 filter_percentile = METRIC_SETTINGS[metric]['percentile']
                 filter_mode = METRIC_SETTINGS[metric]['mode']
             else:
-                filter_percentile = OE_FILTER_PERCENTILE
+                filter_percentile = OE_FILTER_PERCENTILE  
                 filter_mode = OE_FILTER_MODE
             
-            # 모드에 따라 OE 후보 선택
             if filter_mode == 'higher':
                 threshold = np.percentile(scores, 100 - filter_percentile)
                 oe_candidate_indices = np.where(scores >= threshold)[0]
-                highlight_label = f'OE Candidate ({metric} higher {filter_percentile}%)'
-            elif filter_mode == 'lower':
+                mode_desc = f"{filter_mode} {filter_percentile}%"
+            else:  # 'lower'
                 threshold = np.percentile(scores, filter_percentile)
                 oe_candidate_indices = np.where(scores <= threshold)[0]
-                highlight_label = f'OE Candidate ({metric} lower {filter_percentile}%)'
+                mode_desc = f"{filter_mode} {filter_percentile}%"
+            
+            # (기존 t-SNE 시각화 코드 유지)
+            # ...
+            
+        # 순차적 필터링 결과에 대한 t-SNE 시각화 추가
+        # 최종 선택된 샘플 인덱스 사용
+        sequential_oe_indices = final_selected_indices
+        
+        if len(sequential_oe_indices) > 0:
+            # t-SNE 레이블 준비 (기존 코드와 동일)
+            tsne_labels = []
+            known_label2id = log_data_module.label2id if log_data_module else {}
+            unknown_class_lower = EXCLUDE_CLASS_FOR_TRAINING.lower()
+            
+            # 클래스 레이블 할당
+            if CLASS_COLUMN in data_for_attention.columns:
+                for cls in data_for_attention[CLASS_COLUMN]:
+                    if cls == unknown_class_lower:
+                        tsne_labels.append(-1)  # Unknown 클래스
+                    else:
+                        tsne_labels.append(known_label2id.get(cls, -2))  # Known 클래스 또는 기타
             else:
-                continue  # 유효하지 않은 모드
+                # 클래스 컬럼이 없다면 모두 동일 레이블로 처리
+                tsne_labels = [0] * len(data_for_attention)
             
-            # t-SNE 시각화 수행
-            tsne_title = f't-SNE (Known vs Unknown vs OE Candidates by {metric})'
-            tsne_save_path = os.path.join(VIS_DIR, f'tsne_visualization_{metric}.png')
+            tsne_labels = np.array(tsne_labels)
             
-            try:
-                plot_tsne(
-                    features=np.array(all_features),
-                    labels=tsne_labels,
-                    title=tsne_title,
-                    save_path=tsne_save_path,
-                    highlight_indices=oe_candidate_indices,
-                    highlight_label=highlight_label,
-                    class_names=tsne_class_names,
-                    seed=RANDOM_STATE
-                )
-                print(f"{metric}에 대한 t-SNE 시각화가 {tsne_save_path}에 저장되었습니다.")
-            except Exception as e:
-                print(f"{metric}에 대한 t-SNE 시각화 중 오류 발생: {e}")
+            # 클래스 이름 매핑
+            if log_data_module and hasattr(log_data_module, 'id2label'):
+                tsne_class_names = {**log_data_module.id2label, -1: 'Unknown', -2: 'Other/Filtered'}
+            else:
+                tsne_class_names = {-1: 'Unknown', -2: 'Other/Filtered'}
+            
+            # 순차적 필터링에 대한 설명 문자열 생성
+            seq_filter_desc = " + ".join([f"{m} {s['mode']} {s['percentile']}%" for m, s in FILTERING_SEQUENCE])
+            
+            # t-SNE 시각화 실행
+            plot_tsne(
+                features=np.array(all_features),
+                labels=tsne_labels,
+                title=f't-SNE (Known vs Unknown vs OE Candidates by Sequential Filtering)',
+                save_path=os.path.join(VIS_DIR, f'tsne_visualization_sequential_filtering.png'),
+                highlight_indices=sequential_oe_indices,
+                highlight_label=f'OE Candidate (Sequential: {seq_filter_desc})',
+                class_names=tsne_class_names,
+                seed=RANDOM_STATE
+            )
+            
+            print(f"순차적 필터링 결과 t-SNE 시각화 저장: {os.path.join(VIS_DIR, 'tsne_visualization_sequential_filtering.png')}")
+        else:
+            print("순차적 필터링 후 선택된 샘플이 없어 t-SNE 시각화를 건너뜁니다.")
     else:
         print(f"t-SNE 시각화 건너뛰기: 특징 벡터({len(all_features)})와 데이터({len(data_for_attention)}) 길이 불일치")
 

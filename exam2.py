@@ -587,7 +587,7 @@ if __name__ == "__main__":
     # ... (ArgumentParser 설정 - 수정된 default 값 사용) ...
     parser.add_argument('--dataset', type=str, default='all', choices=['syslog', '20newsgroups', 'all'], help='Which dataset to run experiment on.')
     parser.add_argument('--id_data_path', type=str, default='log_all_critical.csv', help='Path for syslog ID data')
-    parser.add_argument('--oe_masked_syslog_path', type=str, default='masked_for_oe_without_unknown.csv', help='Path for masked syslog OE data')
+    parser.add_argument('--oe_masked_syslog_path', type=str, default='oe_extraction_results/extracted_oe_datasets/oe_data_sequential_removed_avg_attention_higher_90_attention_entropy_lower_30.csv', help='Path for masked syslog OE data')
     parser.add_argument('--ood_data_path', type=str, default='log_unknown.csv', help='Path for syslog OOD data')
     parser.add_argument('--result_dir_base', type=str, default='results_osr_comparison_multi_dataset', help='Base directory to save results')
     parser.add_argument('--model_dir_base', type=str, default='models_osr_comparison_multi_dataset', help='Base directory to save models')
