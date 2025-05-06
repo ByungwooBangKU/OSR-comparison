@@ -964,8 +964,85 @@ def main():
         else:
             print(f"{metric} 시각화 건너뛰기 (없거나 모두 null).")
         
-    # 10. OE 데이터셋 추출 (각 지표별 최적 퍼센타일 적용)
-    print("\n--- 10. OE 데이터셋 추출 (맞춤형 퍼센타일 적용) ---")
+
+    # 10. OE 데이터셋 추출 부분 수정
+    print("\n--- 10. OE 데이터셋 추출 (순차적 필터링 적용) ---")
+
+    # 순차적 필터링 설정
+    FILTERING_SEQUENCE = [
+        ('removed_avg_attention', {'percentile': 90, 'mode': 'higher'}),
+        ('attention_entropy', {'percentile': 30, 'mode': 'lower'})
+    ]
+
+    # 필터링 결과를 저장할 마스크 초기화 (처음에는 모든 샘플이 대상)
+    selected_mask = np.ones(len(data_for_attention), dtype=bool)
+
+    # 각 필터 순차적으로 적용
+    for filter_step, (metric, settings) in enumerate(FILTERING_SEQUENCE):
+        if metric not in data_for_attention.columns or MASKED_TEXT_COLUMN not in data_for_attention.columns:
+            print(f"{metric} 또는 {MASKED_TEXT_COLUMN} 컬럼이 없어 건너뜁니다.")
+            continue
+        
+        # 현재 선택된 샘플에서만 점수 추출
+        current_selection = data_for_attention[selected_mask]
+        scores = current_selection[metric].values
+        scores = np.nan_to_num(scores, nan=0.0)
+        
+        # 현재 선택된 샘플에 대한 백분위수 계산
+        if settings['mode'] == 'higher':
+            threshold = np.percentile(scores, 100 - settings['percentile'])
+            step_mask = scores >= threshold
+            print(f"필터 {filter_step+1}: {metric} >= {threshold:.4f} (상위 {settings['percentile']}%)")
+        else:  # 'lower'
+            threshold = np.percentile(scores, settings['percentile'])
+            step_mask = scores <= threshold
+            print(f"필터 {filter_step+1}: {metric} <= {threshold:.4f} (하위 {settings['percentile']}%)")
+        
+        # 현재 선택 내에서 필터링된 인덱스 구하기
+        filtered_indices = np.where(selected_mask)[0][step_mask]
+        
+        # 전체 마스크 업데이트
+        selected_mask = np.zeros_like(selected_mask)
+        selected_mask[filtered_indices] = True
+        
+        print(f"필터 {filter_step+1} 후 남은 샘플: {np.sum(selected_mask)} / {len(data_for_attention)}")
+
+    # 최종 선택된 샘플 인덱스
+    final_selected_indices = np.where(selected_mask)[0]
+
+    if len(final_selected_indices) > 0:
+        # OE 데이터셋에 마스크된 텍스트 저장 (기본 버전)
+        oe_df_filtered = data_for_attention.iloc[final_selected_indices][[MASKED_TEXT_COLUMN]].copy()
+        
+        # 추가 정보를 포함한 확장 버전
+        extended_columns = [MASKED_TEXT_COLUMN, TEXT_COLUMN, TOP_WORDS_COLUMN] + [m for m, _ in FILTERING_SEQUENCE]
+        extended_columns = [col for col in extended_columns if col in data_for_attention.columns]
+        oe_df_extended = data_for_attention.iloc[final_selected_indices][extended_columns].copy()
+        
+        # 파일명 생성
+        filter_desc = "_".join([f"{m}_{s['mode']}_{s['percentile']}" for m, s in FILTERING_SEQUENCE])
+        oe_filename = os.path.join(OE_DATA_DIR, f"oe_data_sequential_{filter_desc}.csv")
+        oe_extended_filename = os.path.join(OE_DATA_DIR, f"oe_data_sequential_{filter_desc}_extended.csv")
+        
+        try:
+            oe_df_filtered.to_csv(oe_filename, index=False)
+            print(f"순차적 필터링 OE 데이터셋 ({len(oe_df_filtered)} 샘플) 저장: {oe_filename}")
+            
+            oe_df_extended.to_csv(oe_extended_filename, index=False)
+            print(f"확장 OE 데이터셋 저장: {oe_extended_filename}")
+            
+            # 샘플 통계 정보 계산
+            for metric in [m for m, _ in FILTERING_SEQUENCE]:
+                if metric in oe_df_extended.columns:
+                    values = oe_df_extended[metric].values
+                    values = np.nan_to_num(values, nan=0.0)
+                    print(f"선택된 샘플의 {metric} - 평균: {np.mean(values):.4f}, 중앙값: {np.median(values):.4f}, 최소: {np.min(values):.4f}, 최대: {np.max(values):.4f}")
+        
+        except Exception as e:
+            print(f"OE 데이터셋 저장 중 오류: {e}")
+    else:
+        print("순차적 필터링 후 선택된 샘플이 없습니다.")
+
     for metric in metric_columns:
         if metric not in data_for_attention.columns or MASKED_TEXT_COLUMN not in data_for_attention.columns:
             print(f"{metric} 또는 {MASKED_TEXT_COLUMN} 컬럼이 없어 건너뜁니다.")
