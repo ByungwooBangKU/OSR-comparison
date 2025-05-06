@@ -1,8 +1,3 @@
-#python exam2.py --oe_masked_syslog_path oe_extraction_results/extracted_oe_datasets/oe_data_attention_entropy_bottom25pct.csv
-#python exam2.py --oe_masked_syslog_path oe_extraction_results/extracted_oe_datasets/oe_data_max_attention_top85pct.csv
-#python exam2.py --oe_masked_syslog_path oe_extraction_results/extracted_oe_datasets/oe_data_removed_avg_attention_top90pct.csv
-#python exam2.py --oe_masked_syslog_path oe_extraction_results/extracted_oe_datasets/oe_data_sequential_removed_avg_attention_higher_90_attention_entropy_low
-#python exam2.py --oe_masked_syslog_path oe_extraction_results/extracted_oe_datasets/oe_data_top_k_avg_attention_top80pct.csv
 # -*- coding: utf-8 -*-
 import os
 import numpy as np
@@ -37,35 +32,27 @@ import argparse
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional, Any, Union
 from datasets import load_dataset, DatasetDict, concatenate_datasets
-import re # <<<--- 파일 이름 정리를 위해 추가
+import re
 
-# --- 설정값 ---
-# 데이터 경로
+# --- 설정값 (이전과 동일) ---
 ID_SYSLOG_PATH = 'log_all_critical.csv'
-OE_MASKED_SYSLOG_PATH = 'masked_for_oe_without_unknown.csv' # 기본값, 명령줄에서 오버라이드됨
-OOD_SYSLOG_UNKNOWN_PATH = 'log_unknown.csv' # Syslog unknown 클래스 포함 파일
-
-# 컬럼 이름
+OE_MASKED_SYSLOG_PATH = None # 명령줄에서 받아야 함
+OOD_SYSLOG_UNKNOWN_PATH = 'log_unknown.csv'
 TEXT_COLUMN = 'text'
 CLASS_COLUMN = 'class'
 OE_MASKED_TEXT_COLUMN = 'masked_text_attention'
-
-# 클래스 정의
 ID_SYSLOG_EXCLUDE_CLASS = "unknown"
 OOD_SYSLOG_TARGET_CLASS = "unknown"
-# 20 Newsgroups 설정 (ID 클래스 수, OOD 정의는 아래 함수에서 결정)
-NUM_20NG_ID_CLASSES = 10 # 예시: 10개 카테고리를 ID로 사용
-
-# 실험 설정
-OE_SOURCES_TO_RUN = ['syslog_masked', 'snli', 'imdb'] # 실행할 OE 소스
-RESULT_DIR_BASE = 'results_osr_comparison_multi_dataset' # 기본 결과 디렉토리
-MODEL_DIR_BASE = 'models_osr_comparison_multi_dataset' # 기본 모델 디렉토리
+NUM_20NG_ID_CLASSES = 10
+# OE_SOURCES_TO_RUN = ['syslog_masked', 'snli', 'imdb'] # argparse에서 기본값 설정
+RESULT_DIR_BASE = 'results_osr_comparison_multi_dataset'
+MODEL_DIR_BASE = 'models_osr_comparison_multi_dataset'
 DATA_DIR = 'data'
 CACHE_DIR = os.path.join(DATA_DIR, "hf_cache")
 MODEL_TYPE = 'roberta-base'
 MAX_LENGTH = 128
 BATCH_SIZE = 64
-NUM_EPOCHS = 15 # 필요시 조정
+NUM_EPOCHS = 15
 LEARNING_RATE = 2e-5
 OE_LAMBDA = 1.0
 TEMPERATURE = 1.0
@@ -76,18 +63,17 @@ NO_PLOT = False
 SKIP_STANDARD = False
 SKIP_OE_ALL = False
 
-# 시드 설정
+# --- 함수 정의 (이전 코드와 동일, 변경 없음) ---
 def set_seed(seed: int):
+    # ... (코드 동일) ...
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
     if torch.cuda.is_available(): torch.cuda.manual_seed_all(seed)
     print(f"Seed set to {seed}")
 
-# GPU 설정
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# print(f"Using device: {device}")
 
-# 데이터 클래스 (변경 없음)
 class TextDataset(Dataset):
+    # ... (코드 동일) ...
     def __init__(self, texts: List[str], labels: List[int], tokenizer, max_length: int = 128):
         self.labels = labels; # print(f"Tokenizing {len(texts)} texts...") # 로그 축소
         valid_texts = [str(t) if pd.notna(t) else "" for t in texts]
@@ -97,8 +83,8 @@ class TextDataset(Dataset):
     def __getitem__(self, idx):
         item = {key: val[idx] for key, val in self.encodings.items()}; item['label'] = torch.tensor(self.labels[idx], dtype=torch.long); return item
 
-# --- 데이터셋 준비 함수 (변경 없음) ---
 def prepare_syslog_data(tokenizer, max_length: int, id_data_path: str, text_col: str, class_col: str, exclude_class: str, seed: int = 42) -> Tuple[Dataset, Dataset, int, LabelEncoder, Dict, Dict]:
+    # ... (코드 동일) ...
     print(f"\n--- Preparing Syslog ID data from: {id_data_path} ---")
     try:
         df = pd.read_csv(id_data_path);
@@ -128,6 +114,7 @@ def prepare_syslog_data(tokenizer, max_length: int, id_data_path: str, text_col:
     except Exception as e: print(f"Error preparing Syslog ID data: {e}"); raise
 
 def prepare_20newsgroups_data(tokenizer, max_length: int, num_id_classes: int, seed: int = 42) -> Tuple[Dataset, Dataset, int, LabelEncoder, Dict, Dict, List[str]]:
+    # ... (코드 동일) ...
     print(f"\n--- Preparing 20 Newsgroups ID data ({num_id_classes} classes) ---")
     try:
         all_categories = list(fetch_20newsgroups(subset='train').target_names)
@@ -155,6 +142,7 @@ def prepare_20newsgroups_data(tokenizer, max_length: int, num_id_classes: int, s
     except Exception as e: print(f"Error preparing 20 Newsgroups ID data: {e}"); raise
 
 def prepare_20newsgroups_ood_data(tokenizer, max_length: int, ood_categories: List[str], seed: int = 42) -> Optional[Dataset]:
+    # ... (코드 동일) ...
     if not ood_categories: return None
     print(f"\n--- Preparing 20 Newsgroups OOD data (Categories: {ood_categories}) ---")
     try:
@@ -168,6 +156,7 @@ def prepare_20newsgroups_ood_data(tokenizer, max_length: int, ood_categories: Li
     except Exception as e: print(f"Error preparing 20 Newsgroups OOD data: {e}"); return None
 
 def prepare_syslog_masked_oe_data(tokenizer, max_length: int, oe_data_path: str, oe_text_col: str) -> Optional[Dataset]:
+    # ... (코드 동일) ...
     print(f"Preparing Syslog Masked OE data from: {oe_data_path}")
     try:
         df = pd.read_csv(oe_data_path)
@@ -180,6 +169,7 @@ def prepare_syslog_masked_oe_data(tokenizer, max_length: int, oe_data_path: str,
     except Exception as e: print(f"Error preparing Syslog Masked OE data: {e}"); return None
 
 def prepare_external_oe_data(tokenizer, max_length: int, oe_source: str, data_dir: str = 'data', cache_dir: Optional[str] = None) -> Optional[Dataset]:
+    # ... (코드 동일) ...
     print(f"Preparing External OE data source: {oe_source}")
     if cache_dir is None: cache_dir = os.path.join(data_dir, "hf_cache"); os.makedirs(cache_dir, exist_ok=True)
     config = None; text_col = None; split = "train"
@@ -202,6 +192,7 @@ def prepare_external_oe_data(tokenizer, max_length: int, oe_source: str, data_di
     except Exception as e: print(f"Error loading external OE dataset {oe_source}: {e}"); return None
 
 def prepare_syslog_ood_data(tokenizer, max_length: int, ood_data_path: str, text_col: str, class_col: str, ood_target_class: str) -> Optional[Dataset]:
+    # ... (코드 동일) ...
     print(f"Preparing Syslog OOD data (class: '{ood_target_class}') from: {ood_data_path}")
     try:
         df = pd.read_csv(ood_data_path);
@@ -215,8 +206,8 @@ def prepare_syslog_ood_data(tokenizer, max_length: int, ood_data_path: str, text
         return ood_dataset
     except Exception as e: print(f"Error preparing Syslog OOD data: {e}"); return None
 
-# 모델 정의 (변경 없음)
 class RoBERTaOOD(nn.Module):
+    # ... (코드 동일) ...
     def __init__(self, num_classes: int, model_name: str = 'roberta-base'):
         super(RoBERTaOOD, self).__init__(); # print(f"Initializing RoBERTa model ({model_name}) for {num_classes} classes.") # 로그 축소
         config = RobertaConfig.from_pretrained(model_name); config.num_labels = num_classes
@@ -228,8 +219,8 @@ class RoBERTaOOD(nn.Module):
         if output_features: features = outputs.hidden_states[-1][:, 0, :]; return logits, features
         else: return logits
 
-# 학습 함수 (OE - Uniform Loss 사용) - (변경 없음)
 def train_with_oe_uniform_loss(model: nn.Module, train_loader: DataLoader, oe_loader: DataLoader, optimizer: optim.Optimizer, scheduler, device: torch.device, num_epochs: int, oe_lambda: float):
+    # ... (코드 동일) ...
     model.train(); use_amp = device.type == 'cuda'; scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     print("Starting training with Outlier Exposure (Uniform CE Loss)... AMP enabled: ", use_amp)
     for epoch in range(num_epochs):
@@ -254,8 +245,8 @@ def train_with_oe_uniform_loss(model: nn.Module, train_loader: DataLoader, oe_lo
         avg_loss = total_loss / len(train_loader); avg_id_loss = total_id_loss / len(train_loader); avg_oe_loss = total_oe_loss / len(train_loader)
         print(f"OE Uniform Epoch {epoch+1}/{num_epochs}, Avg Loss: {avg_loss:.4f} (ID: {avg_id_loss:.4f}, OE: {avg_oe_loss:.4f})")
 
-# 학습 함수 (표준 - 변경 없음)
 def train_standard(model: nn.Module, train_loader: DataLoader, optimizer: optim.Optimizer, scheduler, device: torch.device, num_epochs: int):
+    # ... (코드 동일) ...
     model.train(); use_amp = device.type == 'cuda'; scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
     print("Starting standard training... AMP enabled: ", use_amp)
     for epoch in range(num_epochs):
@@ -270,8 +261,8 @@ def train_standard(model: nn.Module, train_loader: DataLoader, optimizer: optim.
         scheduler.step(); avg_loss = total_loss / len(train_loader)
         print(f"Standard Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}")
 
-# OSR 평가 함수 (변경 없음)
 def evaluate_osr(model: nn.Module, id_loader: DataLoader, ood_loader: DataLoader, device: torch.device, temperature: float = 1.0, threshold: Optional[float] = None, return_data: bool = False) -> Union[Dict[str, float], Tuple[Dict[str, float], Dict[str, np.ndarray]]]:
+    # ... (코드 동일) ...
     model.eval(); id_logits_all, id_scores_all, id_labels_true, id_labels_pred, id_features_all = [], [], [], [], []; ood_logits_all, ood_scores_all, ood_features_all = [], [], []
     with torch.no_grad():
         for batch in tqdm(id_loader, desc="Evaluating ID for OSR"):
@@ -315,8 +306,8 @@ def evaluate_osr(model: nn.Module, id_loader: DataLoader, ood_loader: DataLoader
     if return_data: return results, all_data
     return results
 
-# 시각화 함수들 (변경 없음)
 def plot_confidence_histograms(id_scores: np.ndarray, ood_scores: np.ndarray, title: str, save_path: Optional[str] = None):
+    # ... (코드 동일) ...
     if not SNS_AVAILABLE: return
     plt.figure(figsize=(10, 6)); id_scores_valid = id_scores[~np.isnan(id_scores)]; ood_scores_valid = ood_scores[~np.isnan(ood_scores)]
     if len(id_scores_valid) > 0: sns.histplot(id_scores_valid, bins=50, alpha=0.5, label='In-Distribution', color='blue', stat='density', kde=True)
@@ -326,6 +317,7 @@ def plot_confidence_histograms(id_scores: np.ndarray, ood_scores: np.ndarray, ti
     else: plt.show(); plt.close()
 
 def plot_roc_curve(id_scores: np.ndarray, ood_scores: np.ndarray, title: str, save_path: Optional[str] = None):
+    # ... (코드 동일) ...
     y_true = np.concatenate([np.ones_like(id_scores), np.zeros_like(ood_scores)]); y_scores = np.concatenate([id_scores, ood_scores])
     valid_indices = ~np.isnan(y_scores); y_true = y_true[valid_indices]; y_scores = y_scores[valid_indices]
     if len(np.unique(y_true)) < 2: print(f"Skipping ROC plot for '{title}'."); return
@@ -337,6 +329,7 @@ def plot_roc_curve(id_scores: np.ndarray, ood_scores: np.ndarray, title: str, sa
     else: plt.show(); plt.close()
 
 def plot_osr_comparison(results: Dict[str, Dict[str, float]], save_path: Optional[str] = None):
+    # ... (코드 동일) ...
     osr_results = {k: v for k, v in results.items() if '+' in k}
     if not osr_results: print("No OSR results to compare."); return
     datasets = sorted(list(set(k.split('+')[1] for k in osr_results)))
@@ -358,6 +351,7 @@ def plot_osr_comparison(results: Dict[str, Dict[str, float]], save_path: Optiona
     else: plt.show(); plt.close()
 
 def threshold_analysis(id_scores: np.ndarray, ood_scores: np.ndarray, title: str, save_path: Optional[str] = None) -> Optional[Tuple[float, float, float, float]]:
+    # ... (코드 동일) ...
     id_scores_valid = id_scores[~np.isnan(id_scores)]; ood_scores_valid = ood_scores[~np.isnan(ood_scores)]
     if len(id_scores_valid) == 0 or len(ood_scores_valid) == 0: print(f"Skipping threshold analysis for '{title}'."); return None
     all_scores = np.concatenate([id_scores_valid, ood_scores_valid]); min_score, max_score = np.min(all_scores), np.max(all_scores)
@@ -380,6 +374,7 @@ def threshold_analysis(id_scores: np.ndarray, ood_scores: np.ndarray, title: str
     return best_threshold, best_accuracy, tpr90_threshold, fpr90
 
 def plot_confusion_matrix(cm: np.ndarray, class_names: List[str], title: str, save_path: Optional[str] = None):
+    # ... (코드 동일) ...
     if not SNS_AVAILABLE: print("Seaborn not available, skipping confusion matrix plot."); return
     if cm.shape[0] != len(class_names) or cm.shape[1] != len(class_names): print(f"Warning: Mismatch CM shape {cm.shape} and class names {len(class_names)}. Skipping plot."); return
     df_cm = pd.DataFrame(cm, index=class_names, columns=class_names)
@@ -393,6 +388,7 @@ def plot_confusion_matrix(cm: np.ndarray, class_names: List[str], title: str, sa
     except Exception as e: print(f"Error plotting confusion matrix: {e}"); plt.close()
 
 def plot_tsne(id_features: np.ndarray, ood_features: np.ndarray, title: str, save_path: Optional[str] = None, seed: int = 42, perplexity: int = 30, n_iter: int = 1000):
+    # ... (코드 동일) ...
     if len(id_features) == 0 and len(ood_features) == 0: print("No features for t-SNE."); return
     if len(id_features) > 0 and len(ood_features) > 0:
         features = np.vstack((id_features, ood_features)); labels = np.concatenate([np.ones(len(id_features)), np.zeros(len(ood_features))])
@@ -401,13 +397,11 @@ def plot_tsne(id_features: np.ndarray, ood_features: np.ndarray, title: str, sav
     else: features = ood_features; labels = np.zeros(len(ood_features)); legend_labels = {0: 'Out-of-Distribution'}; colors = {0: 'red'}
     print(f"Running t-SNE on {features.shape[0]} samples (perplexity={perplexity})...")
     try:
-        # Perplexity는 샘플 수보다 작아야 함
         effective_perplexity = min(perplexity, features.shape[0] - 1)
         if effective_perplexity < 5:
             print(f"Warning: Perplexity ({perplexity}) too high for number of samples ({features.shape[0]}). Using {effective_perplexity}.")
         if effective_perplexity <= 0:
              print("Error: Not enough samples for t-SNE. Skipping plot."); return
-
         tsne = TSNE(n_components=2, random_state=seed, perplexity=effective_perplexity, n_iter=n_iter, init='pca', learning_rate='auto')
         tsne_results = tsne.fit_transform(features)
     except Exception as e: print(f"Error running t-SNE: {e}. Skipping plot."); return
@@ -419,37 +413,28 @@ def plot_tsne(id_features: np.ndarray, ood_features: np.ndarray, title: str, sav
     else: plt.show()
     plt.close()
 
-
-# 메인 함수 (수정됨 - 데이터셋 루프 추가)
-# <<<--- args 딕셔너리에 result_dir, model_dir 키가 포함되어 전달됨 --->>>
+# --- run_experiment 함수 (내부 변경 없음, 전달받은 경로와 OE 소스 사용) ---
 def run_experiment(args: Dict[str, Any], dataset_name: str):
     """주어진 ID 데이터셋에 대해 전체 실험 실행"""
     print(f"\n\n===== Starting Experiment for Dataset: {dataset_name} =====")
-    # set_seed(args['seed']) # 시드 설정은 main 시작 시 한 번만
-
-    # <<<--- 결과 및 모델 저장 경로는 args에서 직접 사용 (main에서 생성됨) --->>>
     current_result_dir = args['result_dir']
     current_model_dir = args['model_dir']
-    # <<<--- 디렉토리 생성은 main에서 수행하므로 여기서는 제거 --->>>
-    # os.makedirs(current_result_dir, exist_ok=True)
-    # if args['save_model']: os.makedirs(current_model_dir, exist_ok=True)
     print(f"Using Results Directory: {current_result_dir}")
     if args['save_model']: print(f"Using Models Directory: {current_model_dir}")
 
-    # --- 토크나이저 로드 ---
     print(f"Loading RoBERTa tokenizer: {args['model_type']}...")
     tokenizer = RobertaTokenizer.from_pretrained(args['model_type'])
 
-    # --- 데이터셋 준비 ---
     print("\n--- Preparing Datasets ---")
     ood_test_dataset = None
     known_class_names = []
-    num_classes = 0 # 초기화
+    num_classes = 0
     final_label2id = {}
     final_id2label = {}
-    ood_dataset_name = "ood" # 기본값
+    ood_dataset_name = "ood"
 
     if dataset_name == 'syslog':
+        # ... (데이터 로드 로직 동일) ...
         train_dataset, id_test_dataset, num_classes, _, final_label2id, final_id2label = prepare_syslog_data(
             tokenizer, args['max_length'], args['id_data_path'], args['text_col'], args['class_col'], args['id_exclude_class'], args['seed']
         )
@@ -458,8 +443,8 @@ def run_experiment(args: Dict[str, Any], dataset_name: str):
         )
         known_class_names = list(final_id2label.values())
         ood_dataset_name = args['ood_target_class']
-
     elif dataset_name == '20newsgroups':
+        # ... (데이터 로드 로직 동일) ...
         train_dataset, id_test_dataset, num_classes, _, final_label2id, final_id2label, ood_categories = prepare_20newsgroups_data(
             tokenizer, args['max_length'], args['num_20ng_id_classes'], args['seed']
         )
@@ -480,53 +465,47 @@ def run_experiment(args: Dict[str, Any], dataset_name: str):
     performance_metrics = {}
     all_data = {}
 
-    # <<<--- 파일 이름 생성 시 current_result_dir, current_model_dir 사용 확인 --->>>
-
     # --- 1. 표준 모델 (OE 없음) ---
     model_std = None
-    # <<<--- 파일명에 oe_file_basename을 넣을 필요는 없음. 디렉토리로 구분되므로. --->>>
     std_model_filename = f'roberta_standard_{dataset_name}_{num_classes}cls_seed{args["seed"]}.pt'
-    std_model_path = os.path.join(current_model_dir, std_model_filename) # 수정된 경로 사용
+    std_model_path = os.path.join(current_model_dir, std_model_filename)
 
     if not args['skip_standard']:
         print(f"\n--- Standard Model Training/Evaluation ({dataset_name}) ---")
         model_std = RoBERTaOOD(num_classes, args['model_type']).to(device)
         model_std.roberta.config.label2id = final_label2id; model_std.roberta.config.id2label = final_id2label
         if args['eval_only']:
-            # <<<--- eval_only 시에도 현재 계산된 std_model_path 사용 --->>>
             load_path = std_model_path
             if load_path and os.path.exists(load_path): print(f"Loading standard model from {load_path}..."); model_std.load_state_dict(torch.load(load_path, map_location=device))
-            else: print(f"Error: Standard model path '{load_path}' not found for eval_only. Skipping standard evaluation."); model_std = None # 모델 로드 실패 시 None으로 설정
+            else: print(f"Error: Standard model path '{load_path}' not found for eval_only. Skipping standard evaluation."); model_std = None
         else:
             optimizer_std = AdamW(model_std.parameters(), lr=args['learning_rate'])
             total_steps = len(train_loader) * args['num_epochs']; scheduler_std = get_linear_schedule_with_warmup(optimizer_std, num_warmup_steps=int(0.1 * total_steps), num_training_steps=total_steps)
             train_standard(model_std, train_loader, optimizer_std, scheduler_std, device, args['num_epochs'])
             if args['save_model']: torch.save(model_std.state_dict(), std_model_path); print(f"Standard model saved to {std_model_path}")
 
-        # <<<--- 모델 로드/학습 성공 시에만 평가 진행 --->>>
         if model_std and ood_test_loader:
             print(f"\nEvaluating Standard Model ({dataset_name}) with OSR metrics...")
             results_std_osr, data_std_osr = evaluate_osr(model_std, id_test_loader, ood_test_loader, device, args['temperature'], return_data=True)
             print(f"  OSR Results (Standard vs {ood_dataset_name}): {results_std_osr}")
-            performance_metrics[f'Standard+{ood_dataset_name}'] = results_std_osr
+            performance_metrics[f'Standard+{ood_dataset_name}'] = results_std_osr # 키 형식 복원됨
             all_data[f'Standard+{ood_dataset_name}'] = data_std_osr
             if not args['no_plot']:
-                # <<<--- 플롯 저장 경로에 current_result_dir 사용 --->>>
+                # 플롯 저장 경로는 current_result_dir 사용 (정상)
                 plot_confidence_histograms(data_std_osr['id_scores'], data_std_osr['ood_scores'], f'OSR Confidence - Standard ({dataset_name}) vs {ood_dataset_name}', os.path.join(current_result_dir, f'standard_osr_{ood_dataset_name}_hist.png'))
                 plot_roc_curve(data_std_osr['id_scores'], data_std_osr['ood_scores'], f'OSR ROC - Standard ({dataset_name}) vs {ood_dataset_name}', os.path.join(current_result_dir, f'standard_osr_{ood_dataset_name}_roc.png'))
                 threshold_analysis(data_std_osr['id_scores'], data_std_osr['ood_scores'], f'OSR Threshold Analysis - Standard ({dataset_name}) vs {ood_dataset_name}', os.path.join(current_result_dir, f'standard_osr_{ood_dataset_name}_threshold.png'))
-                if len(data_std_osr['id_labels_true']) > 0: # ID 데이터가 있을 때만 CM 그림
+                if len(data_std_osr['id_labels_true']) > 0:
                     cm_std = confusion_matrix(data_std_osr['id_labels_true'], data_std_osr['id_labels_pred'], labels=np.arange(num_classes))
                     plot_confusion_matrix(cm_std, known_class_names, f'Confusion Matrix - Standard ({dataset_name} ID Test)', os.path.join(current_result_dir, f'standard_confusion_matrix.png'))
                 plot_tsne(data_std_osr['id_features'], data_std_osr['ood_features'], f't-SNE - Standard ({dataset_name} ID vs {ood_dataset_name})', os.path.join(current_result_dir, f'standard_tsne.png'), seed=args['seed'])
-        # 사용 완료 후 메모리 정리 시도
         del model_std
         if torch.cuda.is_available(): torch.cuda.empty_cache(); gc.collect()
 
-    # --- 2. OE 모델 (Uniform Loss) - 여러 소스에 대해 반복 ---
+    # --- 2. OE 모델 (Uniform Loss) - args['oe_sources']에 있는 모든 소스에 대해 반복 ---
     if not args['skip_oe_all']:
+        # <<<--- 이 루프는 args['oe_sources']에 있는 모든 것을 처리함 --->>>
         for oe_source in args['oe_sources']:
-            # syslog 데이터셋이 아닐 경우 syslog_masked OE 소스 건너뛰기
             if dataset_name != 'syslog' and oe_source == 'syslog_masked':
                 print(f"\nSkipping OE source 'syslog_masked' for non-syslog dataset '{dataset_name}'.")
                 continue
@@ -534,11 +513,15 @@ def run_experiment(args: Dict[str, Any], dataset_name: str):
             print(f"\n===== Running OE Experiment ({dataset_name}) with Source: {oe_source} =====")
             oe_train_dataset_current = None
             if oe_source == 'syslog_masked':
-                # <<<--- args에서 oe_masked_syslog_path 사용 --->>>
+                # syslog_masked 소스일 경우, args에서 경로를 가져옴
+                if not args['oe_masked_syslog_path']: # 경로가 제공되지 않았으면 경고 후 건너뜀
+                     print(f"Warning: Skipping OE source 'syslog_masked' because --oe_masked_syslog_path was not provided.")
+                     continue
                 oe_train_dataset_current = prepare_syslog_masked_oe_data(
                     tokenizer, args['max_length'], args['oe_masked_syslog_path'], args['oe_masked_text_col']
                 )
             elif oe_source in ['snli', 'imdb', 'wikitext']:
+                # 다른 외부 소스 처리
                 oe_train_dataset_current = prepare_external_oe_data(
                     tokenizer, args['max_length'], oe_source, data_dir=DATA_DIR, cache_dir=CACHE_DIR
                 )
@@ -551,43 +534,39 @@ def run_experiment(args: Dict[str, Any], dataset_name: str):
             oe_train_loader_current = DataLoader(oe_train_dataset_current, batch_size=args['batch_size'], shuffle=True, num_workers=num_workers, persistent_workers=num_workers > 0, pin_memory=True)
 
             model_oe = None
-            # <<<--- 모델 파일명은 그대로 유지, 저장 경로는 current_model_dir 사용 --->>>
             oe_model_filename = f'roberta_oe_uniform_{oe_source}_{dataset_name}_{num_classes}cls_seed{args["seed"]}.pt'
-            oe_model_path = os.path.join(current_model_dir, oe_model_filename)
+            oe_model_path = os.path.join(current_model_dir, oe_model_filename) # 저장 경로는 current_model_dir 사용
             print(f"\n--- Outlier Exposure (Source: {oe_source}, Loss: Uniform CE) Model Training/Evaluation ---")
             model_oe = RoBERTaOOD(num_classes, args['model_type']).to(device)
             model_oe.roberta.config.label2id = final_label2id; model_oe.roberta.config.id2label = final_id2label
 
             if args['eval_only']:
-                # <<<--- eval_only 시에도 현재 계산된 oe_model_path 사용 --->>>
                 load_path = oe_model_path
                 if load_path and os.path.exists(load_path): print(f"Loading OE model ({oe_source}) from {load_path}..."); model_oe.load_state_dict(torch.load(load_path, map_location=device))
-                else: print(f"Error: OE model path '{load_path}' not found for eval_only. Skipping OE {oe_source} evaluation."); model_oe = None # 모델 로드 실패 시 None
+                else: print(f"Error: OE model path '{load_path}' not found for eval_only. Skipping OE {oe_source} evaluation."); model_oe = None
             else:
                 optimizer_oe = AdamW(model_oe.parameters(), lr=args['learning_rate'])
                 total_steps = len(train_loader) * args['num_epochs']; scheduler_oe = get_linear_schedule_with_warmup(optimizer_oe, num_warmup_steps=int(0.1 * total_steps), num_training_steps=total_steps)
                 train_with_oe_uniform_loss(model_oe, train_loader, oe_train_loader_current, optimizer_oe, scheduler_oe, device, args['num_epochs'], args['oe_lambda'])
                 if args['save_model']: torch.save(model_oe.state_dict(), oe_model_path); print(f"OE Model (Source: {oe_source}) saved to {oe_model_path}")
 
-            # <<<--- 모델 로드/학습 성공 시에만 평가 진행 --->>>
             if model_oe and ood_test_loader:
                 print(f"\nEvaluating OE Model (Source: {oe_source}, Loss: Uniform CE) with OSR metrics...")
                 results_oe_osr, data_oe_osr = evaluate_osr(model_oe, id_test_loader, ood_test_loader, device, args['temperature'], return_data=True)
-                metric_key = f'OE_Uniform_{oe_source}+{ood_dataset_name}'
+                metric_key = f'OE_Uniform_{oe_source}+{ood_dataset_name}' # 키 형식 복원됨
                 print(f"  OSR Results ({metric_key}): {results_oe_osr}")
                 performance_metrics[metric_key] = results_oe_osr
                 all_data[metric_key] = data_oe_osr
                 if not args['no_plot']:
-                    # <<<--- 플롯 저장 경로에 current_result_dir 사용 --->>>
+                    # 플롯 저장 경로는 current_result_dir 사용 (정상)
                     plot_confidence_histograms(data_oe_osr['id_scores'], data_oe_osr['ood_scores'], f'OSR Confidence - OE {oe_source} Uniform ({dataset_name}) vs {ood_dataset_name}', os.path.join(current_result_dir, f'oe_uniform_{oe_source}_osr_{ood_dataset_name}_hist.png'))
                     plot_roc_curve(data_oe_osr['id_scores'], data_oe_osr['ood_scores'], f'OSR ROC - OE {oe_source} Uniform ({dataset_name}) vs {ood_dataset_name}', os.path.join(current_result_dir, f'oe_uniform_{oe_source}_osr_{ood_dataset_name}_roc.png'))
                     threshold_analysis(data_oe_osr['id_scores'], data_oe_osr['ood_scores'], f'OSR Threshold Analysis - OE {oe_source} Uniform ({dataset_name}) vs {ood_dataset_name}', os.path.join(current_result_dir, f'oe_uniform_{oe_source}_osr_{ood_dataset_name}_threshold.png'))
-                    if len(data_oe_osr['id_labels_true']) > 0: # ID 데이터가 있을 때만 CM 그림
+                    if len(data_oe_osr['id_labels_true']) > 0:
                         cm_oe = confusion_matrix(data_oe_osr['id_labels_true'], data_oe_osr['id_labels_pred'], labels=np.arange(num_classes))
                         plot_confusion_matrix(cm_oe, known_class_names, f'Confusion Matrix - OE {oe_source} Uniform ({dataset_name} ID Test)', os.path.join(current_result_dir, f'oe_uniform_{oe_source}_confusion_matrix.png'))
                     plot_tsne(data_oe_osr['id_features'], data_oe_osr['ood_features'], f't-SNE - OE {oe_source} Uniform ({dataset_name} ID vs {ood_dataset_name})', os.path.join(current_result_dir, f'oe_uniform_{oe_source}_tsne.png'), seed=args['seed'])
 
-            # 사용 완료 후 메모리 정리 시도
             del model_oe, oe_train_dataset_current, oe_train_loader_current
             if torch.cuda.is_available(): torch.cuda.empty_cache(); gc.collect()
 
@@ -597,10 +576,8 @@ def run_experiment(args: Dict[str, Any], dataset_name: str):
 # --- 메인 실행 로직 (수정됨) ---
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='RoBERTa OSR Comparison with Multiple OE Sources on Syslog or 20Newsgroups Data')
-    # 기본 OE 경로를 None으로 설정하여 명시적으로 주어지지 않으면 처리하지 않도록 함
     parser.add_argument('--oe_masked_syslog_path', type=str, default=None, help='Path for masked syslog OE data (REQUIRED for syslog_masked OE source)')
-    # 나머지 인자 정의 (기존과 동일)
-    parser.add_argument('--dataset', type=str, default='syslog', choices=['syslog', '20newsgroups', 'all'], help='Which dataset to run experiment on.') # 기본값을 syslog로 변경하여 단일 실행 시 명확하게
+    parser.add_argument('--dataset', type=str, default='syslog', choices=['syslog', '20newsgroups', 'all'], help='Which dataset to run experiment on.')
     parser.add_argument('--id_data_path', type=str, default='log_all_critical.csv', help='Path for syslog ID data')
     parser.add_argument('--ood_data_path', type=str, default='log_unknown.csv', help='Path for syslog OOD data')
     parser.add_argument('--result_dir_base', type=str, default='results_osr_comparison_multi_dataset', help='Base directory to save results')
@@ -619,10 +596,11 @@ if __name__ == "__main__":
     parser.add_argument('--oe_lambda', type=float, default=1.0)
     parser.add_argument('--temperature', type=float, default=1.0)
     parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--oe_sources', nargs='+', default=['syslog_masked'], choices=['syslog_masked', 'snli', 'imdb', 'wikitext']) # 기본값을 syslog_masked만 포함하도록 변경
+    # <<<--- OE 소스 기본값 복원 및 선택지 유지 --->>>
+    parser.add_argument('--oe_sources', nargs='+', default=['syslog_masked', 'snli', 'imdb'], choices=['syslog_masked', 'snli', 'imdb', 'wikitext'], help='List of OE sources to use.')
     parser.add_argument('--save_model', default=True, action=argparse.BooleanOptionalAction)
     parser.add_argument('--eval_only', action='store_true')
-    parser.add_argument('--std_model_path', type=str, default=None, help='Path to pre-trained standard model (if eval_only)') # 이 인자는 이제 사용되지 않음 (아래 로직 참조)
+    # parser.add_argument('--std_model_path', type=str, default=None, help='Path to pre-trained standard model (if eval_only)') # 사용되지 않음
     parser.add_argument('--skip_standard', default=False, action=argparse.BooleanOptionalAction)
     parser.add_argument('--skip_oe_all', default=False, action=argparse.BooleanOptionalAction, help='Skip all OE experiments')
     parser.add_argument('--no_plot', default=False, action=argparse.BooleanOptionalAction)
@@ -630,26 +608,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args_dict = vars(args)
 
-    # 시드 설정 (실험 시작 시 한 번)
     set_seed(args.seed)
 
-    # <<<--- OE 파일 경로에서 기본 이름 추출 --->>>
     oe_file_basename = None
     oe_path = args_dict.get('oe_masked_syslog_path')
-    if oe_path and 'syslog_masked' in args_dict.get('oe_sources', []):
-        if not os.path.exists(oe_path):
-             print(f"Warning: Provided --oe_masked_syslog_path '{oe_path}' does not exist. 'syslog_masked' OE source will be skipped if used.")
-        else:
+    # syslog_masked 소스가 *선택된 경우에만* 경로 확인 및 이름 추출
+    if 'syslog_masked' in args_dict.get('oe_sources', []):
+        if oe_path and os.path.exists(oe_path):
             oe_file_name = os.path.basename(oe_path)
             oe_file_basename, _ = os.path.splitext(oe_file_name)
-            # 파일 이름에 포함될 수 없는 문자 제거 또는 대체 (옵션)
-            oe_file_basename = re.sub(r'[^\w\-]+', '_', oe_file_basename) # 영숫자, 밑줄, 하이픈만 유지
+            oe_file_basename = re.sub(r'[^\w\-]+', '_', oe_file_basename)
             print(f"Extracted and sanitized OE file base name: '{oe_file_basename}'")
-    elif not oe_path and 'syslog_masked' in args_dict.get('oe_sources', []):
-         print("Warning: 'syslog_masked' is in --oe_sources, but --oe_masked_syslog_path was not provided. This OE source will be skipped.")
-         # oe_sources 리스트에서 제거하여 이후 로직에서 에러 방지
-         args_dict['oe_sources'] = [s for s in args_dict['oe_sources'] if s != 'syslog_masked']
-
+        elif not oe_path:
+             print("Warning: 'syslog_masked' is in --oe_sources, but --oe_masked_syslog_path was not provided. This OE source will be skipped.")
+             # 실제 실행 시 run_experiment 내부에서 경로 부재로 건너뛰므로 여기서 리스트 수정 불필요
+        elif oe_path and not os.path.exists(oe_path):
+             print(f"Warning: Provided --oe_masked_syslog_path '{oe_path}' does not exist. 'syslog_masked' OE source will be skipped.")
+             # 실제 실행 시 run_experiment 내부에서 데이터 로드 실패로 건너뜀
 
     if args_dict['eval_only'] and not args_dict['skip_oe_all']:
         print("Running in eval_only mode. Will look for pre-trained models based on naming convention in specified directories.")
@@ -664,53 +639,41 @@ if __name__ == "__main__":
     for current_dataset_name in datasets_to_run:
         current_args = args_dict.copy()
 
-        # <<<--- 최종 결과 및 모델 디렉토리 경로 설정 --->>>
         dataset_result_dir = os.path.join(args.result_dir_base, current_dataset_name)
         dataset_model_dir = os.path.join(args.model_dir_base, current_dataset_name)
 
         final_result_dir = dataset_result_dir
         final_model_dir = dataset_model_dir
 
-        # syslog 데이터셋이고, syslog_masked OE를 사용하며, 유효한 파일 이름이 추출된 경우 경로 수정
+        # syslog 데이터셋이고, syslog_masked OE 소스가 *포함되어 있고*, 유효한 파일 이름이 추출된 경우 경로 수정
         if oe_file_basename and current_dataset_name == 'syslog' and 'syslog_masked' in current_args.get('oe_sources', []):
             final_result_dir = os.path.join(dataset_result_dir, oe_file_basename)
             final_model_dir = os.path.join(dataset_model_dir, oe_file_basename)
-            print(f"Output directories for syslog_masked OE '{oe_file_basename}':")
+            print(f"Output directories for this run (using OE file '{oe_file_basename}'):")
             print(f"  Results: {final_result_dir}")
             print(f"  Models: {final_model_dir}")
         else:
-             # 다른 경우 (20newsgroup 또는 syslog인데 다른 OE 소스만 사용) 기본 경로 사용
              print(f"Using standard output directories for dataset '{current_dataset_name}':")
              print(f"  Results: {final_result_dir}")
              print(f"  Models: {final_model_dir}")
 
-
-        # <<<--- run_experiment에 전달할 최종 경로 설정 --->>>
         current_args['result_dir'] = final_result_dir
         current_args['model_dir'] = final_model_dir
 
-        # <<<--- 최종 디렉토리 생성 (run_experiment 호출 전) --->>>
         os.makedirs(final_result_dir, exist_ok=True)
         if current_args['save_model']:
             os.makedirs(final_model_dir, exist_ok=True)
 
-        # eval_only 시 std_model_path 인자는 더 이상 직접 사용하지 않음.
-        # run_experiment 내에서 final_model_dir 기준으로 모델 경로를 계산함.
-        # current_args['std_model_path_current'] = args.std_model_path # 더 이상 필요 없음
-
-        # 메인 실험 함수 호출
         current_results, current_data = run_experiment(current_args, current_dataset_name)
 
-        # <<<--- 결과 취합 시 키에 OE 파일 이름 포함 (선택적) --->>>
-        # 결과를 더 명확하게 구분하기 위해, syslog & syslog_masked 경우 키에 oe_file_basename 추가
-        result_prefix = current_dataset_name
-        if oe_file_basename and current_dataset_name == 'syslog' and 'syslog_masked' in current_args.get('oe_sources', []):
-             result_prefix = f"{current_dataset_name}_{oe_file_basename}"
+        # <<<--- 결과 집계 시 키 접두사에서 oe_file_basename 제거 --->>>
+        result_prefix = current_dataset_name # 예: 'syslog' 또는 '20newsgroups'
 
         if current_results:
             for key, value in current_results.items():
-                # key 예시: Standard+unknown -> syslog_oe_data_X_Standard+unknown
-                # key 예시: OE_Uniform_syslog_masked+unknown -> syslog_oe_data_X_OE_Uniform_syslog_masked+unknown
+                # key 예시: Standard+unknown -> syslog_Standard+unknown
+                # key 예시: OE_Uniform_imdb+unknown -> syslog_OE_Uniform_imdb+unknown
+                # key 예시: OE_Uniform_syslog_masked+unknown -> syslog_OE_Uniform_syslog_masked+unknown
                 all_dataset_results[f"{result_prefix}_{key}"] = value
         if current_data:
              for key, value in current_data.items():
@@ -720,17 +683,13 @@ if __name__ == "__main__":
     print("\n\n===== Final Overall Results Summary =====")
     final_results_df = None
     if all_dataset_results:
-        # 결과를 보기 좋게 정렬 (데이터셋 -> OE 파일명 -> 방법 순)
         final_results_df = pd.DataFrame(all_dataset_results).T.sort_index()
         print("Overall Performance Metrics DataFrame:"); print(final_results_df)
 
-        # <<<--- 전체 결과 저장 시 파일명에 OE 파일 이름 포함 (첫 번째 OE 파일 기준 또는 고정 이름) --->>>
-        # 여러 OE 파일을 순차 실행하는 경우, 요약 파일 이름을 어떻게 할지 결정 필요.
-        # 여기서는 실행 시점의 oe_file_basename을 사용하거나, 없으면 'summary' 사용
+        # 전체 요약 파일 이름에는 oe_file_basename 포함 (구분용)
         summary_suffix = f"_{oe_file_basename}" if oe_file_basename else ""
         overall_base_filename = f'osr_overall_summary_seed{args.seed}{summary_suffix}'
 
-        # 결과 저장 디렉토리는 base 디렉토리를 사용
         overall_csv_file = os.path.join(args.result_dir_base, f'{overall_base_filename}.csv')
         overall_txt_file = os.path.join(args.result_dir_base, f'{overall_base_filename}.txt')
         overall_json_file = os.path.join(args.result_dir_base, f'{overall_base_filename}.json')
@@ -739,19 +698,36 @@ if __name__ == "__main__":
         except Exception as e: print(f"\nError saving overall results to CSV: {e}")
         try:
             with open(overall_txt_file, 'w', encoding='utf-8') as f:
-                 f.write("--- Args ---\n"); f.write(json.dumps(args_dict, indent=4, default=str)); # 인자 저장 시 str 변환 추가
+                 f.write("--- Args ---\n"); f.write(json.dumps(args_dict, indent=4, default=str));
                  f.write("\n\n--- Overall Metrics ---\n"); f.write(final_results_df.to_string())
             print(f"Overall results saved to TXT: {overall_txt_file}")
         except Exception as e: print(f"\nError saving overall results to TXT: {e}")
         overall_results_data = {'metrics': all_dataset_results, 'arguments': args_dict, 'timestamp': datetime.now().isoformat()}
         try:
-            with open(overall_json_file, 'w', encoding='utf-8') as f: json.dump(overall_results_data, f, indent=4, default=str) # JSON 저장 시 str 변환 추가
+            with open(overall_json_file, 'w', encoding='utf-8') as f: json.dump(overall_results_data, f, indent=4, default=str)
             print(f"Overall results saved to JSON: {overall_json_file}")
         except Exception as e: print(f"\nError saving overall results to JSON: {e}")
 
-        # 전체 비교 플롯은 현재 구조에서 의미있는 비교가 어려울 수 있음 (키가 너무 복잡해짐)
-        # if len(all_dataset_results) > 0 and not args.no_plot:
-        #      print("\nGenerating overall comparison plot...")
-        #      # plot_osr_comparison(all_dataset_results, os.path.join(args.result_dir_base, f'osr_overall_comparison_seed{args.seed}.png')) # 키 구조 변경으로 수정 필요
+        # OSR 비교 플롯은 동일한 OOD 데이터셋을 사용하는 결과들끼리 비교하는 것이 유용
+        # 예: syslog+unknown 결과만 모아서 비교, 20ng+20ng_ood 결과만 모아서 비교
+        # 키 구조가 복원되었으므로, 데이터셋별로 필터링하여 플롯 생성 가능
+        if not args.no_plot:
+            print("\nGenerating OSR comparison plots per OOD dataset...")
+            ood_targets = set()
+            for key in all_dataset_results.keys():
+                if '+' in key:
+                    ood_targets.add(key.split('+')[1]) # 예: 'unknown', '20ng_ood'
+
+            for ood_target in ood_targets:
+                # 해당 OOD 타겟을 사용하는 결과만 필터링
+                filtered_results = {k: v for k, v in all_dataset_results.items() if k.endswith(f'+{ood_target}')}
+                if filtered_results:
+                    plot_title_suffix = f"_{ood_target}"
+                    plot_save_path = os.path.join(args.result_dir_base, f'osr_comparison_seed{args.seed}{summary_suffix}{plot_title_suffix}.png')
+                    print(f"  - Plotting comparison for OOD target '{ood_target}'...")
+                    plot_osr_comparison(filtered_results, plot_save_path)
+                else:
+                    print(f"  - No results found for OOD target '{ood_target}' to plot.")
+
     else: print("No performance metrics were generated across datasets.")
     print("\nAll experiments finished.")

@@ -55,8 +55,8 @@ except LookupError:
     nltk.download('punkt')
 
 # --- 설정값 ---
-ORIGINAL_DATA_PATH = 'log_all.csv'
-MASKED_DATA_PATH = 'masked_for_oe_without_unknown.csv'  # 파일명 수정
+ORIGINAL_DATA_PATH = 'log_all_critical.csv'
+MASKED_DATA_PATH = 'log_all_filtered_attention_masked_for_oe.csv'  # 파일명 수정
 TEXT_COLUMN = 'text'
 CLASS_COLUMN = 'class'
 MASKED_TEXT_COLUMN = 'masked_text_attention'
