@@ -85,8 +85,8 @@ OE_DATA_DIR = os.path.join(OUTPUT_DIR, "extracted_oe_datasets")
 
 # 모델 및 학습 설정
 MODEL_NAME = "roberta-base"
-MAX_LENGTH = 128
-BATCH_SIZE = 32
+MAX_LENGTH = 256
+BATCH_SIZE = 64
 NUM_TRAIN_EPOCHS = 15
 LEARNING_RATE = 2e-5
 MIN_SAMPLES_PER_CLASS_FOR_TRAIN_VAL = 3

@@ -52,7 +52,7 @@ CACHE_DIR = os.path.join(DATA_DIR, "hf_cache")
 MODEL_TYPE = 'roberta-base'
 MAX_LENGTH = 128
 BATCH_SIZE = 64
-NUM_EPOCHS = 15
+NUM_EPOCHS = 20
 LEARNING_RATE = 2e-5
 OE_LAMBDA = 1.0
 TEMPERATURE = 1.0
@@ -591,7 +591,7 @@ if __name__ == "__main__":
     parser.add_argument('--model_type', type=str, default='roberta-base')
     parser.add_argument('--max_length', type=int, default=128)
     parser.add_argument('--batch_size', type=int, default=64)
-    parser.add_argument('--num_epochs', type=int, default=15)
+    parser.add_argument('--num_epochs', type=int, default=20)
     parser.add_argument('--learning_rate', type=float, default=2e-5)
     parser.add_argument('--oe_lambda', type=float, default=1.0)
     parser.add_argument('--temperature', type=float, default=1.0)
