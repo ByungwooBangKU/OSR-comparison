@@ -56,7 +56,7 @@ except LookupError:
 
 # --- 설정값 ---
 ORIGINAL_DATA_PATH = 'log_all_critical.csv'
-MASKED_DATA_PATH = 'log_all_filtered_attention_masked_for_oe.csv'  # 파일명 수정
+MASKED_DATA_PATH = 'log_all_critical_filtered_attention_masked_for_oe.csv'  # 파일명 수정
 TEXT_COLUMN = 'text'
 CLASS_COLUMN = 'class'
 MASKED_TEXT_COLUMN = 'masked_text_attention'
@@ -66,17 +66,21 @@ EXCLUDE_CLASS_FOR_TRAINING = "unknown"
 OE_FILTER_METRIC = 'removed_avg_attention'
 # 각 지표별 맞춤형 퍼센타일 및 모드 설정
 METRIC_SETTINGS = {
-    'removed_avg_attention': {'percentile': 90, 'mode': 'higher'},  # 90%로 상향 조정
-    'top_k_avg_attention': {'percentile': 80, 'mode': 'higher'},    # 80%로 조정
-    'max_attention': {'percentile': 85, 'mode': 'higher'},          # 85%로 조정
-    'attention_entropy': {'percentile': 25, 'mode': 'lower'}        # 하위 25% 선택
+    # 전략 1: 모델이 덜 집중하거나 혼란스러워하는 샘플을 OE로 간주
+    'attention_entropy': {'percentile': 80, 'mode': 'higher'},  # 엔트로피가 높은 (어텐션 분산된) 상위 20%
+    'top_k_avg_attention': {'percentile': 20, 'mode': 'lower'},    # 상위 K개 어텐션 평균이 낮은 하위 20%
+    'max_attention': {'percentile': 20, 'mode': 'lower'},          # 최대 어텐션이 낮은 하위 20%
+
+    # 전략 2: "핵심 정보"가 제거된 문장을 OE로 간주 (원본 문장 선택 기준)
+    # 이 지표로 선택된 *원본 문장*을 마스킹하여 OE 데이터로 사용
+    'removed_avg_attention': {'percentile': 80, 'mode': 'higher'}
 }
 # 기본값 유지 (backward compatibility)
 OE_FILTER_PERCENTILE = 75
 OE_FILTER_MODE = 'higher'
 
 # 출력 경로 설정
-OUTPUT_DIR = 'oe_extraction_results'
+OUTPUT_DIR = '02_oe_extraction_results'
 MODEL_SAVE_DIR = os.path.join(OUTPUT_DIR, "trained_standard_model")
 LOG_DIR = os.path.join(OUTPUT_DIR, "lightning_logs")
 CONFUSION_MATRIX_DIR = os.path.join(LOG_DIR, "confusion_matrices")
@@ -1065,11 +1069,16 @@ def main():
     print("\n--- 10. OE 데이터셋 추출 (순차적 필터링 적용) ---")
 
     # 순차적 필터링 설정
+    # FILTERING_SEQUENCE = [
+    #     ('removed_avg_attention', {'percentile': 90, 'mode': 'higher'}),
+    #     ('attention_entropy', {'percentile': 30, 'mode': 'lower'})
+    # ]
     FILTERING_SEQUENCE = [
-        ('removed_avg_attention', {'percentile': 90, 'mode': 'higher'}),
-        ('attention_entropy', {'percentile': 30, 'mode': 'lower'})
+        # 1단계: 모델이 원래 중요하다고 판단했던 단어들의 중요도가 높은 원본 문장 선택
+        ('removed_avg_attention', {'percentile': 80, 'mode': 'higher'}), # 상위 20% 원본 문장 선택
+        # 2단계: 위에서 선택된 문장들 중에서, (마스킹 후) 어텐션 엔트로피가 높은 (모델이 혼란스러워하는) 샘플 선택
+        ('attention_entropy', {'percentile': 75, 'mode': 'higher'})     # 1단계 결과 중 상위 25% 선택
     ]
-
     # 필터링 결과를 저장할 마스크 초기화 (처음에는 모든 샘플이 대상)
     selected_mask = np.ones(len(data_for_attention), dtype=bool)
 

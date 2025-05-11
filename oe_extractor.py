@@ -33,15 +33,15 @@ import gc
 import math
 
 # --- 설정값 ---
-#FILE_PATH = 'log_all_critical.csv'
-FILE_PATH = 'log_all_filtered.csv'
+FILE_PATH = 'log_all_critical.csv'
+#FILE_PATH = 'log_all_filtered.csv'
 TEXT_COLUMN = 'text'
 CLASS_COLUMN = 'class' # 범주 정보 컬럼
 TRAIN_TEST_COLUMN = 'train/test' # 데이터 분할에 사용 안 함 (참고용으로만 남김)
 EXCLUDE_CLASS_FOR_TRAINING = "unknown" # 학습에서 제외할 클래스
 ATTENTION_TOP_PERCENT = 0.10
 MIN_TOP_WORDS = 1
-MASKED_OUTPUT_FILE_PATH_ATTN = 'log_all_filtered_attention_masked_for_oe.csv' # 최종 출력 파일
+MASKED_OUTPUT_FILE_PATH_ATTN = 'log_all_critical_filtered_attention_masked_for_oe.csv' # 최종 출력 파일
 MODEL_NAME = "roberta-base"
 MODEL_SAVE_DIR = "./roberta_base_log_classifier_known_classes" # 모델 저장 경로
 LOG_DIR = "./lightning_logs_roberta_base_known_classes" # 로그 저장 경로

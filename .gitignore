@@ -2,10 +2,15 @@
 /data
 /logs
 /models_osr_comparison_multi_dataset
-/results
+/results_oe_23699
 /results_osr_comparison_multi_dataset
 /oe_extraction_results
 /*.csv
 /bkp
 /roberta_base_log_classifier_known_classes
 /lightning_logs_roberta_base_known_classes
+/02_oe_extraction_results
+/03_models_osr_multi_oe_experiments
+/03_results_osr_multi_oe_experiments
+/04_models_osr_multi_oe_experiments
+/04_results_osr_multi_oe_experiments
