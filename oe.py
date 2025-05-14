@@ -85,7 +85,7 @@ class Config:
     MODEL_NAME = "roberta-base"
     MAX_LENGTH = 256
     BATCH_SIZE = 64
-    NUM_TRAIN_EPOCHS = 15
+    NUM_TRAIN_EPOCHS = 20
     LEARNING_RATE = 2e-5
     MIN_SAMPLES_PER_CLASS_FOR_TRAIN_VAL = 2
     
@@ -111,19 +111,31 @@ class Config:
     # === OE 필터링 설정 ===
     OE_FILTER_METRIC = 'removed_avg_attention'
     # 각 지표별 최적화된 설정
-    METRIC_SETTINGS = {
-        'attention_entropy': {'percentile': 80, 'mode': 'higher'},
-        'top_k_avg_attention': {'percentile': 20, 'mode': 'lower'},
-        'max_attention': {'percentile': 20, 'mode': 'lower'},
-        'removed_avg_attention': {'percentile': 80, 'mode': 'higher'}
-    }
+    # METRIC_SETTINGS = {
+    #     'attention_entropy': {'percentile': 80, 'mode': 'higher'},
+    #     'top_k_avg_attention': {'percentile': 20, 'mode': 'lower'},
+    #     'max_attention': {'percentile': 20, 'mode': 'lower'},
+    #     'removed_avg_attention': {'percentile': 80, 'mode': 'higher'}
+    # }
     
     # 순차적 필터링 설정
+    # FILTERING_SEQUENCE = [
+    #     ('removed_avg_attention', {'percentile': 80, 'mode': 'higher'}),
+    #     ('attention_entropy', {'percentile': 75, 'mode': 'higher'})
+    # ]
+
+    METRIC_SETTINGS = {
+        'attention_entropy': {'percentile': 80, 'mode': 'higher'},        # 유지
+        'top_k_avg_attention': {'percentile': 20, 'mode': 'lower'},       # 유지
+        'max_attention': {'percentile': 15, 'mode': 'lower'},             # 20→15: 더 엄격하게
+        'removed_avg_attention': {'percentile': 85, 'mode': 'higher'}     # 80→85: 분포가 0에 집중되어 있어서
+    }
+
+    # 순차적 필터링도 조정 고려
     FILTERING_SEQUENCE = [
-        ('removed_avg_attention', {'percentile': 80, 'mode': 'higher'}),
-        ('attention_entropy', {'percentile': 75, 'mode': 'higher'})
-    ]
-    
+        ('removed_avg_attention', {'percentile': 85, 'mode': 'higher'}),  # 80→85
+        ('attention_entropy', {'percentile': 75, 'mode': 'higher'})       # 유지
+    ]    
     # === 실행 단계 제어 ===
     STAGE_MODEL_TRAINING = True
     STAGE_ATTENTION_EXTRACTION = True
@@ -963,6 +975,42 @@ class Visualizer:
         plt.close()
         
         print(f"Distribution plot saved: {save_path}")
+
+# === 시각화 클래스 ===
+class Visualizer:
+    """시각화 담당 클래스"""
+    
+    def __init__(self, config: Config):
+        self.config = config
+    
+    def plot_metric_distribution(self, scores: np.ndarray, metric_name: str, title: str, save_path: str):
+        """지표 분포 시각화"""
+        if len(scores) == 0:
+            print(f"No scores for {metric_name}")
+            return
+        
+        plt.figure(figsize=(10, 6))
+        if SNS_AVAILABLE:
+            sns.histplot(scores, bins=50, kde=True, stat='density')
+        else:
+            plt.hist(scores, bins=50, density=True, alpha=0.7)
+        
+        plt.title(title, fontsize=14)
+        plt.xlabel(metric_name, fontsize=12)
+        plt.ylabel('Density', fontsize=12)
+        plt.grid(alpha=0.3)
+        
+        # 통계 정보 추가
+        mean_val = np.mean(scores)
+        std_val = np.std(scores)
+        plt.axvline(mean_val, color='red', linestyle='--', label=f'Mean: {mean_val:.4f}')
+        plt.legend()
+        
+        plt.tight_layout()
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        print(f"Distribution plot saved: {save_path}")
     
     def plot_tsne(self, features: np.ndarray, labels: np.ndarray, title: str, save_path: str,
                   highlight_indices: Optional[np.ndarray] = None, highlight_label: str = 'OE Candidate',
@@ -1096,7 +1144,157 @@ class Visualizer:
                 class_names=class_names,
                 seed=self.config.RANDOM_STATE
             )
+        
+        # 순차적 필터링 시각화 추가
+        if hasattr(self.config, 'FILTERING_SEQUENCE') and self.config.FILTERING_SEQUENCE:
+            print("Creating sequential filtering visualization...")
+            
+            # 순차적 필터링 로직 재구현
+            selected_mask = np.ones(len(df), dtype=bool)
+            filter_steps = []
+            
+            for step, (metric, settings) in enumerate(self.config.FILTERING_SEQUENCE):
+                if metric not in df.columns:
+                    print(f"Skipping filter step {step+1}: {metric} not found")
+                    continue
+                
+                # 현재 선택된 샘플에서 점수 추출
+                current_selection = df[selected_mask]
+                scores = np.nan_to_num(current_selection[metric].values, nan=0.0)
+                
+                # 필터 적용
+                if settings['mode'] == 'higher':
+                    threshold = np.percentile(scores, 100 - settings['percentile'])
+                    step_mask = scores >= threshold
+                    mode_desc = f"top{settings['percentile']}%"
+                else:
+                    threshold = np.percentile(scores, settings['percentile'])
+                    step_mask = scores <= threshold
+                    mode_desc = f"bottom{settings['percentile']}%"
+                
+                # 마스크 업데이트
+                filtered_indices = np.where(selected_mask)[0][step_mask]
+                selected_mask = np.zeros_like(selected_mask)
+                selected_mask[filtered_indices] = True
+                
+                filter_steps.append((metric, settings, mode_desc, np.sum(selected_mask)))
+            
+            # 최종 선택된 인덱스
+            final_indices = np.where(selected_mask)[0]
+            
+            if len(final_indices) > 0:
+                # 파일명 생성
+                filter_desc = "_".join([f"{m}_{s['mode']}_{s['percentile']}" 
+                                      for m, s in self.config.FILTERING_SEQUENCE])
+                
+                # 필터링 단계별 설명 생성
+                steps_desc = " -> ".join([f"{m}({mode_desc})" for m, s, mode_desc, count in filter_steps])
+                total_samples = len(final_indices)
+                
+                # t-SNE 시각화
+                self.plot_tsne(
+                    features=np.array(features),
+                    labels=tsne_labels,
+                    title=f't-SNE: Sequential Filtering OE Candidates\n{steps_desc} -> {total_samples} samples',
+                    save_path=os.path.join(self.config.VIS_DIR, f'tsne_sequential_{filter_desc}.png'),
+                    highlight_indices=final_indices,
+                    highlight_label=f'Sequential OE Candidate ({total_samples} samples)',
+                    class_names=class_names,
+                    seed=self.config.RANDOM_STATE
+                )
+                
+                print(f"Sequential filtering visualization complete: {len(final_indices)} samples highlighted")
+            else:
+                print("Warning: No samples selected by sequential filtering - skipping visualization")
+                
 
+    def plot_tsne(self, features: np.ndarray, labels: np.ndarray, title: str, save_path: str,
+                  highlight_indices: Optional[np.ndarray] = None, highlight_label: str = 'OE Candidate',
+                  class_names: Optional[Dict] = None, seed: int = 42):
+        """t-SNE 시각화"""
+        if len(features) == 0:
+            print("No features for t-SNE")
+            return
+        
+        print(f"Running t-SNE on {features.shape[0]} samples...")
+        try:
+            # perplexity 조정
+            perplexity = min(30, features.shape[0] - 1)
+            tsne = TSNE(
+                n_components=2,
+                random_state=seed,
+                perplexity=perplexity,
+                n_iter=1000,
+                init='pca',
+                learning_rate='auto'
+            )
+            tsne_results = tsne.fit_transform(features)
+        except Exception as e:
+            print(f"Error running t-SNE: {e}")
+            return
+        
+        # 데이터프레임 생성
+        df_tsne = pd.DataFrame(tsne_results, columns=['tsne1', 'tsne2'])
+        df_tsne['label'] = labels
+        df_tsne['is_highlighted'] = False
+        
+        if highlight_indices is not None:
+            df_tsne.loc[highlight_indices, 'is_highlighted'] = True
+        
+        # 시각화
+        plt.figure(figsize=(14, 10))
+        
+        # 클래스별 색상 설정
+        unique_labels = sorted(df_tsne['label'].unique())
+        colors = plt.cm.tab20(np.linspace(0, 1, len(unique_labels)))
+        
+        # 각 클래스 플롯
+        for i, label_val in enumerate(unique_labels):
+            subset = df_tsne[(df_tsne['label'] == label_val) & (~df_tsne['is_highlighted'])]
+            if len(subset) > 0:
+                class_name = class_names.get(label_val, f'Class {label_val}') if class_names else f'Class {label_val}'
+                plt.scatter(subset['tsne1'], subset['tsne2'], color=colors[i], 
+                          label=class_name, alpha=0.7, s=30)
+        
+        # 하이라이트된 포인트
+        if highlight_indices is not None:
+            highlight_subset = df_tsne[df_tsne['is_highlighted']]
+            if len(highlight_subset) > 0:
+                plt.scatter(highlight_subset['tsne1'], highlight_subset['tsne2'],
+                          color='red', marker='x', s=100, label=highlight_label, alpha=0.9)
+        
+        plt.title(title, fontsize=16, pad=20)
+        plt.xlabel("t-SNE Dimension 1", fontsize=14)
+        plt.ylabel("t-SNE Dimension 2", fontsize=14)
+        plt.grid(alpha=0.3, linestyle='--')
+        
+        # 범례 설정
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), 
+                  fontsize=12, frameon=True, fancybox=True, shadow=True)
+        
+        plt.tight_layout()
+        plt.subplots_adjust(right=0.75)
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        print(f"t-SNE plot saved: {save_path}")
+    
+    def visualize_all_metrics(self, df: pd.DataFrame):
+        """모든 어텐션 지표 분포 시각화"""
+        metric_columns = ['max_attention', 'top_k_avg_attention', 'attention_entropy', 'removed_avg_attention']
+        
+        for metric in metric_columns:
+            if metric in df.columns and not df[metric].isnull().all():
+                print(f"Visualizing {metric} distribution...")
+                self.plot_metric_distribution(
+                    df[metric].dropna().values,
+                    metric,
+                    f'Distribution of {metric}',
+                    os.path.join(self.config.VIS_DIR, f'{metric}_distribution.png')
+                )
+            else:
+                print(f"Skipping {metric} visualization")
+    
 
 # === 데이터셋 클래스 ===
 class TextDataset(TorchDataset):
