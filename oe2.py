@@ -993,9 +993,23 @@ class AttentionAnalyzer:
         return top_words_filtered if top_words_filtered else [word for word, score in sorted_words[:n_top]]
 
 
-    def process_full_dataset(self, df: pd.DataFrame) -> pd.DataFrame:
-        print("Processing full dataset for attention analysis (base classifier)...")
-        texts = df[self.config.TEXT_COLUMN].tolist()
+    def process_full_dataset(self, df: pd.DataFrame, exclude_class: str = None) -> pd.DataFrame:
+        print("Processing dataset for attention analysis (base classifier)...")
+        
+        # exclude_class가 지정된 경우 해당 클래스를 제외하고 분석
+        if exclude_class:
+            exclude_class_lower = exclude_class.lower()
+            df_for_analysis = df[df[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower].copy()
+            print(f"Excluding '{exclude_class}' class. Analyzing {len(df_for_analysis)}/{len(df)} samples.")
+        else:
+            df_for_analysis = df.copy()
+            print(f"Analyzing all {len(df_for_analysis)} samples.")
+        
+        if df_for_analysis.empty:
+            print("No data available for attention analysis after filtering.")
+            return df.copy()  # 원본 데이터프레임 반환 (빈 컬럼들 추가됨)
+        
+        texts = df_for_analysis[self.config.TEXT_COLUMN].tolist()
         
         print("Computing word attention scores...")
         all_word_scores = self.get_word_attention_scores(texts, self.config.ATTENTION_LAYER)
@@ -1006,10 +1020,25 @@ class AttentionAnalyzer:
             top_words = self.extract_top_attention_words(word_scores)
             all_top_words.append(top_words)
             masked_texts.append(create_masked_sentence(text, top_words))
-            
+        
+        # 결과를 원본 데이터프레임에 맞게 정렬
         result_df = df.copy()
-        result_df['top_attention_words'] = all_top_words
-        result_df[self.config.TEXT_COLUMN_IN_OE_FILES] = masked_texts # Use configured column name
+        result_df['top_attention_words'] = None
+        result_df[self.config.TEXT_COLUMN_IN_OE_FILES] = None
+        
+        # 분석된 데이터만 업데이트
+        if exclude_class:
+            analyze_mask = df[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower
+            result_df.loc[analyze_mask, 'top_attention_words'] = all_top_words
+            result_df.loc[analyze_mask, self.config.TEXT_COLUMN_IN_OE_FILES] = masked_texts
+            
+            # exclude된 클래스는 빈 리스트와 원본 텍스트로 설정
+            result_df.loc[~analyze_mask, 'top_attention_words'] = [[] for _ in range((~analyze_mask).sum())]
+            result_df.loc[~analyze_mask, self.config.TEXT_COLUMN_IN_OE_FILES] = df.loc[~analyze_mask, self.config.TEXT_COLUMN]
+        else:
+            result_df['top_attention_words'] = all_top_words
+            result_df[self.config.TEXT_COLUMN_IN_OE_FILES] = masked_texts
+            
         return result_df
 
 # === OE 추출 클래스 (OE Extraction Part) ===
@@ -1038,10 +1067,13 @@ class OEExtractor:
         self.device = device # Store device
 
     @torch.no_grad()
-    def extract_attention_metrics(self, dataloader: DataLoader) -> Tuple[pd.DataFrame, List[np.ndarray]]:
+    def extract_attention_metrics(self, dataloader: DataLoader, original_df: pd.DataFrame = None, 
+                                exclude_class: str = None) -> Tuple[pd.DataFrame, List[np.ndarray]]:
         attention_metrics_list = []
         features_list = []
         print("Extracting attention metrics and features from masked texts...")
+        
+        batch_count = 0
         for batch_encodings in tqdm(dataloader, desc="Processing masked text batches", leave=False):
             # Move batch to device
             batch_on_device = {k: v.to(self.device) for k, v in batch_encodings.items()}
@@ -1051,12 +1083,42 @@ class OEExtractor:
             features_batch = outputs.hidden_states[-1][:, 0, :].cpu().numpy() # CLS token
             features_list.extend(list(features_batch))
             
-            input_ids_batch = batch_encodings['input_ids'].cpu().numpy() # Get input_ids from original batch
+            input_ids_batch = batch_encodings['input_ids'].cpu().numpy()
             for i in range(len(input_ids_batch)):
                 metrics = self._compute_attention_metrics(attentions_batch[i], input_ids_batch[i])
                 attention_metrics_list.append(metrics)
+                batch_count += 1
         
         del outputs, attentions_batch, features_batch; gc.collect()
+        
+        # exclude_class 처리를 위한 로직 추가
+        if original_df is not None and exclude_class and len(original_df) > len(attention_metrics_list):
+            # 전체 데이터프레임과 매칭하기 위해 빈 메트릭 추가
+            exclude_class_lower = exclude_class.lower()
+            exclude_mask = original_df[self.config.CLASS_COLUMN].str.lower() == exclude_class_lower
+            
+            full_metrics_list = []
+            full_features_list = []
+            metrics_idx = 0
+            
+            default_metrics = {'max_attention': 0, 'top_k_avg_attention': 0, 'attention_entropy': 0}
+            default_features = np.zeros_like(features_list[0]) if features_list else np.zeros(768)
+            
+            for idx, is_excluded in enumerate(exclude_mask):
+                if is_excluded:
+                    full_metrics_list.append(default_metrics.copy())
+                    full_features_list.append(default_features.copy())
+                else:
+                    if metrics_idx < len(attention_metrics_list):
+                        full_metrics_list.append(attention_metrics_list[metrics_idx])
+                        full_features_list.append(features_list[metrics_idx])
+                        metrics_idx += 1
+                    else:
+                        full_metrics_list.append(default_metrics.copy())
+                        full_features_list.append(default_features.copy())
+            
+            return pd.DataFrame(full_metrics_list), full_features_list
+        
         return pd.DataFrame(attention_metrics_list), features_list
 
     def _compute_attention_metrics(self, attention_sample, input_ids):
@@ -1108,14 +1170,27 @@ class OEExtractor:
         print("Removed word attention computation complete.")
         return df
 
-    def extract_oe_datasets(self, df: pd.DataFrame) -> None:
+    def extract_oe_datasets(self, df: pd.DataFrame, exclude_class: str = None) -> None:
         print("Extracting OE datasets with different criteria...")
+        
+        # exclude_class가 있는 경우 해당 클래스 제외
+        if exclude_class:
+            exclude_class_lower = exclude_class.lower()
+            df_for_oe = df[df[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower].copy()
+            print(f"OE extraction excluding '{exclude_class}' class: {len(df_for_oe)}/{len(df)} samples")
+        else:
+            df_for_oe = df.copy()
+        
+        if df_for_oe.empty:
+            print("No data available for OE extraction after filtering.")
+            return
+            
         for metric, settings in self.config.METRIC_SETTINGS.items():
-            if metric not in df.columns:
+            if metric not in df_for_oe.columns:
                 print(f"Skipping OE extraction for {metric} - column not found in DataFrame.")
                 continue
-            self._extract_single_metric_oe(df, metric, settings)
-        self._extract_sequential_filtering_oe(df)
+            self._extract_single_metric_oe(df_for_oe, metric, settings)
+        self._extract_sequential_filtering_oe(df_for_oe)
 
     def _extract_single_metric_oe(self, df: pd.DataFrame, metric: str, settings: dict):
         scores = np.nan_to_num(df[metric].values, nan=0.0)
@@ -1392,7 +1467,6 @@ class UnifiedOEExtractor:
     def run_stage2_attention_extraction(self) -> Optional[pd.DataFrame]:
         if not self.config.STAGE_ATTENTION_EXTRACTION:
             print("Skipping Stage 2: Attention Extraction")
-            # Load results if they exist and next stage needs them
             if self.config.STAGE_OE_EXTRACTION or self.config.STAGE_VISUALIZATION:
                 try: return self._load_attention_results()
                 except FileNotFoundError: print("Attention results not found, cannot proceed with dependent stages if skipped."); return None
@@ -1400,10 +1474,9 @@ class UnifiedOEExtractor:
 
         print("\n" + "="*50 + "\nSTAGE 2: ATTENTION EXTRACTION\n" + "="*50)
         if self.model is None: self._load_existing_model()
-        if self.data_module is None: # Should be set up in stage 1
+        if self.data_module is None:
             self.data_module = UnifiedDataModule(self.config); self.data_module.setup()
 
-        # Use global DEVICE_OSR for consistency, or get from pl_model
         current_device = self.model.device if hasattr(self.model, 'device') else DEVICE_OSR
 
         self.attention_analyzer = AttentionAnalyzer(
@@ -1412,7 +1485,10 @@ class UnifiedOEExtractor:
         )
         
         full_df = self.data_module.get_full_dataframe()
-        processed_df = self.attention_analyzer.process_full_dataset(full_df)
+        # EXCLUDE_CLASS_FOR_TRAINING 클래스를 제외하고 attention 분석
+        processed_df = self.attention_analyzer.process_full_dataset(
+            full_df, exclude_class=self.config.EXCLUDE_CLASS_FOR_TRAINING
+        )
         
         output_path = os.path.join(self.config.ATTENTION_DATA_DIR, f"df_with_attention.csv")
         processed_df.to_csv(output_path, index=False)
@@ -1430,7 +1506,7 @@ class UnifiedOEExtractor:
 
         print("\n" + "="*50 + "\nSTAGE 3: OE EXTRACTION\n" + "="*50)
         if df_with_attention is None: df_with_attention = self._load_attention_results()
-        if df_with_attention is None: # Still None after trying to load
+        if df_with_attention is None:
             print("Error: DataFrame with attention is not available. Cannot proceed with OE extraction.")
             return None, None
 
@@ -1443,43 +1519,53 @@ class UnifiedOEExtractor:
             tokenizer=self.data_module.tokenizer, device=current_device
         )
         
-        # Use the configured text column for OE files (e.g., 'masked_text_attention')
         masked_texts_col = self.config.TEXT_COLUMN_IN_OE_FILES
         if masked_texts_col not in df_with_attention.columns:
             print(f"Error: Column '{masked_texts_col}' not found in attention DataFrame. Cannot extract OE.")
-            return df_with_attention, None # Return df as is, but no features
+            return df_with_attention, None
 
-        masked_texts = df_with_attention[masked_texts_col].tolist()
+        # EXCLUDE_CLASS_FOR_TRAINING 클래스를 제외한 데이터만 처리
+        exclude_class_lower = self.config.EXCLUDE_CLASS_FOR_TRAINING.lower()
+        mask_for_analysis = df_with_attention[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower
+        df_for_metrics = df_with_attention[mask_for_analysis].copy()
         
-        # Use MaskedTextDatasetForMetrics for this step
+        if df_for_metrics.empty:
+            print("No data available for OE extraction after excluding unknown class.")
+            return df_with_attention, None
+        
+        masked_texts = df_for_metrics[masked_texts_col].tolist()
+        print(f"Processing {len(masked_texts)} samples for OE metrics (excluding '{self.config.EXCLUDE_CLASS_FOR_TRAINING}' class)")
+        
         dataset = MaskedTextDatasetForMetrics(masked_texts, self.data_module.tokenizer, self.config.MAX_LENGTH)
         dataloader = DataLoader(dataset, batch_size=self.config.BATCH_SIZE, num_workers=self.config.NUM_WORKERS, shuffle=False)
         
-        attention_metrics_df, features = self.oe_extractor.extract_attention_metrics(dataloader)
+        attention_metrics_df, features = self.oe_extractor.extract_attention_metrics(
+            dataloader, original_df=df_with_attention, exclude_class=self.config.EXCLUDE_CLASS_FOR_TRAINING
+        )
         
-        df_with_metrics = df_with_attention.reset_index(drop=True) # Ensure clean index
+        df_with_metrics = df_with_attention.reset_index(drop=True)
         if len(df_with_metrics) == len(attention_metrics_df):
             df_with_metrics = pd.concat([df_with_metrics, attention_metrics_df.reset_index(drop=True)], axis=1)
         else:
             print(f"Warning: Length mismatch between main DF ({len(df_with_metrics)}) and metrics DF ({len(attention_metrics_df)}). Metrics not merged.")
         
-        if self.attention_analyzer: # Needs to be initialized if not already
-             df_with_metrics = self.oe_extractor.compute_removed_word_attention(df_with_metrics, self.attention_analyzer)
+        if self.attention_analyzer:
+            df_with_metrics = self.oe_extractor.compute_removed_word_attention(df_with_metrics, self.attention_analyzer)
         
-        self.oe_extractor.extract_oe_datasets(df_with_metrics)
+        # OE 추출 시에도 exclude_class를 고려
+        self.oe_extractor.extract_oe_datasets(df_with_metrics, exclude_class=self.config.EXCLUDE_CLASS_FOR_TRAINING)
         
         metrics_output_path = os.path.join(self.config.ATTENTION_DATA_DIR, f"df_with_all_metrics.csv")
         df_with_metrics.to_csv(metrics_output_path, index=False)
         print(f"DataFrame with all metrics saved: {metrics_output_path}")
         
-        # Save features separately as they are bulky for CSV
         if features:
             features_path = os.path.join(self.config.ATTENTION_DATA_DIR, "extracted_features.npy")
             np.save(features_path, np.array(features))
             print(f"Extracted features saved: {features_path}")
 
         return df_with_metrics, features
-
+    
     def run_stage4_visualization(self, df_with_metrics: Optional[pd.DataFrame], features: Optional[List[np.ndarray]]):
         if not self.config.STAGE_VISUALIZATION:
             print("Skipping Stage 4: OE Extraction Visualization")
