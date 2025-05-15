@@ -17,3 +17,4 @@
 /unified_oe_extraction_results
 /unified_oe_osr_results*
 /log*.csv
+/results_epochs20

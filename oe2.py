@@ -140,7 +140,7 @@ class Config:
     OSR_MODEL_TYPE = 'roberta-base' # Model for OSR experiments
     OSR_MAX_LENGTH = 128
     OSR_BATCH_SIZE = 64
-    OSR_NUM_EPOCHS = 20 # Epochs for each OSR experiment
+    OSR_NUM_EPOCHS = 30 # Epochs for each OSR experiment
     OSR_LEARNING_RATE = 2e-5
     OSR_OE_LAMBDA = 1.0
     OSR_TEMPERATURE = 1.0
@@ -1969,6 +1969,12 @@ def main():
 if __name__ == '__main__':
     main()
 '''    
+python oe2.py --attention_percent 0.01 --top_words 1 --output_dir unified_oe_osr_results0.01_1
+python oe2.py --attention_percent 0.01 --top_words 2 --output_dir unified_oe_osr_results0.01_2
+python oe2.py --attention_percent 0.01 --top_words 3 --output_dir unified_oe_osr_results0.01_3
+python oe2.py --attention_percent 0.05 --top_words 1 --output_dir unified_oe_osr_results0.05_1
+python oe2.py --attention_percent 0.05 --top_words 2 --output_dir unified_oe_osr_results0.05_2
+python oe2.py --attention_percent 0.05 --top_words 3 --output_dir unified_oe_osr_results0.05_3
 python oe2.py --attention_percent 0.1 --top_words 1 --output_dir unified_oe_osr_results0.1_1
 python oe2.py --attention_percent 0.1 --top_words 2 --output_dir unified_oe_osr_results0.1_2
 python oe2.py --attention_percent 0.1 --top_words 3 --output_dir unified_oe_osr_results0.1_3
@@ -1978,4 +1984,5 @@ python oe2.py --attention_percent 0.2 --top_words 3 --output_dir unified_oe_osr_
 python oe2.py --attention_percent 0.3 --top_words 1 --output_dir unified_oe_osr_results0.3_1
 python oe2.py --attention_percent 0.3 --top_words 2 --output_dir unified_oe_osr_results0.3_2
 python oe2.py --attention_percent 0.3 --top_words 3 --output_dir unified_oe_osr_results0.3_3
+
 '''
