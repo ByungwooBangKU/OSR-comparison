@@ -92,7 +92,7 @@ class Config:
     MODEL_NAME = "roberta-base" # For base classifier in Stage 1
     MAX_LENGTH = 256 # For base classifier tokenization
     BATCH_SIZE = 64 # For base classifier training
-    NUM_TRAIN_EPOCHS = 20 # For base classifier training
+    NUM_TRAIN_EPOCHS = 15 # For base classifier training
     LEARNING_RATE = 2e-5 # For base classifier training
     MIN_SAMPLES_PER_CLASS_FOR_TRAIN_VAL = 2
     
@@ -1007,7 +1007,10 @@ class AttentionAnalyzer:
         
         if df_for_analysis.empty:
             print("No data available for attention analysis after filtering.")
-            return df.copy()  # 원본 데이터프레임 반환 (빈 컬럼들 추가됨)
+            result_df = df.copy()
+            result_df['top_attention_words'] = pd.Series([[]] * len(df), index=df.index, dtype=object)
+            result_df[self.config.TEXT_COLUMN_IN_OE_FILES] = df[self.config.TEXT_COLUMN]
+            return result_df
         
         texts = df_for_analysis[self.config.TEXT_COLUMN].tolist()
         
@@ -1023,21 +1026,29 @@ class AttentionAnalyzer:
         
         # 결과를 원본 데이터프레임에 맞게 정렬
         result_df = df.copy()
-        result_df['top_attention_words'] = None
-        result_df[self.config.TEXT_COLUMN_IN_OE_FILES] = None
+        
+        # object 타입으로 명시적으로 초기화
+        result_df['top_attention_words'] = pd.Series([[]] * len(df), index=df.index, dtype=object)
+        result_df[self.config.TEXT_COLUMN_IN_OE_FILES] = df[self.config.TEXT_COLUMN]
         
         # 분석된 데이터만 업데이트
         if exclude_class:
             analyze_mask = df[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower
-            result_df.loc[analyze_mask, 'top_attention_words'] = all_top_words
-            result_df.loc[analyze_mask, self.config.TEXT_COLUMN_IN_OE_FILES] = masked_texts
+            analyze_indices = df.index[analyze_mask]
             
-            # exclude된 클래스는 빈 리스트와 원본 텍스트로 설정
-            result_df.loc[~analyze_mask, 'top_attention_words'] = [[] for _ in range((~analyze_mask).sum())]
-            result_df.loc[~analyze_mask, self.config.TEXT_COLUMN_IN_OE_FILES] = df.loc[~analyze_mask, self.config.TEXT_COLUMN]
+            # dict로 매핑 생성
+            top_words_dict = dict(zip(analyze_indices, all_top_words))
+            masked_texts_dict = dict(zip(analyze_indices, masked_texts))
+            
+            # 업데이트
+            for idx in analyze_indices:
+                result_df.at[idx, 'top_attention_words'] = top_words_dict[idx]
+                result_df.at[idx, self.config.TEXT_COLUMN_IN_OE_FILES] = masked_texts_dict[idx]
         else:
-            result_df['top_attention_words'] = all_top_words
-            result_df[self.config.TEXT_COLUMN_IN_OE_FILES] = masked_texts
+            # 전체 데이터 처리
+            for i, idx in enumerate(df.index):
+                result_df.at[idx, 'top_attention_words'] = all_top_words[i]
+                result_df.at[idx, self.config.TEXT_COLUMN_IN_OE_FILES] = masked_texts[i]
             
         return result_df
 
@@ -1060,11 +1071,11 @@ class MaskedTextDatasetForMetrics(TorchDataset):
 class OEExtractor:
     def __init__(self, config: Config, model_pl: UnifiedModel, tokenizer, device):
         self.config = config
-        self.model_pl = model_pl.to(device) # Ensure model is on the correct device
+        self.model_pl = model_pl.to(device)
         self.model_pl.eval()
         self.model_pl.freeze()
         self.tokenizer = tokenizer
-        self.device = device # Store device
+        self.device = device
 
     @torch.no_grad()
     def extract_attention_metrics(self, dataloader: DataLoader, original_df: pd.DataFrame = None, 
@@ -1073,25 +1084,22 @@ class OEExtractor:
         features_list = []
         print("Extracting attention metrics and features from masked texts...")
         
-        batch_count = 0
         for batch_encodings in tqdm(dataloader, desc="Processing masked text batches", leave=False):
-            # Move batch to device
             batch_on_device = {k: v.to(self.device) for k, v in batch_encodings.items()}
             
             outputs = self.model_pl.forward(batch_on_device, output_features=True, output_attentions=True)
             attentions_batch = outputs.attentions[-1].cpu().numpy()
-            features_batch = outputs.hidden_states[-1][:, 0, :].cpu().numpy() # CLS token
+            features_batch = outputs.hidden_states[-1][:, 0, :].cpu().numpy()
             features_list.extend(list(features_batch))
             
             input_ids_batch = batch_encodings['input_ids'].cpu().numpy()
             for i in range(len(input_ids_batch)):
                 metrics = self._compute_attention_metrics(attentions_batch[i], input_ids_batch[i])
                 attention_metrics_list.append(metrics)
-                batch_count += 1
         
         del outputs, attentions_batch, features_batch; gc.collect()
         
-        # exclude_class 처리를 위한 로직 추가
+        # exclude_class 처리를 위한 로직
         if original_df is not None and exclude_class and len(original_df) > len(attention_metrics_list):
             # 전체 데이터프레임과 매칭하기 위해 빈 메트릭 추가
             exclude_class_lower = exclude_class.lower()
@@ -1131,45 +1139,228 @@ class OEExtractor:
         if len(valid_indices) == 0:
             return {'max_attention': 0, 'top_k_avg_attention': 0, 'attention_entropy': 0}
         
-        cls_attentions = np.mean(attention_sample[:, 0, :], axis=0)[valid_indices] # Mean over heads, CLS token's view, valid tokens
+        cls_attentions = np.mean(attention_sample[:, 0, :], axis=0)[valid_indices]
         
         max_att = np.max(cls_attentions) if len(cls_attentions) > 0 else 0
         k = min(self.config.TOP_K_ATTENTION, len(cls_attentions))
         top_k_avg_att = np.mean(np.sort(cls_attentions)[-k:]) if k > 0 else 0
         
         att_probs = F.softmax(torch.tensor(cls_attentions), dim=0).numpy()
-        att_entropy = entropy(att_probs) if len(att_probs) > 1 else 0 # Entropy needs >1 element
+        att_entropy = entropy(att_probs) if len(att_probs) > 1 else 0
         
         return {'max_attention': max_att, 'top_k_avg_attention': top_k_avg_att, 'attention_entropy': att_entropy}
 
-    def compute_removed_word_attention(self, df: pd.DataFrame, attention_analyzer: AttentionAnalyzer) -> pd.DataFrame:
+    def compute_removed_word_attention(self, df: pd.DataFrame, attention_analyzer: AttentionAnalyzer, exclude_class: str = None) -> pd.DataFrame:
         print("Computing removed word attention scores...")
         if 'top_attention_words' not in df.columns or self.config.TEXT_COLUMN not in df.columns:
             print("  Required columns ('top_attention_words', text column) not found. Skipping removed_avg_attention.")
             df['removed_avg_attention'] = 0.0
             return df
         
-        texts = df[self.config.TEXT_COLUMN].tolist()
-        word_attentions_list = attention_analyzer.get_word_attention_scores(texts) # Re-use analyzer
-        
-        removed_attentions = []
-        for idx, row in tqdm(df.iterrows(), total=len(df), desc="Computing removed attention", leave=False):
-            # Ensure top_attention_words is a list
-            top_words_val = row['top_attention_words']
-            top_words = safe_literal_eval(top_words_val) # Handles stringified lists and actual lists
-
-            if top_words and idx < len(word_attentions_list):
-                word_scores_dict = word_attentions_list[idx]
-                # Match words case-insensitively if needed, or ensure consistency
-                removed_scores = [word_scores_dict.get(word, 0) for word in top_words] # Exact match from dict
-                removed_attentions.append(np.mean(removed_scores) if removed_scores else 0)
-            else:
-                removed_attentions.append(0)
+        # exclude_class가 있는 경우 해당 클래스만 처리
+        if exclude_class:
+            exclude_class_lower = exclude_class.lower()
+            process_mask = df[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower
+            df_for_processing = df[process_mask].copy()
+            
+            if df_for_processing.empty:
+                print("  No data to process after excluding class. Setting all removed_avg_attention to 0.")
+                df['removed_avg_attention'] = 0.0
+                return df
+            
+            texts = df_for_processing[self.config.TEXT_COLUMN].tolist()
+            word_attentions_list = attention_analyzer.get_word_attention_scores(texts)
+            
+            # Initialize all attention scores to 0
+            removed_attentions = np.zeros(len(df))
+            
+            # Fill in the attention scores for non-excluded classes
+            process_idx = 0
+            for idx, row in df.iterrows():
+                if process_mask.iloc[idx]:  # This row was processed
+                    top_words_val = row['top_attention_words']
+                    top_words = safe_literal_eval(top_words_val)
+                    
+                    if top_words and process_idx < len(word_attentions_list):
+                        word_scores_dict = word_attentions_list[process_idx]
+                        removed_scores = [word_scores_dict.get(word, 0) for word in top_words]
+                        removed_attentions[idx] = np.mean(removed_scores) if removed_scores else 0
+                    process_idx += 1
+        else:
+            # Process all data
+            texts = df[self.config.TEXT_COLUMN].tolist()
+            word_attentions_list = attention_analyzer.get_word_attention_scores(texts)
+            
+            removed_attentions = []
+            for idx, row in tqdm(df.iterrows(), total=len(df), desc="Computing removed attention", leave=False):
+                top_words_val = row['top_attention_words']
+                top_words = safe_literal_eval(top_words_val)
+                
+                if top_words and idx < len(word_attentions_list):
+                    word_scores_dict = word_attentions_list[idx]
+                    removed_scores = [word_scores_dict.get(word, 0) for word in top_words]
+                    removed_attentions.append(np.mean(removed_scores) if removed_scores else 0)
+                else:
+                    removed_attentions.append(0)
         
         df['removed_avg_attention'] = removed_attentions
         print("Removed word attention computation complete.")
         return df
 
+    def extract_oe_datasets(self, df: pd.DataFrame, exclude_class: str = None) -> None:
+        print("Extracting OE datasets with different criteria...")
+        
+        # exclude_class가 있는 경우 해당 클래스 제외
+        if exclude_class:
+            exclude_class_lower = exclude_class.lower()
+            df_for_oe = df[df[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower].copy()
+            print(f"OE extraction excluding '{exclude_class}' class: {len(df_for_oe)}/{len(df)} samples")
+        else:
+            df_for_oe = df.copy()
+        
+        if df_for_oe.empty:
+            print("No data available for OE extraction after filtering.")
+            return
+            
+        for metric, settings in self.config.METRIC_SETTINGS.items():
+            if metric not in df_for_oe.columns:
+                print(f"Skipping OE extraction for {metric} - column not found in DataFrame.")
+                continue
+            self._extract_single_metric_oe(df_for_oe, metric, settings)
+        self._extract_sequential_filtering_oe(df_for_oe)
+
+    def _extract_single_metric_oe(self, df: pd.DataFrame, metric: str, settings: dict):
+        scores = np.nan_to_num(df[metric].values, nan=0.0)
+        if settings['mode'] == 'higher':
+            threshold = np.percentile(scores, 100 - settings['percentile'])
+            selected_indices = np.where(scores >= threshold)[0]
+        else: # 'lower'
+            threshold = np.percentile(scores, settings['percentile'])
+            selected_indices = np.where(scores <= threshold)[0]
+        
+        if len(selected_indices) > 0:
+            oe_df_simple = df.iloc[selected_indices][[self.config.TEXT_COLUMN_IN_OE_FILES]].copy()
+            
+            extended_cols = [self.config.TEXT_COLUMN_IN_OE_FILES, self.config.TEXT_COLUMN, 'top_attention_words', metric]
+            extended_cols = [col for col in extended_cols if col in df.columns]
+            oe_df_extended = df.iloc[selected_indices][extended_cols].copy()
+
+            mode_desc = f"{settings['mode']}{settings['percentile']}pct"
+            oe_filename = os.path.join(self.config.OE_DATA_DIR, f"oe_data_{metric}_{mode_desc}.csv")
+            oe_extended_filename = os.path.join(self.config.OE_DATA_DIR, f"oe_data_{metric}_{mode_desc}_extended.csv")
+            
+            oe_df_simple.to_csv(oe_filename, index=False)
+            oe_df_extended.to_csv(oe_extended_filename, index=False)
+            print(f"Saved OE dataset ({len(oe_df_simple)} samples) for {metric} {mode_desc}: {oe_filename}")
+
+    def _extract_sequential_filtering_oe(self, df: pd.DataFrame):
+        print("Applying sequential filtering for OE extraction...")
+        selected_mask = np.ones(len(df), dtype=bool)
+        
+        for step, (metric, settings) in enumerate(self.config.FILTERING_SEQUENCE):
+            if metric not in df.columns:
+                print(f"Skipping sequential filter step {step+1}: {metric} not found.")
+                continue
+            
+            current_selection_df = df[selected_mask]
+            if current_selection_df.empty:
+                print(f"No samples left before applying filter: {metric}. Stopping sequential filtering.")
+                selected_mask[:] = False
+                break
+
+            scores = np.nan_to_num(current_selection_df[metric].values, nan=0.0)
+            
+            if settings['mode'] == 'higher':
+                threshold = np.percentile(scores, 100 - settings['percentile'])
+                step_mask = scores >= threshold
+            else:
+                threshold = np.percentile(scores, settings['percentile'])
+                step_mask = scores <= threshold
+            
+            current_indices = np.where(selected_mask)[0]
+            indices_to_keep_from_current_step = current_indices[step_mask]
+            
+            selected_mask = np.zeros_like(selected_mask)
+            if len(indices_to_keep_from_current_step) > 0:
+                selected_mask[indices_to_keep_from_current_step] = True
+            
+            print(f"Sequential Filter {step+1} ({metric} {settings['mode']} {settings['percentile']}%): {np.sum(selected_mask)} samples remaining")
+
+        final_indices = np.where(selected_mask)[0]
+        if len(final_indices) > 0:
+            oe_df_simple = df.iloc[final_indices][[self.config.TEXT_COLUMN_IN_OE_FILES]].copy()
+            
+            extended_cols = [self.config.TEXT_COLUMN_IN_OE_FILES, self.config.TEXT_COLUMN, 'top_attention_words']
+            extended_cols.extend([m for m, _ in self.config.FILTERING_SEQUENCE if m in df.columns])
+            oe_df_extended = df.iloc[final_indices][extended_cols].copy()
+
+            filter_desc = "_".join([f"{m}_{s['mode']}{s['percentile']}" for m, s in self.config.FILTERING_SEQUENCE])
+            oe_filename = os.path.join(self.config.OE_DATA_DIR, f"oe_data_sequential_{filter_desc}.csv")
+            oe_extended_filename = os.path.join(self.config.OE_DATA_DIR, f"oe_data_sequential_{filter_desc}_extended.csv")
+            
+            oe_df_simple.to_csv(oe_filename, index=False)
+            oe_df_extended.to_csv(oe_extended_filename, index=False)
+            print(f"Saved sequential OE dataset ({len(oe_df_simple)} samples): {oe_filename}")
+        else:
+            print("No samples selected by sequential filtering.")
+            
+def compute_removed_word_attention(self, df: pd.DataFrame, attention_analyzer: AttentionAnalyzer, exclude_class: str = None) -> pd.DataFrame:
+    print("Computing removed word attention scores...")
+    if 'top_attention_words' not in df.columns or self.config.TEXT_COLUMN not in df.columns:
+        print("  Required columns ('top_attention_words', text column) not found. Skipping removed_avg_attention.")
+        df['removed_avg_attention'] = 0.0
+        return df
+    
+    # exclude_class가 있는 경우 해당 클래스만 처리
+    if exclude_class:
+        exclude_class_lower = exclude_class.lower()
+        process_mask = df[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower
+        df_for_processing = df[process_mask].copy()
+        
+        if df_for_processing.empty:
+            print("  No data to process after excluding class. Setting all removed_avg_attention to 0.")
+            df['removed_avg_attention'] = 0.0
+            return df
+        
+        texts = df_for_processing[self.config.TEXT_COLUMN].tolist()
+        word_attentions_list = attention_analyzer.get_word_attention_scores(texts)
+        
+        # Initialize all attention scores to 0
+        removed_attentions = np.zeros(len(df))
+        
+        # Fill in the attention scores for non-excluded classes
+        process_idx = 0
+        for idx, row in df.iterrows():
+            if process_mask.iloc[idx]:  # This row was processed
+                top_words_val = row['top_attention_words']
+                top_words = safe_literal_eval(top_words_val)
+                
+                if top_words and process_idx < len(word_attentions_list):
+                    word_scores_dict = word_attentions_list[process_idx]
+                    removed_scores = [word_scores_dict.get(word, 0) for word in top_words]
+                    removed_attentions[idx] = np.mean(removed_scores) if removed_scores else 0
+                process_idx += 1
+    else:
+        # Process all data
+        texts = df[self.config.TEXT_COLUMN].tolist()
+        word_attentions_list = attention_analyzer.get_word_attention_scores(texts)
+        
+        removed_attentions = []
+        for idx, row in tqdm(df.iterrows(), total=len(df), desc="Computing removed attention", leave=False):
+            top_words_val = row['top_attention_words']
+            top_words = safe_literal_eval(top_words_val)
+            
+            if top_words and idx < len(word_attentions_list):
+                word_scores_dict = word_attentions_list[idx]
+                removed_scores = [word_scores_dict.get(word, 0) for word in top_words]
+                removed_attentions.append(np.mean(removed_scores) if removed_scores else 0)
+            else:
+                removed_attentions.append(0)
+    
+    df['removed_avg_attention'] = removed_attentions
+    print("Removed word attention computation complete.")
+    return df
+ 
     def extract_oe_datasets(self, df: pd.DataFrame, exclude_class: str = None) -> None:
         print("Extracting OE datasets with different criteria...")
         
@@ -1550,7 +1741,10 @@ class UnifiedOEExtractor:
             print(f"Warning: Length mismatch between main DF ({len(df_with_metrics)}) and metrics DF ({len(attention_metrics_df)}). Metrics not merged.")
         
         if self.attention_analyzer:
-            df_with_metrics = self.oe_extractor.compute_removed_word_attention(df_with_metrics, self.attention_analyzer)
+            # 수정: exclude_class 매개변수 전달
+            df_with_metrics = self.oe_extractor.compute_removed_word_attention(
+                df_with_metrics, self.attention_analyzer, exclude_class=self.config.EXCLUDE_CLASS_FOR_TRAINING
+            )
         
         # OE 추출 시에도 exclude_class를 고려
         self.oe_extractor.extract_oe_datasets(df_with_metrics, exclude_class=self.config.EXCLUDE_CLASS_FOR_TRAINING)
@@ -1564,8 +1758,7 @@ class UnifiedOEExtractor:
             np.save(features_path, np.array(features))
             print(f"Extracted features saved: {features_path}")
 
-        return df_with_metrics, features
-    
+        return df_with_metrics, features   
     def run_stage4_visualization(self, df_with_metrics: Optional[pd.DataFrame], features: Optional[List[np.ndarray]]):
         if not self.config.STAGE_VISUALIZATION:
             print("Skipping Stage 4: OE Extraction Visualization")
