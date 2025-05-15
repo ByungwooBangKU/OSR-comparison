@@ -15,4 +15,5 @@
 /04_models_osr_multi_oe_experiments
 /04_results_osr_multi_oe_experiments
 /unified_oe_extraction_results
-/unified_oe_osr_results
+/unified_oe_osr_results*
+/log*.csv

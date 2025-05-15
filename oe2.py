@@ -110,8 +110,8 @@ class Config:
     RANDOM_STATE = 42 # Global seed
     
     # === 어텐션 설정 (OE Extraction Part) ===
-    ATTENTION_TOP_PERCENT = 0.10
-    MIN_TOP_WORDS = 1
+    ATTENTION_TOP_PERCENT = 0.20
+    MIN_TOP_WORDS = 2
     TOP_K_ATTENTION = 3 # For top_k_avg_attention metric
     ATTENTION_LAYER = -1  # 마지막 레이어
     
@@ -1905,6 +1905,9 @@ def main():
     parser = argparse.ArgumentParser(description="Unified OE Extraction and OSR Experimentation Pipeline")
     
     # OE Extraction Args (subset, more are in Config)
+    # Fix: Change type=str to type=float for attention_percent and type=int for top_words
+    parser.add_argument('--attention_percent', type=float, default=Config.ATTENTION_TOP_PERCENT)
+    parser.add_argument('--top_words', type=int, default=Config.MIN_TOP_WORDS)
     parser.add_argument('--data_path', type=str, default=Config.ORIGINAL_DATA_PATH)
     parser.add_argument('--output_dir', type=str, default=Config.OUTPUT_DIR)
     parser.add_argument('--oe_model_name', type=str, default=Config.MODEL_NAME, help="Model for base classifier (OE extraction)")
@@ -1923,10 +1926,11 @@ def main():
     parser.add_argument('--skip_osr_experiments', action='store_true')
     parser.add_argument('--osr_eval_only', action='store_true', help="Run OSR experiments in eval only mode")
 
-
     args = parser.parse_args()
     
     # Update Config from args
+    Config.ATTENTION_TOP_PERCENT = args.attention_percent
+    Config.MIN_TOP_WORDS = args.top_words
     Config.ORIGINAL_DATA_PATH = args.data_path
     Config.OUTPUT_DIR = args.output_dir
     Config.MODEL_NAME = args.oe_model_name
@@ -1956,12 +1960,22 @@ def main():
     Config.DATA_DIR_EXTERNAL_HF = os.path.join(Config.OUTPUT_DIR, 'data_external_hf') 
     Config.CACHE_DIR_HF = os.path.join(Config.DATA_DIR_EXTERNAL_HF, "hf_cache")
 
-
     print(f"--- Unified OE/OSR Pipeline ---")
     print(f"Output Dir: {Config.OUTPUT_DIR}")
     
     pipeline = UnifiedOEExtractor(Config) # Config object passed
     pipeline.run_full_pipeline()
-
+    
 if __name__ == '__main__':
     main()
+'''    
+python oe2.py --attention_percent 0.1 --top_words 1 --output_dir unified_oe_osr_results0.1_1
+python oe2.py --attention_percent 0.1 --top_words 2 --output_dir unified_oe_osr_results0.1_2
+python oe2.py --attention_percent 0.1 --top_words 3 --output_dir unified_oe_osr_results0.1_3
+python oe2.py --attention_percent 0.2 --top_words 1 --output_dir unified_oe_osr_results0.2_1
+python oe2.py --attention_percent 0.2 --top_words 2 --output_dir unified_oe_osr_results0.2_2
+python oe2.py --attention_percent 0.2 --top_words 3 --output_dir unified_oe_osr_results0.2_3
+python oe2.py --attention_percent 0.3 --top_words 1 --output_dir unified_oe_osr_results0.3_1
+python oe2.py --attention_percent 0.3 --top_words 2 --output_dir unified_oe_osr_results0.3_2
+python oe2.py --attention_percent 0.3 --top_words 3 --output_dir unified_oe_osr_results0.3_3
+'''
