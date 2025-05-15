@@ -115,6 +115,15 @@ class Config:
     TOP_K_ATTENTION = 3 # For top_k_avg_attention metric
     ATTENTION_LAYER = -1  # 마지막 레이어
     
+    # Early stopping 추가 (선택사항)
+    OSR_EARLY_STOPPING_PATIENCE = 5  # 5 epoch 동안 개선 없으면 중단
+    OSR_EARLY_STOPPING_MIN_DELTA = 0.001  # 최소 개선 정도
+    
+    # Learning rate scheduling 개선
+    OSR_WARMUP_RATIO = 0.1  # 전체 스텝의 10%를 warmup으로
+    OSR_LR_DECAY_FACTOR = 0.5  # 플레토 시 LR 감소 비율
+    OSR_LR_PATIENCE = 3  # LR 감소 전 대기 epoch
+    
     # === OE 필터링 설정 (OE Extraction Part) ===
     METRIC_SETTINGS = {
         'attention_entropy': {'percentile': 80, 'mode': 'higher'},
@@ -140,7 +149,7 @@ class Config:
     OSR_MODEL_TYPE = 'roberta-base' # Model for OSR experiments
     OSR_MAX_LENGTH = 128
     OSR_BATCH_SIZE = 64
-    OSR_NUM_EPOCHS = 30 # Epochs for each OSR experiment
+    OSR_NUM_EPOCHS = 50 # Epochs for each OSR experiment
     OSR_LEARNING_RATE = 2e-5
     OSR_OE_LAMBDA = 1.0
     OSR_TEMPERATURE = 1.0
@@ -389,86 +398,6 @@ def prepare_generated_oe_data_for_osr(tokenizer, max_length: int, oe_data_path: 
         print(f"Error preparing Generated OE data from '{oe_data_path}': {e}")
         return None
 
-def train_standard_osr(model: nn.Module, train_loader: DataLoader, optimizer: optim.Optimizer, scheduler, device: torch.device, num_epochs: int, current_experiment_name: str):
-    model.train()
-    use_amp = (device.type == 'cuda')
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
-    print(f"Starting OSR standard training for '{current_experiment_name}'... AMP enabled: {use_amp}")
-
-    for epoch in range(num_epochs):
-        total_loss = 0
-        progress_bar = tqdm(train_loader, desc=f"Std OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name})", leave=False)
-        for batch in progress_bar:
-            input_ids = batch['input_ids'].to(device)
-            attention_mask = batch['attention_mask'].to(device)
-            labels = batch['label'].to(device)
-
-            optimizer.zero_grad(set_to_none=True)
-            with torch.amp.autocast(device_type=str(device).split(':')[0], enabled=use_amp):
-                logits = model(input_ids, attention_mask)
-                loss = F.cross_entropy(logits, labels)
-            
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
-            total_loss += loss.item()
-            progress_bar.set_postfix({'loss': f"{loss.item():.3f}"})
-        if scheduler: scheduler.step()
-        avg_loss = total_loss / len(train_loader)
-        print(f"Std OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name}), Avg Loss: {avg_loss:.4f}")
-
-def train_with_oe_uniform_loss_osr(model: nn.Module, train_loader: DataLoader, oe_loader: DataLoader, optimizer: optim.Optimizer, scheduler, device: torch.device, num_epochs: int, oe_lambda: float, current_experiment_name: str):
-    model.train()
-    use_amp = (device.type == 'cuda')
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
-    print(f"Starting OSR OE (Uniform CE Loss) training for '{current_experiment_name}'... AMP enabled: {use_amp}")
-
-    for epoch in range(num_epochs):
-        oe_iter = iter(oe_loader)
-        total_loss, total_id_loss, total_oe_loss = 0, 0, 0
-        progress_bar = tqdm(train_loader, desc=f"OE OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name})", leave=False)
-
-        for batch in progress_bar:
-            input_ids = batch['input_ids'].to(device)
-            attention_mask = batch['attention_mask'].to(device)
-            labels = batch['label'].to(device)
-
-            try:
-                oe_batch = next(oe_iter)
-            except StopIteration:
-                oe_iter = iter(oe_loader)
-                oe_batch = next(oe_iter)
-            
-            oe_input_ids = oe_batch['input_ids'].to(device)
-            oe_attention_mask = oe_batch['attention_mask'].to(device)
-
-            optimizer.zero_grad(set_to_none=True)
-            with torch.amp.autocast(device_type=str(device).split(':')[0], enabled=use_amp):
-                id_logits = model(input_ids, attention_mask)
-                id_loss = F.cross_entropy(id_logits, labels)
-
-                oe_logits = model(oe_input_ids, oe_attention_mask)
-                num_classes = oe_logits.size(1)
-                log_softmax_oe = F.log_softmax(oe_logits, dim=1)
-                uniform_target_probs = torch.full_like(oe_logits, 1.0 / num_classes)
-                oe_loss = F.kl_div(log_softmax_oe, uniform_target_probs, reduction='batchmean', log_target=False)
-                
-                total_batch_loss = id_loss + oe_lambda * oe_loss
-            
-            scaler.scale(total_batch_loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
-
-            total_loss += total_batch_loss.item()
-            total_id_loss += id_loss.item()
-            total_oe_loss += oe_loss.item()
-            progress_bar.set_postfix({'Total': f"{total_batch_loss.item():.3f}", 'ID': f"{id_loss.item():.3f}", 'OE': f"{oe_loss.item():.3f}"})
-        
-        if scheduler: scheduler.step()
-        avg_loss = total_loss / len(train_loader)
-        avg_id_loss = total_id_loss / len(train_loader)
-        avg_oe_loss = total_oe_loss / len(train_loader)
-        print(f"OE OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name}), Avg Loss: {avg_loss:.4f} (ID: {avg_id_loss:.4f}, OE: {avg_oe_loss:.4f})")
 
 def evaluate_osr(model: nn.Module, id_loader: DataLoader, ood_loader: Optional[DataLoader], device: torch.device, temperature: float = 1.0, threshold_percentile: float = 5.0, return_data: bool = False) -> Union[Dict[str, float], Tuple[Dict[str, float], Dict[str, np.ndarray]]]:
     model.eval()
@@ -618,7 +547,7 @@ def plot_confusion_matrix_osr(cm: np.ndarray, class_names: List[str], title: str
     except Exception as e: print(f"Error plotting CM for '{title}': {e}")
     finally: plt.close()
 
-def plot_tsne_osr(id_features: np.ndarray, ood_features: Optional[np.ndarray], title: str, save_path: Optional[str] = None, seed: int = 42, perplexity: int = 30, n_iter: int = 1000):
+def plot_tsne_osr(id_features: np.ndarray, ood_features: Optional[np.ndarray], title: str, save_path: Optional[str] = None, seed: int = 42, perplexity: int = 30, max_iter: int = 1000):
     if len(id_features) == 0 and (ood_features is None or len(ood_features) == 0): return
     features_list, labels_list, legend_elements = [], [], []
     if len(id_features) > 0:
@@ -636,7 +565,7 @@ def plot_tsne_osr(id_features: np.ndarray, ood_features: Optional[np.ndarray], t
         if eff_perplexity <=1: 
             print(f"Warning: t-SNE perplexity too low ({eff_perplexity}). Skipping plot.")
             return
-        tsne = TSNE(n_components=2, random_state=seed, perplexity=eff_perplexity, n_iter=n_iter, init='pca', learning_rate='auto')
+        tsne = TSNE(n_components=2, random_state=seed, perplexity=eff_perplexity, max_iter=max_iter, init='pca', learning_rate='auto')
         tsne_results = tsne.fit_transform(features_all)
     except Exception as e: print(f"Error in t-SNE for '{title}': {e}. Skipping."); return
     
@@ -1303,113 +1232,6 @@ class OEExtractor:
             print(f"Saved sequential OE dataset ({len(oe_df_simple)} samples): {oe_filename}")
         else:
             print("No samples selected by sequential filtering.")
-            
-def compute_removed_word_attention(self, df: pd.DataFrame, attention_analyzer: AttentionAnalyzer, exclude_class: str = None) -> pd.DataFrame:
-    print("Computing removed word attention scores...")
-    if 'top_attention_words' not in df.columns or self.config.TEXT_COLUMN not in df.columns:
-        print("  Required columns ('top_attention_words', text column) not found. Skipping removed_avg_attention.")
-        df['removed_avg_attention'] = 0.0
-        return df
-    
-    # exclude_class가 있는 경우 해당 클래스만 처리
-    if exclude_class:
-        exclude_class_lower = exclude_class.lower()
-        process_mask = df[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower
-        df_for_processing = df[process_mask].copy()
-        
-        if df_for_processing.empty:
-            print("  No data to process after excluding class. Setting all removed_avg_attention to 0.")
-            df['removed_avg_attention'] = 0.0
-            return df
-        
-        texts = df_for_processing[self.config.TEXT_COLUMN].tolist()
-        word_attentions_list = attention_analyzer.get_word_attention_scores(texts)
-        
-        # Initialize all attention scores to 0
-        removed_attentions = np.zeros(len(df))
-        
-        # Fill in the attention scores for non-excluded classes
-        process_idx = 0
-        for idx, row in df.iterrows():
-            if process_mask.iloc[idx]:  # This row was processed
-                top_words_val = row['top_attention_words']
-                top_words = safe_literal_eval(top_words_val)
-                
-                if top_words and process_idx < len(word_attentions_list):
-                    word_scores_dict = word_attentions_list[process_idx]
-                    removed_scores = [word_scores_dict.get(word, 0) for word in top_words]
-                    removed_attentions[idx] = np.mean(removed_scores) if removed_scores else 0
-                process_idx += 1
-    else:
-        # Process all data
-        texts = df[self.config.TEXT_COLUMN].tolist()
-        word_attentions_list = attention_analyzer.get_word_attention_scores(texts)
-        
-        removed_attentions = []
-        for idx, row in tqdm(df.iterrows(), total=len(df), desc="Computing removed attention", leave=False):
-            top_words_val = row['top_attention_words']
-            top_words = safe_literal_eval(top_words_val)
-            
-            if top_words and idx < len(word_attentions_list):
-                word_scores_dict = word_attentions_list[idx]
-                removed_scores = [word_scores_dict.get(word, 0) for word in top_words]
-                removed_attentions.append(np.mean(removed_scores) if removed_scores else 0)
-            else:
-                removed_attentions.append(0)
-    
-    df['removed_avg_attention'] = removed_attentions
-    print("Removed word attention computation complete.")
-    return df
- 
-    def extract_oe_datasets(self, df: pd.DataFrame, exclude_class: str = None) -> None:
-        print("Extracting OE datasets with different criteria...")
-        
-        # exclude_class가 있는 경우 해당 클래스 제외
-        if exclude_class:
-            exclude_class_lower = exclude_class.lower()
-            df_for_oe = df[df[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower].copy()
-            print(f"OE extraction excluding '{exclude_class}' class: {len(df_for_oe)}/{len(df)} samples")
-        else:
-            df_for_oe = df.copy()
-        
-        if df_for_oe.empty:
-            print("No data available for OE extraction after filtering.")
-            return
-            
-        for metric, settings in self.config.METRIC_SETTINGS.items():
-            if metric not in df_for_oe.columns:
-                print(f"Skipping OE extraction for {metric} - column not found in DataFrame.")
-                continue
-            self._extract_single_metric_oe(df_for_oe, metric, settings)
-        self._extract_sequential_filtering_oe(df_for_oe)
-
-    def _extract_single_metric_oe(self, df: pd.DataFrame, metric: str, settings: dict):
-        scores = np.nan_to_num(df[metric].values, nan=0.0)
-        if settings['mode'] == 'higher':
-            threshold = np.percentile(scores, 100 - settings['percentile'])
-            selected_indices = np.where(scores >= threshold)[0]
-        else: # 'lower'
-            threshold = np.percentile(scores, settings['percentile'])
-            selected_indices = np.where(scores <= threshold)[0]
-        
-        if len(selected_indices) > 0:
-            # OE df needs the configured text column for OSR experiments
-            oe_df_simple = df.iloc[selected_indices][[self.config.TEXT_COLUMN_IN_OE_FILES]].copy()
-            # Rename to standard 'text' if needed by OSR loader, or handle in loader
-            # For now, OSR loader will use TEXT_COLUMN_IN_OE_FILES from config
-            
-            # Extended version for analysis
-            extended_cols = [self.config.TEXT_COLUMN_IN_OE_FILES, self.config.TEXT_COLUMN, 'top_attention_words', metric]
-            extended_cols = [col for col in extended_cols if col in df.columns] # Only include existing columns
-            oe_df_extended = df.iloc[selected_indices][extended_cols].copy()
-
-            mode_desc = f"{settings['mode']}{settings['percentile']}pct"
-            oe_filename = os.path.join(self.config.OE_DATA_DIR, f"oe_data_{metric}_{mode_desc}.csv")
-            oe_extended_filename = os.path.join(self.config.OE_DATA_DIR, f"oe_data_{metric}_{mode_desc}_extended.csv")
-            
-            oe_df_simple.to_csv(oe_filename, index=False)
-            oe_df_extended.to_csv(oe_extended_filename, index=False)
-            print(f"Saved OE dataset ({len(oe_df_simple)} samples) for {metric} {mode_desc}: {oe_filename}")
 
     def _extract_sequential_filtering_oe(self, df: pd.DataFrame):
         print("Applying sequential filtering for OE extraction...")
@@ -1487,7 +1309,7 @@ class Visualizer:
         try:
             perplexity = min(30, features.shape[0] - 1)
             if perplexity <= 1: print(f"t-SNE perplexity too low ({perplexity}). Skipping."); return
-            tsne = TSNE(n_components=2, random_state=seed, perplexity=perplexity, n_iter=1000, init='pca', learning_rate='auto')
+            tsne = TSNE(n_components=2, random_state=seed, perplexity=perplexity, max_iter=1000, init='pca', learning_rate='auto')
             tsne_results = tsne.fit_transform(features)
         except Exception as e: print(f"Error in t-SNE for OE Viz: {e}"); return
         
@@ -1594,6 +1416,8 @@ class Visualizer:
                     class_names=class_names_viz, seed=self.config.RANDOM_STATE
                 )
 
+
+    
 # === 메인 파이프라인 클래스 ===
 class UnifiedOEExtractor:
     def __init__(self, config: Config):
@@ -1759,6 +1583,22 @@ class UnifiedOEExtractor:
             print(f"Extracted features saved: {features_path}")
 
         return df_with_metrics, features   
+    
+    def _plot_training_curve(self, losses: List[float], experiment_name: str, save_dir: str):
+        plt.figure(figsize=(10, 6))
+        plt.plot(range(1, len(losses) + 1), losses, 'b-', linewidth=2, label='Training Loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.title(f'Training Loss Curve - {experiment_name}')
+        plt.grid(True, alpha=0.3)
+        plt.legend()
+        plt.tight_layout()
+        
+        save_path = os.path.join(save_dir, f'{experiment_name}_training_curve.png')
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        print(f"Training curve saved: {save_path}")
+        
     def run_stage4_visualization(self, df_with_metrics: Optional[pd.DataFrame], features: Optional[List[np.ndarray]]):
         if not self.config.STAGE_VISUALIZATION:
             print("Skipping Stage 4: OE Extraction Visualization")
@@ -1787,17 +1627,17 @@ class UnifiedOEExtractor:
         print("OE Extraction visualizations complete!")
 
     def _run_single_osr_experiment(self,
-                                   osr_tokenizer,
-                                   num_osr_classes: int,
-                                   osr_id_label2id: Dict, osr_id_id2label: Dict,
-                                   osr_known_class_names: List[str],
-                                   id_train_loader_osr: DataLoader,
-                                   id_test_loader_osr: DataLoader,
-                                   ood_eval_loader_osr: Optional[DataLoader],
-                                   current_oe_source_name: Optional[str], # Basename of OE file or "Standard"
-                                   current_oe_data_path: Optional[str], # Full path to OE file, or None
-                                   ood_dataset_eval_name_tag: str
-                                   ) -> Tuple[Dict, Dict]:
+                                osr_tokenizer,
+                                num_osr_classes: int,
+                                osr_id_label2id: Dict, osr_id_id2label: Dict,
+                                osr_known_class_names: List[str],
+                                id_train_loader_osr: DataLoader,
+                                id_test_loader_osr: DataLoader,
+                                ood_eval_loader_osr: Optional[DataLoader],
+                                current_oe_source_name: Optional[str], # Basename of OE file or "Standard"
+                                current_oe_data_path: Optional[str], # Full path to OE file, or None
+                                ood_dataset_eval_name_tag: str
+                                ) -> Tuple[Dict, Dict]:
         """ Helper to run one OSR trial (standard or with one OE dataset) """
         experiment_tag = "SyslogOSR" # Fixed ID dataset type for this integration
         if current_oe_source_name:
@@ -1826,18 +1666,32 @@ class UnifiedOEExtractor:
 
         experiment_results = {}
         experiment_data_for_plots = {}
+        epoch_losses = []
 
         if self.config.OSR_EVAL_ONLY:
             if os.path.exists(model_save_path):
                 print(f"Loading pre-trained OSR model for '{experiment_tag}' from {model_save_path}...")
-                model_osr.load_state_dict(torch.load(model_save_path, map_location=DEVICE_OSR))
+                model_osr.load_state_dict(torch.load(model_save_path, map_location=DEVICE_OSR, weights_only=False))
             else:
                 print(f"Error: Model path '{model_save_path}' not found for OSR_EVAL_ONLY. Skipping.")
                 return {}, {}
         else: # Training mode for OSR model
             optimizer = AdamW(model_osr.parameters(), lr=self.config.OSR_LEARNING_RATE)
             total_steps = len(id_train_loader_osr) * self.config.OSR_NUM_EPOCHS
-            scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=int(0.1 * total_steps), num_training_steps=total_steps)
+            
+            # Improved learning rate scheduling
+            warmup_ratio = getattr(self.config, 'OSR_WARMUP_RATIO', 0.1)
+            scheduler = get_linear_schedule_with_warmup(
+                optimizer, 
+                num_warmup_steps=int(warmup_ratio * total_steps), 
+                num_training_steps=total_steps
+            )
+            
+            # Early stopping parameters
+            patience = getattr(self.config, 'OSR_EARLY_STOPPING_PATIENCE', 5)
+            min_delta = getattr(self.config, 'OSR_EARLY_STOPPING_MIN_DELTA', 0.001)
+            best_loss = float('inf')
+            patience_counter = 0
 
             if current_oe_data_path: # OE-enhanced training
                 print(f"Preparing OE data for OSR from: {current_oe_data_path}")
@@ -1851,20 +1705,94 @@ class UnifiedOEExtractor:
                         num_workers=self.config.OSR_NUM_DATALOADER_WORKERS, pin_memory=True,
                         persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0
                     )
-                    train_with_oe_uniform_loss_osr(
-                        model_osr, id_train_loader_osr, oe_train_loader_osr, optimizer, scheduler,
-                        DEVICE_OSR, self.config.OSR_NUM_EPOCHS, self.config.OSR_OE_LAMBDA, experiment_tag
-                    )
+                    
+                    # OE training with early stopping
+                    model_osr.train()
+                    use_amp = (DEVICE_OSR.type == 'cuda')
+                    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+                    print(f"Starting OSR OE (Uniform CE Loss) training for '{experiment_tag}'... AMP enabled: {use_amp}")
+
+                    for epoch in range(self.config.OSR_NUM_EPOCHS):
+                        oe_iter = iter(oe_train_loader_osr)
+                        total_loss, total_id_loss, total_oe_loss = 0, 0, 0
+                        progress_bar = tqdm(id_train_loader_osr, desc=f"OE OSR Epoch {epoch+1}/{self.config.OSR_NUM_EPOCHS} ({experiment_tag})", leave=False)
+
+                        for batch in progress_bar:
+                            input_ids = batch['input_ids'].to(DEVICE_OSR)
+                            attention_mask = batch['attention_mask'].to(DEVICE_OSR)
+                            labels = batch['label'].to(DEVICE_OSR)
+
+                            try:
+                                oe_batch = next(oe_iter)
+                            except StopIteration:
+                                oe_iter = iter(oe_train_loader_osr)
+                                oe_batch = next(oe_iter)
+                            
+                            oe_input_ids = oe_batch['input_ids'].to(DEVICE_OSR)
+                            oe_attention_mask = oe_batch['attention_mask'].to(DEVICE_OSR)
+
+                            optimizer.zero_grad(set_to_none=True)
+                            with torch.amp.autocast(device_type=str(DEVICE_OSR).split(':')[0], enabled=use_amp):
+                                id_logits = model_osr(input_ids, attention_mask)
+                                id_loss = F.cross_entropy(id_logits, labels)
+
+                                oe_logits = model_osr(oe_input_ids, oe_attention_mask)
+                                num_classes = oe_logits.size(1)
+                                log_softmax_oe = F.log_softmax(oe_logits, dim=1)
+                                uniform_target_probs = torch.full_like(oe_logits, 1.0 / num_classes)
+                                oe_loss = F.kl_div(log_softmax_oe, uniform_target_probs, reduction='batchmean', log_target=False)
+                                
+                                total_batch_loss = id_loss + self.config.OSR_OE_LAMBDA * oe_loss
+                            
+                            scaler.scale(total_batch_loss).backward()
+                            scaler.step(optimizer)
+                            scaler.update()
+
+                            total_loss += total_batch_loss.item()
+                            total_id_loss += id_loss.item()
+                            total_oe_loss += oe_loss.item()
+                            progress_bar.set_postfix({'Total': f"{total_batch_loss.item():.3f}", 'ID': f"{id_loss.item():.3f}", 'OE': f"{oe_loss.item():.3f}"})
+                        
+                        if scheduler: scheduler.step()
+                        avg_loss = total_loss / len(id_train_loader_osr)
+                        avg_id_loss = total_id_loss / len(id_train_loader_osr)
+                        avg_oe_loss = total_oe_loss / len(id_train_loader_osr)
+                        epoch_losses.append(avg_loss)
+                        print(f"OE OSR Epoch {epoch+1}/{self.config.OSR_NUM_EPOCHS} ({experiment_tag}), Avg Loss: {avg_loss:.4f} (ID: {avg_id_loss:.4f}, OE: {avg_oe_loss:.4f})")
+                        
+                        # Early stopping check
+                        if avg_loss < best_loss - min_delta:
+                            best_loss = avg_loss
+                            patience_counter = 0
+                        else:
+                            patience_counter += 1
+                            
+                        if patience_counter >= patience:
+                            print(f"Early stopping at epoch {epoch+1} (no improvement for {patience} epochs)")
+                            break
+                    
                     del oe_train_dataset_osr, oe_train_loader_osr; gc.collect()
                 else:
                     print(f"Failed to load OE data for OSR from '{current_oe_data_path}'. Training standard OSR model instead.")
-                    train_standard_osr(model_osr, id_train_loader_osr, optimizer, scheduler, DEVICE_OSR, self.config.OSR_NUM_EPOCHS, experiment_tag)
+                    # Fall back to standard training
+                    epoch_losses = self._train_standard_osr_with_early_stopping(
+                        model_osr, id_train_loader_osr, optimizer, scheduler, 
+                        experiment_tag, patience, min_delta
+                    )
             else: # Standard OSR training (no OE)
-                train_standard_osr(model_osr, id_train_loader_osr, optimizer, scheduler, DEVICE_OSR, self.config.OSR_NUM_EPOCHS, experiment_tag)
+                epoch_losses = self._train_standard_osr_with_early_stopping(
+                    model_osr, id_train_loader_osr, optimizer, scheduler, DEVICE_OSR,
+                    self.config.OSR_NUM_EPOCHS, experiment_tag, 
+                    patience, min_delta
+                )
             
             if self.config.OSR_SAVE_MODEL_PER_EXPERIMENT:
                 torch.save(model_osr.state_dict(), model_save_path)
                 print(f"OSR Model for '{experiment_tag}' saved to {model_save_path}")
+            
+            # Plot training curve
+            if not self.config.OSR_NO_PLOT_PER_EXPERIMENT and epoch_losses:
+                self._plot_training_curve(epoch_losses, experiment_tag, current_result_dir)
 
         # Evaluation
         if ood_eval_loader_osr is None:
@@ -1874,7 +1802,7 @@ class UnifiedOEExtractor:
             model_osr, id_test_loader_osr, ood_eval_loader_osr, DEVICE_OSR,
             self.config.OSR_TEMPERATURE, self.config.OSR_THRESHOLD_PERCENTILE, return_data=True
         )
-        print(f"  OSSR Evaluation Results ({experiment_tag} vs {ood_dataset_eval_name_tag}): {results_osr}")
+        print(f"  OSR Evaluation Results ({experiment_tag} vs {ood_dataset_eval_name_tag}): {results_osr}")
 
         metric_key_prefix = f"SyslogOSR_"
         metric_key_prefix += f"OE_{current_oe_source_name}" if current_oe_source_name else "Standard"
@@ -1883,29 +1811,30 @@ class UnifiedOEExtractor:
         experiment_results[full_metric_key] = results_osr
         experiment_data_for_plots[full_metric_key] = data_osr
 
+        # Generate plots
         if not self.config.OSR_NO_PLOT_PER_EXPERIMENT:
             plot_filename_prefix = re.sub(r'[^\w\-]+', '_', full_metric_key)
             if data_osr['id_scores'] is not None and data_osr['ood_scores'] is not None and len(data_osr['ood_scores']) > 0:
                 plot_confidence_histograms_osr(data_osr['id_scores'], data_osr['ood_scores'],
-                                           f'Conf - {experiment_tag} vs {ood_dataset_eval_name_tag}',
-                                           os.path.join(current_result_dir, f'{plot_filename_prefix}_hist.png'))
+                                        f'Conf - {experiment_tag} vs {ood_dataset_eval_name_tag}',
+                                        os.path.join(current_result_dir, f'{plot_filename_prefix}_hist.png'))
                 plot_roc_curve_osr(data_osr['id_scores'], data_osr['ood_scores'],
-                               f'ROC - {experiment_tag} vs {ood_dataset_eval_name_tag}',
-                               os.path.join(current_result_dir, f'{plot_filename_prefix}_roc.png'))
+                            f'ROC - {experiment_tag} vs {ood_dataset_eval_name_tag}',
+                            os.path.join(current_result_dir, f'{plot_filename_prefix}_roc.png'))
                 plot_tsne_osr(data_osr['id_features'], data_osr['ood_features'],
-                             f't-SNE - {experiment_tag} (ID vs OOD: {ood_dataset_eval_name_tag})',
-                             os.path.join(current_result_dir, f'{plot_filename_prefix}_tsne.png'),
-                             seed=self.config.RANDOM_STATE)
+                            f't-SNE - {experiment_tag} (ID vs OOD: {ood_dataset_eval_name_tag})',
+                            os.path.join(current_result_dir, f'{plot_filename_prefix}_tsne.png'),
+                            seed=self.config.RANDOM_STATE)
             if data_osr['id_labels_true'] is not None and len(data_osr['id_labels_true']) > 0 and num_osr_classes > 0:
                 cm_std = confusion_matrix(data_osr['id_labels_true'], data_osr['id_labels_pred'], labels=np.arange(num_osr_classes))
                 plot_confusion_matrix_osr(cm_std, osr_known_class_names,
-                                       f'CM - {experiment_tag} (ID Test)',
-                                       os.path.join(current_result_dir, f'{plot_filename_prefix}_cm.png'))
+                                    f'CM - {experiment_tag} (ID Test)',
+                                    os.path.join(current_result_dir, f'{plot_filename_prefix}_cm.png'))
         
+        # Clean up GPU memory
         del model_osr; gc.collect(); torch.cuda.empty_cache()
         return experiment_results, experiment_data_for_plots
-
-
+    
     def run_stage5_osr_experiments(self):
         if not self.config.STAGE_OSR_EXPERIMENTS:
             print("Skipping Stage 5: OSR Experiments")
@@ -2059,6 +1988,259 @@ class UnifiedOEExtractor:
 
         self._print_final_summary()
         print("\nUnified OE Extraction & OSR Pipeline Complete!")
+
+
+    def _train_standard_osr_with_early_stopping(model: nn.Module, train_loader: DataLoader, 
+                                               optimizer: optim.Optimizer, scheduler, device: torch.device, 
+                                               num_epochs: int, current_experiment_name: str,
+                                               patience: int = 5, min_delta: float = 0.001):
+        model.train()
+        use_amp = (device.type == 'cuda')
+        scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+        print(f"Starting OSR standard training for '{current_experiment_name}'... AMP enabled: {use_amp}")
+        
+        best_loss = float('inf')
+        patience_counter = 0
+        epoch_losses = []
+        
+        for epoch in range(num_epochs):
+            total_loss = 0
+            progress_bar = tqdm(train_loader, desc=f"Std OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name})", leave=False)
+            
+            for batch in progress_bar:
+                input_ids = batch['input_ids'].to(device)
+                attention_mask = batch['attention_mask'].to(device)
+                labels = batch['label'].to(device)
+
+                optimizer.zero_grad(set_to_none=True)
+                with torch.amp.autocast(device_type=str(device).split(':')[0], enabled=use_amp):
+                    logits = model(input_ids, attention_mask)
+                    loss = F.cross_entropy(logits, labels)
+                
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+                total_loss += loss.item()
+                progress_bar.set_postfix({'loss': f"{loss.item():.3f}"})
+                
+            if scheduler: scheduler.step()
+            avg_loss = total_loss / len(train_loader)
+            epoch_losses.append(avg_loss)
+            print(f"Std OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name}), Avg Loss: {avg_loss:.4f}")
+            
+            # Early stopping 체크
+            if avg_loss < best_loss - min_delta:
+                best_loss = avg_loss
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                
+            if patience_counter >= patience:
+                print(f"Early stopping at epoch {epoch+1} (no improvement for {patience} epochs)")
+                break
+        
+        return epoch_losses
+
+    def _train_with_oe_uniform_loss_osr_with_early_stopping(model: nn.Module, train_loader: DataLoader, 
+                                                          oe_loader: DataLoader, optimizer: optim.Optimizer, 
+                                                          scheduler, device: torch.device, num_epochs: int, 
+                                                          oe_lambda: float, current_experiment_name: str,
+                                                          patience: int = 5, min_delta: float = 0.001):
+        model.train()
+        use_amp = (device.type == 'cuda')
+        scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+        print(f"Starting OSR OE (Uniform CE Loss) training for '{current_experiment_name}'... AMP enabled: {use_amp}")
+        
+        best_loss = float('inf')
+        patience_counter = 0
+        epoch_losses = []
+
+        for epoch in range(num_epochs):
+            oe_iter = iter(oe_loader)
+            total_loss, total_id_loss, total_oe_loss = 0, 0, 0
+            progress_bar = tqdm(train_loader, desc=f"OE OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name})", leave=False)
+
+            for batch in progress_bar:
+                input_ids = batch['input_ids'].to(device)
+                attention_mask = batch['attention_mask'].to(device)
+                labels = batch['label'].to(device)
+
+                try:
+                    oe_batch = next(oe_iter)
+                except StopIteration:
+                    oe_iter = iter(oe_loader)
+                    oe_batch = next(oe_iter)
+                
+                oe_input_ids = oe_batch['input_ids'].to(device)
+                oe_attention_mask = oe_batch['attention_mask'].to(device)
+
+                optimizer.zero_grad(set_to_none=True)
+                with torch.amp.autocast(device_type=str(device).split(':')[0], enabled=use_amp):
+                    id_logits = model(input_ids, attention_mask)
+                    id_loss = F.cross_entropy(id_logits, labels)
+
+                    oe_logits = model(oe_input_ids, oe_attention_mask)
+                    num_classes = oe_logits.size(1)
+                    log_softmax_oe = F.log_softmax(oe_logits, dim=1)
+                    uniform_target_probs = torch.full_like(oe_logits, 1.0 / num_classes)
+                    oe_loss = F.kl_div(log_softmax_oe, uniform_target_probs, reduction='batchmean', log_target=False)
+                    
+                    total_batch_loss = id_loss + oe_lambda * oe_loss
+                
+                scaler.scale(total_batch_loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+
+                total_loss += total_batch_loss.item()
+                total_id_loss += id_loss.item()
+                total_oe_loss += oe_loss.item()
+                progress_bar.set_postfix({'Total': f"{total_batch_loss.item():.3f}", 'ID': f"{id_loss.item():.3f}", 'OE': f"{oe_loss.item():.3f}"})
+            
+            if scheduler: scheduler.step()
+            avg_loss = total_loss / len(train_loader)
+            avg_id_loss = total_id_loss / len(train_loader)
+            avg_oe_loss = total_oe_loss / len(train_loader)
+            epoch_losses.append(avg_loss)
+            print(f"OE OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name}), Avg Loss: {avg_loss:.4f} (ID: {avg_id_loss:.4f}, OE: {avg_oe_loss:.4f})")
+            
+            # Early stopping 체크
+            if avg_loss < best_loss - min_delta:
+                best_loss = avg_loss
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                
+            if patience_counter >= patience:
+                print(f"Early stopping at epoch {epoch+1} (no improvement for {patience} epochs)")
+                break
+        
+        return epoch_losses
+
+    def _train_standard_osr_with_early_stopping(self, model: nn.Module, train_loader: DataLoader, 
+                                               optimizer: optim.Optimizer, scheduler, device: torch.device, 
+                                               num_epochs: int, current_experiment_name: str,
+                                               patience: int = 5, min_delta: float = 0.001):
+        model.train()
+        use_amp = (device.type == 'cuda')
+        scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+        print(f"Starting OSR standard training for '{current_experiment_name}'... AMP enabled: {use_amp}")
+        
+        best_loss = float('inf')
+        patience_counter = 0
+        epoch_losses = []
+        
+        for epoch in range(num_epochs):
+            total_loss = 0
+            progress_bar = tqdm(train_loader, desc=f"Std OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name})", leave=False)
+            
+            for batch in progress_bar:
+                input_ids = batch['input_ids'].to(device)
+                attention_mask = batch['attention_mask'].to(device)
+                labels = batch['label'].to(device)
+
+                optimizer.zero_grad(set_to_none=True)
+                with torch.amp.autocast(device_type=str(device).split(':')[0], enabled=use_amp):
+                    logits = model(input_ids, attention_mask)
+                    loss = F.cross_entropy(logits, labels)
+                
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+                total_loss += loss.item()
+                progress_bar.set_postfix({'loss': f"{loss.item():.3f}"})
+                
+            if scheduler: scheduler.step()
+            avg_loss = total_loss / len(train_loader)
+            epoch_losses.append(avg_loss)
+            print(f"Std OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name}), Avg Loss: {avg_loss:.4f}")
+            
+            # Early stopping 체크
+            if avg_loss < best_loss - min_delta:
+                best_loss = avg_loss
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                
+            if patience_counter >= patience:
+                print(f"Early stopping at epoch {epoch+1} (no improvement for {patience} epochs)")
+                break
+        
+        return epoch_losses
+
+    def _train_with_oe_uniform_loss_osr_with_early_stopping(self, model: nn.Module, train_loader: DataLoader, 
+                                                          oe_loader: DataLoader, optimizer: optim.Optimizer, 
+                                                          scheduler, device: torch.device, num_epochs: int, 
+                                                          oe_lambda: float, current_experiment_name: str,
+                                                          patience: int = 5, min_delta: float = 0.001):
+        model.train()
+        use_amp = (device.type == 'cuda')
+        scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+        print(f"Starting OSR OE (Uniform CE Loss) training for '{current_experiment_name}'... AMP enabled: {use_amp}")
+        
+        best_loss = float('inf')
+        patience_counter = 0
+        epoch_losses = []
+
+        for epoch in range(num_epochs):
+            oe_iter = iter(oe_loader)
+            total_loss, total_id_loss, total_oe_loss = 0, 0, 0
+            progress_bar = tqdm(train_loader, desc=f"OE OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name})", leave=False)
+
+            for batch in progress_bar:
+                input_ids = batch['input_ids'].to(device)
+                attention_mask = batch['attention_mask'].to(device)
+                labels = batch['label'].to(device)
+
+                try:
+                    oe_batch = next(oe_iter)
+                except StopIteration:
+                    oe_iter = iter(oe_loader)
+                    oe_batch = next(oe_iter)
+                
+                oe_input_ids = oe_batch['input_ids'].to(device)
+                oe_attention_mask = oe_batch['attention_mask'].to(device)
+
+                optimizer.zero_grad(set_to_none=True)
+                with torch.amp.autocast(device_type=str(device).split(':')[0], enabled=use_amp):
+                    id_logits = model(input_ids, attention_mask)
+                    id_loss = F.cross_entropy(id_logits, labels)
+
+                    oe_logits = model(oe_input_ids, oe_attention_mask)
+                    num_classes = oe_logits.size(1)
+                    log_softmax_oe = F.log_softmax(oe_logits, dim=1)
+                    uniform_target_probs = torch.full_like(oe_logits, 1.0 / num_classes)
+                    oe_loss = F.kl_div(log_softmax_oe, uniform_target_probs, reduction='batchmean', log_target=False)
+                    
+                    total_batch_loss = id_loss + oe_lambda * oe_loss
+                
+                scaler.scale(total_batch_loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+
+                total_loss += total_batch_loss.item()
+                total_id_loss += id_loss.item()
+                total_oe_loss += oe_loss.item()
+                progress_bar.set_postfix({'Total': f"{total_batch_loss.item():.3f}", 'ID': f"{id_loss.item():.3f}", 'OE': f"{oe_loss.item():.3f}"})
+            
+            if scheduler: scheduler.step()
+            avg_loss = total_loss / len(train_loader)
+            avg_id_loss = total_id_loss / len(train_loader)
+            avg_oe_loss = total_oe_loss / len(train_loader)
+            epoch_losses.append(avg_loss)
+            print(f"OE OSR Epoch {epoch+1}/{num_epochs} ({current_experiment_name}), Avg Loss: {avg_loss:.4f} (ID: {avg_id_loss:.4f}, OE: {avg_oe_loss:.4f})")
+            
+            # Early stopping 체크
+            if avg_loss < best_loss - min_delta:
+                best_loss = avg_loss
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                
+            if patience_counter >= patience:
+                print(f"Early stopping at epoch {epoch+1} (no improvement for {patience} epochs)")
+                break
+        
+        return epoch_losses
 
     # === Helper methods for UnifiedOEExtractor ===
     def _check_existing_model(self) -> bool:
