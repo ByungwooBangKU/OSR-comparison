@@ -74,6 +74,9 @@ try:
 except LookupError:
     nltk.download('punkt')
 
+import nltk
+nltk.download('punkt_tab')
+  
 try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
@@ -136,7 +139,7 @@ class Config:
     NLP_NUM_LAYERS = 2
     NLP_DROPOUT = 0.3
     NLP_MAX_LENGTH = 512
-    NLP_BATCH_SIZE = 64
+    NLP_BATCH_SIZE = 256
     NLP_NUM_EPOCHS = 30
     NLP_LEARNING_RATE = 1e-3
     
@@ -186,7 +189,7 @@ class Config:
     OSR_RESULT_DIR = os.path.join(OSR_EXPERIMENT_DIR, "results")
     
     # NLP OSR 설정
-    OSR_NLP_MODEL_TYPE = "gru"  # NLP용 OSR 모델
+    OSR_NLP_MODEL_TYPE = "roberta-base"  # NLP용 OSR 모델
     OSR_NLP_VOCAB_SIZE = 10000
     OSR_NLP_EMBED_DIM = 300
     OSR_NLP_HIDDEN_DIM = 512
@@ -455,20 +458,25 @@ class NLPDatasetLoader:
 
 # === NLP용 토크나이저 ===
 class NLPTokenizer:
-    """NLP 토크나이저 클래스"""
-    
-    def __init__(self, vocab_size=10000):
+    def __init__(self, vocab_size=10000, min_freq=2):  # min_freq 추가
         self.vocab_size = vocab_size
+        self.min_freq = min_freq  # 추가: 최소 빈도
         self.vocab = {}
         self.inverse_vocab = {}
         self.word_counts = defaultdict(int)
         self.unk_token = "<UNK>"
         self.pad_token = "<PAD>"
+        self.cls_token = "<CLS>"  # 추가
+        self.sep_token = "<SEP>"  # 추가
+        
+        # 특수 토큰 ID
         self.pad_token_id = 0
         self.unk_token_id = 1
+        self.cls_token_id = 2  # 추가
+        self.sep_token_id = 3  # 추가
         
     def build_vocab(self, texts):
-        """어휘 사전 구축"""
+        """어휘 사전 구축 - 개선된 버전"""
         print("Building vocabulary...")
         
         # 단어 빈도 계산
@@ -476,50 +484,31 @@ class NLPTokenizer:
             if isinstance(text, str):
                 words = tokenize_nltk(preprocess_text_for_nlp(text))
                 for word in words:
-                    self.word_counts[word] += 1
+                    if len(word) > 1:  # 단일 문자 제외
+                        self.word_counts[word] += 1
         
-        # 빈도순으로 어휘 사전 구축
-        sorted_words = sorted(self.word_counts.items(), key=lambda x: x[1], reverse=True)
-        
-        # 특수 토큰 추가
+        # 특수 토큰 먼저 추가
         self.vocab[self.pad_token] = self.pad_token_id
         self.vocab[self.unk_token] = self.unk_token_id
+        self.vocab[self.cls_token] = self.cls_token_id
+        self.vocab[self.sep_token] = self.sep_token_id
         
-        # 상위 vocab_size-2개 단어 추가
-        for i, (word, count) in enumerate(sorted_words[:self.vocab_size-2]):
-            self.vocab[word] = i + 2
+        # 빈도가 min_freq 이상인 단어만 포함
+        filtered_words = [(word, count) for word, count in self.word_counts.items() 
+                         if count >= self.min_freq]
+        sorted_words = sorted(filtered_words, key=lambda x: x[1], reverse=True)
+        
+        # vocab_size-4개 단어 추가 (특수 토큰 4개 제외)
+        for i, (word, count) in enumerate(sorted_words[:self.vocab_size-4]):
+            self.vocab[word] = i + 4
         
         # 역 어휘 사전 구축
         self.inverse_vocab = {v: k for k, v in self.vocab.items()}
         
-        print(f"Vocabulary built with {len(self.vocab)} words")
-    
-    def encode(self, text, max_length=None):
-        """텍스트를 토큰 ID로 변환"""
-        if not isinstance(text, str):
-            text = ""
-        
-        words = tokenize_nltk(preprocess_text_for_nlp(text))
-        token_ids = []
-        
-        for word in words:
-            token_ids.append(self.vocab.get(word, self.unk_token_id))
-        
-        if max_length:
-            if len(token_ids) > max_length:
-                token_ids = token_ids[:max_length]
-            else:
-                token_ids.extend([self.pad_token_id] * (max_length - len(token_ids)))
-        
-        return token_ids
-    
-    def decode(self, token_ids):
-        """토큰 ID를 텍스트로 변환"""
-        words = []
-        for token_id in token_ids:
-            if token_id != self.pad_token_id:
-                words.append(self.inverse_vocab.get(token_id, self.unk_token))
-        return ' '.join(words)
+        print(f"Vocabulary built: {len(self.vocab)} words")
+        print(f"Total word types: {len(self.word_counts)}")
+        print(f"Filtered out {len(self.word_counts) - len(self.vocab) + 4} rare words")
+
 
 # === NLP용 Dataset 클래스 ===
 class NLPDataset(TorchDataset):
@@ -575,8 +564,6 @@ class OSRNLPDataset(TorchDataset):
 
 # === NLP 모델들 ===
 class NLPClassifier(nn.Module):
-    """NLP 분류 모델"""
-    
     def __init__(self, vocab_size, embed_dim, hidden_dim, num_classes, num_layers=2, 
                  dropout=0.3, model_type="gru", attention=True):
         super(NLPClassifier, self).__init__()
@@ -586,8 +573,10 @@ class NLPClassifier(nn.Module):
         self.num_layers = num_layers
         self.attention = attention
         
-        # 임베딩 레이어
+        # 임베딩 레이어 - Xavier 초기화
         self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        nn.init.xavier_uniform_(self.embedding.weight)
+        self.embedding.weight.data[0].fill_(0)  # PAD 토큰은 0으로
         
         # RNN 레이어
         if model_type == "gru":
@@ -599,15 +588,25 @@ class NLPClassifier(nn.Module):
                               batch_first=True, dropout=dropout if num_layers > 1 else 0,
                               bidirectional=True)
         
+        # Xavier 초기화
+        for name, param in self.rnn.named_parameters():
+            if 'weight' in name:
+                nn.init.xavier_uniform_(param)
+            elif 'bias' in name:
+                nn.init.zeros_(param)
+        
         # 어텐션 레이어
         if self.attention:
             self.attention_layer = nn.Linear(hidden_dim * 2, 1)
+            nn.init.xavier_uniform_(self.attention_layer.weight)
         
         # 드롭아웃
         self.dropout = nn.Dropout(dropout)
         
-        # 분류 레이어
+        # 분류 레이어 - Xavier 초기화
         self.classifier = nn.Linear(hidden_dim * 2, num_classes)
+        nn.init.xavier_uniform_(self.classifier.weight)
+        nn.init.zeros_(self.classifier.bias)
         
     def forward(self, input_ids, attention_mask=None, output_attentions=False):
         # 임베딩
@@ -620,10 +619,19 @@ class NLPClassifier(nn.Module):
             rnn_output, _ = self.rnn(embedded)
         
         if self.attention and attention_mask is not None:
-            # 어텐션 메커니즘
+            # 어텐션 메커니즘 - 수치 안정성 개선
             attention_weights = self.attention_layer(rnn_output).squeeze(-1)
+            
+            # 마스크 적용
             attention_weights = attention_weights.masked_fill(~attention_mask.bool(), float('-inf'))
-            attention_weights = F.softmax(attention_weights, dim=1)
+            
+            # Softmax with temperature for numerical stability
+            attention_weights = F.softmax(attention_weights / 1.0, dim=1)
+            
+            # NaN 체크
+            if torch.isnan(attention_weights).any():
+                print("Warning: NaN in attention weights!")
+                attention_weights = torch.ones_like(attention_weights) / attention_weights.size(1)
             
             # 가중합
             weighted_output = torch.bmm(attention_weights.unsqueeze(1), rnn_output).squeeze(1)
@@ -635,17 +643,27 @@ class NLPClassifier(nn.Module):
             else:
                 weighted_output = rnn_output[:, -1]
         
+        # NaN 체크
+        if torch.isnan(weighted_output).any():
+            print("Warning: NaN in weighted_output!")
+            return torch.zeros(input_ids.size(0), self.classifier.out_features, device=input_ids.device)
+        
         # 드롭아웃 적용
         weighted_output = self.dropout(weighted_output)
         
         # 분류
         logits = self.classifier(weighted_output)
         
+        # 최종 NaN 체크
+        if torch.isnan(logits).any():
+            print("Warning: NaN in logits!")
+            return torch.zeros_like(logits)
+        
         if output_attentions and self.attention:
             return logits, attention_weights
         else:
             return logits
-
+        
 class NLPModelOOD(nn.Module):
     """OSR용 NLP 모델"""
     
@@ -943,14 +961,22 @@ class EnhancedDataModule(pl.LightningDataModule):
     
     def train_dataloader(self):
         if self.config.EXPERIMENT_MODE == "nlp":
-            dataset = NLPDataset(
-                self.train_df_final['text'].tolist(),
-                self.train_df_final['label_id'].tolist(),
-                self.tokenizer,
-                max_length=self.config.NLP_MAX_LENGTH
-            )
-            return DataLoader(dataset, batch_size=self.config.NLP_BATCH_SIZE, shuffle=True,
-                            num_workers=self.config.NUM_WORKERS, pin_memory=True)
+            # 클래스 밸런싱을 위한 샘플러 추가
+            if self.config.USE_WEIGHTED_LOSS:
+                from torch.utils.data import WeightedRandomSampler
+                class_counts = self.train_df_final['label_id'].value_counts().sort_index()
+                weights = 1.0 / class_counts.values
+                sample_weights = [weights[label] for label in self.train_df_final['label_id']]
+                sampler = WeightedRandomSampler(sample_weights, len(sample_weights))
+                
+                dataset = NLPDataset(
+                    self.train_df_final['text'].tolist(),
+                    self.train_df_final['label_id'].tolist(),
+                    self.tokenizer,
+                    max_length=self.config.NLP_MAX_LENGTH
+                )
+                return DataLoader(dataset, batch_size=self.config.NLP_BATCH_SIZE, sampler=sampler,
+                                num_workers=self.config.NUM_WORKERS, pin_memory=True)
         else:
             return DataLoader(
                 self.tokenized_train_val_datasets['train'], batch_size=self.config.BATCH_SIZE,
@@ -1118,18 +1144,17 @@ class EnhancedModel(pl.LightningModule):
     def configure_optimizers(self):
         if self.config_params.EXPERIMENT_MODE == "nlp":
             optimizer = optim.Adam(self.parameters(), lr=self.config_params.NLP_LEARNING_RATE)
-        else:
-            optimizer = optim.AdamW(self.parameters(), lr=self.config_params.LEARNING_RATE)
-        
-        if self.config_params.USE_LR_SCHEDULER:
-            if self.trainer and hasattr(self.trainer, 'estimated_stepping_batches') and self.trainer.estimated_stepping_batches > 0:
-                num_training_steps = self.trainer.estimated_stepping_batches
-                scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=num_training_steps)
-                return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "interval": "step", "frequency": 1}}
-            else:
-                print("Warning: Could not estimate training steps for scheduler. Using optimizer only.")
-                return optimizer
-        return optimizer
+            # 학습률 스케줄러 추가
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer, mode='max', factor=0.5, patience=3, verbose=True
+            )
+            return {
+                "optimizer": optimizer, 
+                "lr_scheduler": {
+                    "scheduler": scheduler,
+                    "monitor": "val_f1_macro",
+                }
+            }
 
 # === Enhanced Attention Analyzer ===
 class EnhancedAttentionAnalyzer:
