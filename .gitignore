@@ -18,3 +18,4 @@
 /unified_oe_osr_results*
 /log*.csv
 /results_epochs20
+/enhanced_nlp_20news*

@@ -75,7 +75,7 @@ class Config:
     """설정 클래스 - 모든 하이퍼파라미터와 경로 관리"""
     
     # === 기본 경로 및 파일 설정 (OE Extraction Part) ===
-    ORIGINAL_DATA_PATH = 'log_all_critical.csv' # Source for ID data
+    ORIGINAL_DATA_PATH = 'data_syslog/log_all_critical.csv' # Source for ID data
     TEXT_COLUMN = 'text' # Text column in ORIGINAL_DATA_PATH and OE files
     CLASS_COLUMN = 'class' # Class column in ORIGINAL_DATA_PATH
     EXCLUDE_CLASS_FOR_TRAINING = "unknown" # This class will be OOD relative to the base classifier
@@ -142,7 +142,7 @@ class Config:
     OSR_MODEL_DIR = os.path.join(OSR_EXPERIMENT_DIR, "models") # Where OSR models are saved
     OSR_RESULT_DIR = os.path.join(OSR_EXPERIMENT_DIR, "results") # Where OSR eval metrics/plots are saved
     
-    OOD_SYSLOG_UNKNOWN_PATH_OSR = 'log_unknown.csv' # OOD data for evaluating OSR models
+    OOD_SYSLOG_UNKNOWN_PATH_OSR = 'data_syslog/log_unknown.csv' # OOD data for evaluating OSR models
     # TEXT_COLUMN and CLASS_COLUMN are reused for OOD_SYSLOG_UNKNOWN_PATH_OSR
     OOD_TARGET_CLASS_OSR = "unknown" # The class to treat as OOD from OOD_SYSLOG_UNKNOWN_PATH_OSR
 
