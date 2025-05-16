@@ -92,7 +92,7 @@ class Config:
     MODEL_NAME = "roberta-base" # For base classifier in Stage 1
     MAX_LENGTH = 256 # For base classifier tokenization
     BATCH_SIZE = 64 # For base classifier training
-    NUM_TRAIN_EPOCHS = 15 # For base classifier training
+    NUM_TRAIN_EPOCHS = 20 # For base classifier training
     LEARNING_RATE = 2e-5 # For base classifier training
     MIN_SAMPLES_PER_CLASS_FOR_TRAIN_VAL = 2
     
@@ -103,7 +103,7 @@ class Config:
     NUM_WORKERS = os.cpu_count() // 2 if os.cpu_count() and os.cpu_count() > 1 else 1
     
     # === 학습 설정 (OE Extraction Part) ===
-    LOG_EVERY_N_STEPS = 50
+    LOG_EVERY_N_STEPS = 70
     GRADIENT_CLIP_VAL = 1.0
     USE_WEIGHTED_LOSS = True
     USE_LR_SCHEDULER = True
@@ -111,7 +111,7 @@ class Config:
     
     # === 어텐션 설정 (OE Extraction Part) ===
     ATTENTION_TOP_PERCENT = 0.20
-    MIN_TOP_WORDS = 2
+    MIN_TOP_WORDS = 1
     TOP_K_ATTENTION = 3 # For top_k_avg_attention metric
     ATTENTION_LAYER = -1  # 마지막 레이어
     
@@ -149,7 +149,7 @@ class Config:
     OSR_MODEL_TYPE = 'roberta-base' # Model for OSR experiments
     OSR_MAX_LENGTH = 128
     OSR_BATCH_SIZE = 64
-    OSR_NUM_EPOCHS = 50 # Epochs for each OSR experiment
+    OSR_NUM_EPOCHS = 30 # Epochs for each OSR experiment
     OSR_LEARNING_RATE = 2e-5
     OSR_OE_LAMBDA = 1.0
     OSR_TEMPERATURE = 1.0
@@ -1008,11 +1008,13 @@ class OEExtractor:
 
     @torch.no_grad()
     def extract_attention_metrics(self, dataloader: DataLoader, original_df: pd.DataFrame = None, 
-                                exclude_class: str = None) -> Tuple[pd.DataFrame, List[np.ndarray]]:
+                                    exclude_class: str = None) -> Tuple[pd.DataFrame, List[np.ndarray]]:
+        """수정된 버전: Unknown 클래스도 실제 feature 추출"""
         attention_metrics_list = []
         features_list = []
-        print("Extracting attention metrics and features from masked texts...")
+        print("Extracting attention metrics and features from masked texts (including unknown)...")
         
+        # 모든 데이터에 대해 실제 forward pass 수행
         for batch_encodings in tqdm(dataloader, desc="Processing masked text batches", leave=False):
             batch_on_device = {k: v.to(self.device) for k, v in batch_encodings.items()}
             
@@ -1028,36 +1030,21 @@ class OEExtractor:
         
         del outputs, attentions_batch, features_batch; gc.collect()
         
-        # exclude_class 처리를 위한 로직
-        if original_df is not None and exclude_class and len(original_df) > len(attention_metrics_list):
-            # 전체 데이터프레임과 매칭하기 위해 빈 메트릭 추가
+        # exclude_class 처리는 OE 후보 선정 시에만 적용 (feature는 모두 실제값 사용)
+        # 단, metrics는 exclude_class에 대해 기본값으로 설정 (OE 후보 선정에서 제외하기 위해)
+        if original_df is not None and exclude_class and len(original_df) == len(attention_metrics_list):
             exclude_class_lower = exclude_class.lower()
             exclude_mask = original_df[self.config.CLASS_COLUMN].str.lower() == exclude_class_lower
             
-            full_metrics_list = []
-            full_features_list = []
-            metrics_idx = 0
-            
-            default_metrics = {'max_attention': 0, 'top_k_avg_attention': 0, 'attention_entropy': 0}
-            default_features = np.zeros_like(features_list[0]) if features_list else np.zeros(768)
-            
+            # metrics만 수정 (feature는 그대로 유지)
             for idx, is_excluded in enumerate(exclude_mask):
                 if is_excluded:
-                    full_metrics_list.append(default_metrics.copy())
-                    full_features_list.append(default_features.copy())
-                else:
-                    if metrics_idx < len(attention_metrics_list):
-                        full_metrics_list.append(attention_metrics_list[metrics_idx])
-                        full_features_list.append(features_list[metrics_idx])
-                        metrics_idx += 1
-                    else:
-                        full_metrics_list.append(default_metrics.copy())
-                        full_features_list.append(default_features.copy())
-            
-            return pd.DataFrame(full_metrics_list), full_features_list
+                    # Unknown 클래스의 metrics만 기본값으로 설정 (OE 후보에서 제외)
+                    default_metrics = {'max_attention': 0, 'top_k_avg_attention': 0, 'attention_entropy': 0}
+                    attention_metrics_list[idx] = default_metrics
         
         return pd.DataFrame(attention_metrics_list), features_list
-
+    
     def _compute_attention_metrics(self, attention_sample, input_ids):
         valid_indices = np.where(
             (input_ids != self.tokenizer.pad_token_id) &
@@ -1157,7 +1144,7 @@ class OEExtractor:
                 continue
             self._extract_single_metric_oe(df_for_oe, metric, settings)
         self._extract_sequential_filtering_oe(df_for_oe)
-
+        
     def _extract_single_metric_oe(self, df: pd.DataFrame, metric: str, settings: dict):
         scores = np.nan_to_num(df[metric].values, nan=0.0)
         if settings['mode'] == 'higher':
@@ -1181,57 +1168,6 @@ class OEExtractor:
             oe_df_simple.to_csv(oe_filename, index=False)
             oe_df_extended.to_csv(oe_extended_filename, index=False)
             print(f"Saved OE dataset ({len(oe_df_simple)} samples) for {metric} {mode_desc}: {oe_filename}")
-
-    def _extract_sequential_filtering_oe(self, df: pd.DataFrame):
-        print("Applying sequential filtering for OE extraction...")
-        selected_mask = np.ones(len(df), dtype=bool)
-        
-        for step, (metric, settings) in enumerate(self.config.FILTERING_SEQUENCE):
-            if metric not in df.columns:
-                print(f"Skipping sequential filter step {step+1}: {metric} not found.")
-                continue
-            
-            current_selection_df = df[selected_mask]
-            if current_selection_df.empty:
-                print(f"No samples left before applying filter: {metric}. Stopping sequential filtering.")
-                selected_mask[:] = False
-                break
-
-            scores = np.nan_to_num(current_selection_df[metric].values, nan=0.0)
-            
-            if settings['mode'] == 'higher':
-                threshold = np.percentile(scores, 100 - settings['percentile'])
-                step_mask = scores >= threshold
-            else:
-                threshold = np.percentile(scores, settings['percentile'])
-                step_mask = scores <= threshold
-            
-            current_indices = np.where(selected_mask)[0]
-            indices_to_keep_from_current_step = current_indices[step_mask]
-            
-            selected_mask = np.zeros_like(selected_mask)
-            if len(indices_to_keep_from_current_step) > 0:
-                selected_mask[indices_to_keep_from_current_step] = True
-            
-            print(f"Sequential Filter {step+1} ({metric} {settings['mode']} {settings['percentile']}%): {np.sum(selected_mask)} samples remaining")
-
-        final_indices = np.where(selected_mask)[0]
-        if len(final_indices) > 0:
-            oe_df_simple = df.iloc[final_indices][[self.config.TEXT_COLUMN_IN_OE_FILES]].copy()
-            
-            extended_cols = [self.config.TEXT_COLUMN_IN_OE_FILES, self.config.TEXT_COLUMN, 'top_attention_words']
-            extended_cols.extend([m for m, _ in self.config.FILTERING_SEQUENCE if m in df.columns])
-            oe_df_extended = df.iloc[final_indices][extended_cols].copy()
-
-            filter_desc = "_".join([f"{m}_{s['mode']}{s['percentile']}" for m, s in self.config.FILTERING_SEQUENCE])
-            oe_filename = os.path.join(self.config.OE_DATA_DIR, f"oe_data_sequential_{filter_desc}.csv")
-            oe_extended_filename = os.path.join(self.config.OE_DATA_DIR, f"oe_data_sequential_{filter_desc}_extended.csv")
-            
-            oe_df_simple.to_csv(oe_filename, index=False)
-            oe_df_extended.to_csv(oe_extended_filename, index=False)
-            print(f"Saved sequential OE dataset ({len(oe_df_simple)} samples): {oe_filename}")
-        else:
-            print("No samples selected by sequential filtering.")
 
     def _extract_sequential_filtering_oe(self, df: pd.DataFrame):
         print("Applying sequential filtering for OE extraction...")
@@ -1284,7 +1220,6 @@ class OEExtractor:
             print(f"Saved sequential OE dataset ({len(oe_df_simple)} samples): {oe_filename}")
         else:
             print("No samples selected by sequential filtering.")
-
 # === 시각화 클래스 (OE Extraction Part) ===
 class Visualizer:
     def __init__(self, config: Config):
@@ -1519,7 +1454,7 @@ class UnifiedOEExtractor:
                 except FileNotFoundError: print("Final metrics/features not found, cannot proceed if OE extraction skipped."); return None, None
             return None, None
 
-        print("\n" + "="*50 + "\nSTAGE 3: OE EXTRACTION\n" + "="*50)
+        print("\n" + "="*50 + "\nSTAGE 3: OE EXTRACTION (FIXED)\n" + "="*50)
         if df_with_attention is None: df_with_attention = self._load_attention_results()
         if df_with_attention is None:
             print("Error: DataFrame with attention is not available. Cannot proceed with OE extraction.")
@@ -1539,38 +1474,43 @@ class UnifiedOEExtractor:
             print(f"Error: Column '{masked_texts_col}' not found in attention DataFrame. Cannot extract OE.")
             return df_with_attention, None
 
-        # EXCLUDE_CLASS_FOR_TRAINING 클래스를 제외한 데이터만 처리
+        # 핵심 수정: 모든 데이터(Unknown 포함)에 대해 feature 추출
+        # 모든 데이터를 처리하되, 텍스트는 exclude_class에 따라 다르게 처리
+        all_texts = []
         exclude_class_lower = self.config.EXCLUDE_CLASS_FOR_TRAINING.lower()
-        mask_for_analysis = df_with_attention[self.config.CLASS_COLUMN].str.lower() != exclude_class_lower
-        df_for_metrics = df_with_attention[mask_for_analysis].copy()
         
-        if df_for_metrics.empty:
-            print("No data available for OE extraction after excluding unknown class.")
-            return df_with_attention, None
+        for idx, row in df_with_attention.iterrows():
+            if str(row[self.config.CLASS_COLUMN]).lower() == exclude_class_lower:
+                # Unknown 클래스는 원본 텍스트 사용 (마스킹하지 않음)
+                all_texts.append(row[self.config.TEXT_COLUMN])
+            else:
+                # Known 클래스는 마스킹된 텍스트 사용
+                all_texts.append(row[masked_texts_col])
         
-        masked_texts = df_for_metrics[masked_texts_col].tolist()
-        print(f"Processing {len(masked_texts)} samples for OE metrics (excluding '{self.config.EXCLUDE_CLASS_FOR_TRAINING}' class)")
+        print(f"Processing {len(all_texts)} samples for OE metrics (including unknown class)")
         
-        dataset = MaskedTextDatasetForMetrics(masked_texts, self.data_module.tokenizer, self.config.MAX_LENGTH)
+        dataset = MaskedTextDatasetForMetrics(all_texts, self.data_module.tokenizer, self.config.MAX_LENGTH)
         dataloader = DataLoader(dataset, batch_size=self.config.BATCH_SIZE, num_workers=self.config.NUM_WORKERS, shuffle=False)
         
+        # 모든 데이터에 대해 실제 feature 추출 (exclude_class는 메트릭스 부분에만 적용)
         attention_metrics_df, features = self.oe_extractor.extract_attention_metrics(
             dataloader, original_df=df_with_attention, exclude_class=self.config.EXCLUDE_CLASS_FOR_TRAINING
         )
         
-        df_with_metrics = df_with_attention.reset_index(drop=True)
-        if len(df_with_metrics) == len(attention_metrics_df):
-            df_with_metrics = pd.concat([df_with_metrics, attention_metrics_df.reset_index(drop=True)], axis=1)
-        else:
-            print(f"Warning: Length mismatch between main DF ({len(df_with_metrics)}) and metrics DF ({len(attention_metrics_df)}). Metrics not merged.")
+        # DataFrame과 features의 길이가 일치하는지 확인
+        assert len(df_with_attention) == len(attention_metrics_df) == len(features), \
+            f"Length mismatch: df={len(df_with_attention)}, metrics={len(attention_metrics_df)}, features={len(features)}"
         
+        df_with_metrics = df_with_attention.reset_index(drop=True)
+        df_with_metrics = pd.concat([df_with_metrics, attention_metrics_df.reset_index(drop=True)], axis=1)
+        
+        # OE 추출 시에만 exclude_class 고려
         if self.attention_analyzer:
-            # 수정: exclude_class 매개변수 전달
             df_with_metrics = self.oe_extractor.compute_removed_word_attention(
                 df_with_metrics, self.attention_analyzer, exclude_class=self.config.EXCLUDE_CLASS_FOR_TRAINING
             )
         
-        # OE 추출 시에도 exclude_class를 고려
+        # OE 후보 선정 시 exclude_class 적용
         self.oe_extractor.extract_oe_datasets(df_with_metrics, exclude_class=self.config.EXCLUDE_CLASS_FOR_TRAINING)
         
         metrics_output_path = os.path.join(self.config.ATTENTION_DATA_DIR, f"df_with_all_metrics.csv")
@@ -1582,8 +1522,8 @@ class UnifiedOEExtractor:
             np.save(features_path, np.array(features))
             print(f"Extracted features saved: {features_path}")
 
-        return df_with_metrics, features   
-    
+        return df_with_metrics, features
+ 
     def _plot_training_curve(self, losses: List[float], experiment_name: str, save_dir: str):
         plt.figure(figsize=(10, 6))
         plt.plot(range(1, len(losses) + 1), losses, 'b-', linewidth=2, label='Training Loss')
