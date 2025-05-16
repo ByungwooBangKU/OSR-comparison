@@ -1417,7 +1417,7 @@ class MaskedTextDatasetForMetrics(TorchDataset):
         else:
             return {key: val[idx].clone().detach() for key, val in self.encodings.items()}
 
-class EnhancedOEExtractor:
+class OEExtractorEnhanced:
     """Enhanced OE Extractor supporting both NLP and Syslog models"""
     
     def __init__(self, config: Config, model_pl: EnhancedModel, tokenizer, device):
@@ -2094,15 +2094,15 @@ from oe2 import (
 )
 
 # === Main Pipeline Class ===
-class EnhancedOEExtractor:
-    """Enhanced OE Extractor supporting both Syslog and NLP experiments"""
+class EnhancedOEPipeline:
+    """Enhanced OE Extraction Pipeline supporting both Syslog and NLP experiments"""
     
     def __init__(self, config: Config):
         self.config = config
         self.data_module: Optional[EnhancedDataModule] = None
         self.model: Optional[EnhancedModel] = None
         self.attention_analyzer: Optional[EnhancedAttentionAnalyzer] = None
-        self.oe_extractor: Optional[EnhancedOEExtractor] = None
+        self.oe_extractor: Optional[OEExtractorEnhanced] = None
         self.visualizer = EnhancedVisualizer(config)
         
         config.create_directories()
@@ -2243,7 +2243,7 @@ class EnhancedOEExtractor:
             self.data_module.setup()
         
         current_device = self.model.device if hasattr(self.model, 'device') else DEVICE_OSR
-        self.oe_extractor = EnhancedOEExtractor(
+        self.oe_extractor = OEExtractorEnhanced(
             config=self.config,
             model_pl=self.model,
             tokenizer=self.data_module.tokenizer,
@@ -3052,7 +3052,7 @@ def main():
     print(f"Output Dir: {Config.OUTPUT_DIR}")
     
     # 파이프라인 실행
-    pipeline = EnhancedOEExtractor(Config)
+    pipeline = EnhancedOEPipeline(Config)
     pipeline.run_full_pipeline()
 
 if __name__ == '__main__':
