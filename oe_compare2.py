@@ -3,6 +3,11 @@ Enhanced Unified OE (Out-of-Distribution) Extractor with NLP Dataset Support
 Including 20 Newsgroups, TREC, SST, and WikiText-2 for Outlier Exposure comparison
 """
 
+"""
+Enhanced Unified OE (Out-of-Distribution) Extractor with NLP Dataset Support
+Including 20 Newsgroups, TREC, SST, and WikiText-2 for Outlier Exposure comparison
+"""
+
 import os
 import sys
 import argparse
@@ -68,19 +73,49 @@ import random
 import requests
 import zipfile
 
-# NLTK 데이터 다운로드
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+# NLTK 초기화 - 완전히 개선된 버전
+NLTK_DATA_PATH = os.path.expanduser('~/AppData/Roaming/nltk_data')
+if NLTK_DATA_PATH not in nltk.data.path:
+    nltk.data.path.insert(0, NLTK_DATA_PATH)
 
-import nltk
-nltk.download('punkt_tab')
-  
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
+# 전역 플래그로 한 번만 다운로드하도록 제어
+_NLTK_DOWNLOADS_DONE = False
+
+def ensure_nltk_data():
+    """NLTK 데이터가 있는지 확인하고, 필요시 다운로드"""
+    global _NLTK_DOWNLOADS_DONE
+    
+    if _NLTK_DOWNLOADS_DONE:
+        return
+    
+    downloads_needed = []
+    
+    # 필요한 데이터 확인
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        downloads_needed.append('punkt')
+    
+    try:
+        nltk.data.find('tokenizers/punkt_tab')
+    except LookupError:
+        downloads_needed.append('punkt_tab')
+    
+    try:
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        downloads_needed.append('stopwords')
+    
+    # 필요한 것만 다운로드
+    if downloads_needed:
+        print(f"Downloading required NLTK data: {downloads_needed}")
+        for item in downloads_needed:
+            nltk.download(item, quiet=True, download_dir=NLTK_DATA_PATH)
+    
+    _NLTK_DOWNLOADS_DONE = True
+
+# 초기 다운로드 실행
+ensure_nltk_data()
 
 # --- Enhanced Configuration Class ---
 class Config:
@@ -132,7 +167,7 @@ class Config:
     NLP_DATA_DIR = os.path.join(OUTPUT_DIR, "nlp_datasets")
     
     # === NLP 모델 설정 ===
-    NLP_MODEL_TYPE = "gru"  # "gru", "lstm", 또는 "transformer"
+    NLP_MODEL_TYPE = "roberta-base"  # "gru", "lstm", 또는 "transformer"
     NLP_VOCAB_SIZE = 10000
     NLP_EMBED_DIM = 300
     NLP_HIDDEN_DIM = 512
@@ -171,15 +206,29 @@ class Config:
     ATTENTION_LAYER = -1
     
     # === OE 필터링 설정 ===
+    # METRIC_SETTINGS = {
+    #     'attention_entropy': {'percentile': 80, 'mode': 'higher'},
+    #     'top_k_avg_attention': {'percentile': 20, 'mode': 'lower'},
+    #     'max_attention': {'percentile': 15, 'mode': 'lower'},
+    #     'removed_avg_attention': {'percentile': 85, 'mode': 'higher'}
+    # }
+    # FILTERING_SEQUENCE = [
+    #     ('removed_avg_attention', {'percentile': 85, 'mode': 'higher'}),
+    #     ('attention_entropy', {'percentile': 75, 'mode': 'higher'})
+    # ]
+    # === OE 필터링 설정 (개선된 버전) ===
     METRIC_SETTINGS = {
-        'attention_entropy': {'percentile': 80, 'mode': 'higher'},
-        'top_k_avg_attention': {'percentile': 20, 'mode': 'lower'},
-        'max_attention': {'percentile': 15, 'mode': 'lower'},
-        'removed_avg_attention': {'percentile': 85, 'mode': 'higher'}
+        'attention_entropy': {'percentile': 75, 'mode': 'higher'},      # 상위 25%
+        'max_attention': {'percentile': 15, 'mode': 'lower'},          # 하위 15%
+        'removed_avg_attention': {'percentile': 85, 'mode': 'higher'}, # 상위 15%
+        'top_k_avg_attention': {'percentile': 25, 'mode': 'lower'}     # 하위 25%
     }
+
+    # 순차 필터링 (가장 효과적인 순서로)
     FILTERING_SEQUENCE = [
-        ('removed_avg_attention', {'percentile': 85, 'mode': 'higher'}),
-        ('attention_entropy', {'percentile': 75, 'mode': 'higher'})
+        ('removed_avg_attention', {'percentile': 85, 'mode': 'higher'}),  # 1단계: 가장 선별력 높음
+        ('attention_entropy', {'percentile': 75, 'mode': 'higher'}),       # 2단계: 엔트로피 필터링
+        ('max_attention', {'percentile': 15, 'mode': 'lower'})             # 3단계: 최종 정제
     ]
     TEXT_COLUMN_IN_OE_FILES = 'masked_text_attention'
     
@@ -196,14 +245,14 @@ class Config:
     OSR_NLP_NUM_LAYERS = 2
     OSR_NLP_DROPOUT = 0.3
     OSR_NLP_MAX_LENGTH = 512
-    OSR_NLP_BATCH_SIZE = 64
+    OSR_NLP_BATCH_SIZE = 128
     OSR_NLP_NUM_EPOCHS = 20
     OSR_NLP_LEARNING_RATE = 1e-3
     
     # 기존 Vision OSR 설정
     OSR_MODEL_TYPE = 'roberta-base'
     OSR_MAX_LENGTH = 128
-    OSR_BATCH_SIZE = 64
+    OSR_BATCH_SIZE = 128
     OSR_NUM_EPOCHS = 30
     OSR_LEARNING_RATE = 2e-5
     OSR_OE_LAMBDA = 1.0
@@ -296,13 +345,23 @@ def preprocess_text_for_roberta(text):
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
+
 def tokenize_nltk(text):
-    """NLTK를 사용한 토큰화"""
+    """NLTK를 사용한 토큰화 - 다운로드 방지 버전"""
     if not text:
         return []
+    
+    # 글로벌 플래그 확인
+    global _NLTK_DOWNLOADS_DONE
+    if not _NLTK_DOWNLOADS_DONE:
+        ensure_nltk_data()
+    
     try:
-        return word_tokenize(text)
-    except Exception:
+        result = word_tokenize(text)
+        return result if result is not None else []
+    except Exception as e:
+        # NLTK가 실패하면 간단한 분할 사용
+        print(f"NLTK tokenization failed: {e}. Using simple split.")
         return text.split()
 
 def create_masked_sentence(original_text, important_words):
@@ -508,7 +567,49 @@ class NLPTokenizer:
         print(f"Vocabulary built: {len(self.vocab)} words")
         print(f"Total word types: {len(self.word_counts)}")
         print(f"Filtered out {len(self.word_counts) - len(self.vocab) + 4} rare words")
-
+    
+    def encode(self, text, max_length=512):
+        """텍스트를 토큰 ID 시퀀스로 인코딩"""
+        if not isinstance(text, str):
+            text = str(text) if text is not None else ""
+        
+        # 텍스트 전처리
+        text = preprocess_text_for_nlp(text)
+        words = tokenize_nltk(text)
+        
+        # 토큰 ID로 변환
+        token_ids = [self.cls_token_id]  # CLS 토큰으로 시작
+        
+        for word in words:
+            if word in self.vocab:
+                token_ids.append(self.vocab[word])
+            else:
+                token_ids.append(self.unk_token_id)
+        
+        # SEP 토큰 추가
+        token_ids.append(self.sep_token_id)
+        
+        # max_length 적용 (패딩 또는 자르기)
+        if len(token_ids) > max_length:
+            token_ids = token_ids[:max_length-1] + [self.sep_token_id]
+        else:
+            # 패딩
+            while len(token_ids) < max_length:
+                token_ids.append(self.pad_token_id)
+        
+        return token_ids
+    
+    def decode(self, token_ids):
+        """토큰 ID 시퀀스를 텍스트로 디코딩"""
+        words = []
+        for token_id in token_ids:
+            if token_id == self.pad_token_id:
+                continue
+            elif token_id in self.inverse_vocab:
+                word = self.inverse_vocab[token_id]
+                if word not in [self.cls_token, self.sep_token]:
+                    words.append(word)
+        return ' '.join(words)
 
 # === NLP용 Dataset 클래스 ===
 class NLPDataset(TorchDataset):
@@ -959,6 +1060,7 @@ class EnhancedDataModule(pl.LightningDataModule):
         self.tokenized_train_val_datasets.set_format(type='torch', columns=['input_ids', 'attention_mask', 'label'])
         print("Tokenization for base classifier complete.")
     
+    # EnhancedDataModule 클래스의 train_dataloader 메서드 수정
     def train_dataloader(self):
         if self.config.EXPERIMENT_MODE == "nlp":
             # 클래스 밸런싱을 위한 샘플러 추가
@@ -976,14 +1078,26 @@ class EnhancedDataModule(pl.LightningDataModule):
                     max_length=self.config.NLP_MAX_LENGTH
                 )
                 return DataLoader(dataset, batch_size=self.config.NLP_BATCH_SIZE, sampler=sampler,
-                                num_workers=self.config.NUM_WORKERS, pin_memory=True)
+                                num_workers=self.config.NUM_WORKERS, pin_memory=True,
+                                persistent_workers=self.config.NUM_WORKERS > 0)  # 추가
+            else:
+                dataset = NLPDataset(
+                    self.train_df_final['text'].tolist(),
+                    self.train_df_final['label_id'].tolist(),
+                    self.tokenizer,
+                    max_length=self.config.NLP_MAX_LENGTH
+                )
+                return DataLoader(dataset, batch_size=self.config.NLP_BATCH_SIZE, shuffle=True,
+                                num_workers=self.config.NUM_WORKERS, pin_memory=True,
+                                persistent_workers=self.config.NUM_WORKERS > 0)  # 추가
         else:
             return DataLoader(
                 self.tokenized_train_val_datasets['train'], batch_size=self.config.BATCH_SIZE,
                 collate_fn=self.data_collator, num_workers=self.config.NUM_WORKERS,
-                shuffle=True, pin_memory=True, persistent_workers=self.config.NUM_WORKERS > 0
+                shuffle=True, pin_memory=True, 
+                persistent_workers=self.config.NUM_WORKERS > 0  # 추가
             )
-    
+
     def val_dataloader(self):
         if self.config.EXPERIMENT_MODE == "nlp":
             dataset = NLPDataset(
@@ -993,13 +1107,16 @@ class EnhancedDataModule(pl.LightningDataModule):
                 max_length=self.config.NLP_MAX_LENGTH
             )
             return DataLoader(dataset, batch_size=self.config.NLP_BATCH_SIZE,
-                            num_workers=self.config.NUM_WORKERS, pin_memory=True)
+                            num_workers=self.config.NUM_WORKERS, pin_memory=True,
+                            persistent_workers=self.config.NUM_WORKERS > 0)  # 추가
         else:
             return DataLoader(
                 self.tokenized_train_val_datasets['validation'], batch_size=self.config.BATCH_SIZE,
                 collate_fn=self.data_collator, num_workers=self.config.NUM_WORKERS,
-                pin_memory=True, persistent_workers=self.config.NUM_WORKERS > 0
+                pin_memory=True, 
+                persistent_workers=self.config.NUM_WORKERS > 0  # 추가
             )
+    
     
     def get_full_dataframe(self):
         if self.df_full is None:
@@ -2424,22 +2541,26 @@ class EnhancedOEPipeline:
         
         class_names = list(id_id2label.values()) if id_id2label else [f"Class_{i}" for i in range(num_classes)]
         
-        # 데이터 로더 생성
+        # _run_nlp_osr_experiments 메서드 내부
         id_train_loader = DataLoader(
             id_train_dataset, batch_size=self.config.OSR_NLP_BATCH_SIZE, shuffle=True,
-            num_workers=self.config.OSR_NUM_DATALOADER_WORKERS, pin_memory=True
+            num_workers=self.config.OSR_NUM_DATALOADER_WORKERS, pin_memory=True,
+            persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0  # 추가
         )
         id_test_loader = DataLoader(
             id_test_dataset, batch_size=self.config.OSR_NLP_BATCH_SIZE,
-            num_workers=self.config.OSR_NUM_DATALOADER_WORKERS, pin_memory=True
+            num_workers=self.config.OSR_NUM_DATALOADER_WORKERS, pin_memory=True,
+            persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0  # 추가
         )
         
         # OOD 데이터 준비 (WikiText-2)
         ood_dataset = prepare_wikitext_ood_data_for_osr(tokenizer, self.config.OSR_NLP_MAX_LENGTH)
         ood_loader = DataLoader(
             ood_dataset, batch_size=self.config.OSR_NLP_BATCH_SIZE,
-            num_workers=self.config.OSR_NUM_DATALOADER_WORKERS, pin_memory=True
+            num_workers=self.config.OSR_NUM_DATALOADER_WORKERS, pin_memory=True,
+            persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0  # 추가
         ) if ood_dataset else None
+
         
         ood_dataset_name = "WikiText2"
         
@@ -2542,9 +2663,9 @@ class EnhancedOEPipeline:
                 if oe_dataset:
                     oe_loader = DataLoader(
                         oe_dataset, batch_size=self.config.OSR_NLP_BATCH_SIZE, shuffle=True,
-                        num_workers=self.config.OSR_NUM_DATALOADER_WORKERS, pin_memory=True
+                        num_workers=self.config.OSR_NUM_DATALOADER_WORKERS, pin_memory=True,
+                        persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0  # 추가
                     )
-                    
                     # OE 훈련
                     model_osr.train()
                     print(f"Starting NLP OSR OE training for '{experiment_tag}'...")
@@ -3101,4 +3222,8 @@ python enhanced_oe_nlp.py --mode nlp --nlp_dataset 20newsgroups --attention_perc
 
 # Syslog 실험 (호환성 유지)
 python enhanced_oe_nlp.py --mode syslog --attention_percent 0.2 --top_words 1 --output_dir enhanced_syslog_0.2_1
+
+
+python oe_compare2.py --mode nlp --nlp_dataset 20newsgroups --attention_percent 0.1 --top_words 1 --output_dir enhanced_nlp_20news_0.1_1
+python oe_compare2.py --mode nlp --nlp_dataset sst2 --attention_percent 0.1 --top_words 1 --output_dir enhanced_nlp_sst2_0.1_1
 """

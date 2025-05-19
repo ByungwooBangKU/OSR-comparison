@@ -19,3 +19,5 @@
 /log*.csv
 /results_epochs20
 /enhanced_nlp_20news*
+/enhanced_oe_nlp*
+/data_syslog
