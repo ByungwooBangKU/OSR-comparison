@@ -180,7 +180,7 @@ class Config:
         'multi30k': {'name': 'multi30k', 'subset': 'en', 'text_column': 'text'}, # English part
         'yelp_polarity': {'name': 'yelp_polarity', 'text_column': 'text'},
     }
-
+ 
     CURRENT_NLP_ID_DATASET = '20newsgroups'  # Experiment할 ID 데이터셋 선택
     DEFAULT_OE_DATASET = 'wikitext2' # Standard OE dataset
     DEFAULT_OOD_TEST_DATASET = 'wmt16' # OOD Test dataset
@@ -198,7 +198,7 @@ class Config:
     NLP_DROPOUT = 0.3
     NLP_MAX_LENGTH = 256 # Max length for tokenizer
     NLP_BATCH_SIZE = 64 # Adjusted for potentially larger models
-    NLP_NUM_EPOCHS = 10 # Base classifier epochs
+    NLP_NUM_EPOCHS = 30 # Base classifier epochs
     NLP_LEARNING_RATE = 2e-5 if NLP_MODEL_TYPE == "roberta-base" else 1e-3
 
     # === 하드웨어 설정 ===
@@ -215,30 +215,30 @@ class Config:
     
     # === 어텐션 설정 (for deriving OE data from ID) ===
     ATTENTION_TOP_PERCENT = 0.20
-    MIN_TOP_WORDS = 5
+    MIN_TOP_WORDS = 10
     TOP_K_ATTENTION = 3 # For attention metrics on masked text
     ATTENTION_LAYER = -1 # For RoBERTa-like models, last layer
     
     # === OE 필터링 설정 (for deriving OE data from ID) ===
     METRIC_SETTINGS = {
-        'attention_entropy': {'percentile': 75, 'mode': 'higher'},
-        'max_attention': {'percentile': 15, 'mode': 'lower'},
-        'removed_avg_attention': {'percentile': 85, 'mode': 'higher'},
-        'top_k_avg_attention': {'percentile': 25, 'mode': 'lower'}
+        'attention_entropy': {'percentile': 70, 'mode': 'higher'},
+        'max_attention': {'percentile': 10, 'mode': 'lower'},
+        'removed_avg_attention': {'percentile': 80, 'mode': 'higher'},
+        'top_k_avg_attention': {'percentile': 20, 'mode': 'lower'}
     }
     FILTERING_SEQUENCE = [
-        ('removed_avg_attention', {'percentile': 85, 'mode': 'higher'}),
-        ('attention_entropy', {'percentile': 75, 'mode': 'higher'}),
-        ('max_attention', {'percentile': 15, 'mode': 'lower'})
+        ('removed_avg_attention', {'percentile': 80, 'mode': 'higher'}),
+        ('attention_entropy', {'percentile': 70, 'mode': 'higher'}),
+        ('max_attention', {'percentile': 10, 'mode': 'lower'})
     ]
     TEXT_COLUMN_IN_OE_FILES = 'masked_text_attention' # Column name in generated OE csv files
     
     # === OSR Experiment Settings ===
     OSR_NLP_MODEL_TYPE = "roberta-base" # OSR model: "gru", "lstm", or "roberta-base"
     # OSR_NLP_VOCAB_SIZE, EMBED_DIM, HIDDEN_DIM, NUM_LAYERS, DROPOUT use NLP_ counterparts if GRU/LSTM
-    OSR_NLP_MAX_LENGTH = 128 # Max length for OSR model inputs
+    OSR_NLP_MAX_LENGTH = 256 # Max length for OSR model inputs
     OSR_NLP_BATCH_SIZE = 32
-    OSR_NLP_NUM_EPOCHS = 5 # Epochs for OSR model training
+    OSR_NLP_NUM_EPOCHS = 15 # Epochs for OSR model training
     OSR_NLP_LEARNING_RATE = 2e-5 if OSR_NLP_MODEL_TYPE == "roberta-base" else 1e-3
     
     OSR_OE_LAMBDA = 1.0 # Weight for OE loss term
@@ -381,6 +381,10 @@ def safe_literal_eval(val):
     except: return []
 
 def get_nested_value(item, field_path):
+    """
+    중첩된 딕셔너리에서 점 표기법을 사용하여 값을 추출합니다.
+    예: get_nested_value(item, 'translation.en')은 item['translation']['en']을 반환합니다.
+    """
     if '.' not in field_path:
         return item.get(field_path)
     
@@ -399,59 +403,53 @@ class NLPDatasetLoader:
     def _load_hf_dataset(dataset_config: Dict, split='train', text_only=False):
         print(f"Loading {dataset_config['name']} ({dataset_config.get('subset', 'default')}) - split: {split}")
         try:
-            # Determine if 'split' argument is needed for load_dataset
-            # Some datasets define splits internally (e.g. sst2 has train, validation, test)
-            # Others take split argument (e.g. wmt16 needs specific split like 'train[:1%]')
-            
-            # Forcing to load the entire dataset then selecting split
-            # This is less efficient but more robust to different HF dataset structures.
+            # 전체 데이터셋을 로드한 다음 스플릿 선택
+            # 이는 비효율적이지만 다양한 HF 데이터셋 구조에 더 견고합니다
             if dataset_config.get('subset'):
                 dataset_full = load_dataset(dataset_config['name'], dataset_config['subset'], cache_dir=Config.CACHE_DIR_HF)
             else:
                 dataset_full = load_dataset(dataset_config['name'], cache_dir=Config.CACHE_DIR_HF)
 
-            # Try to get the requested split, fall back if needed
+            # 요청된 스플릿 가져오기, 필요시 대체 스플릿 사용
             if split in dataset_full:
                 data_split = dataset_full[split]
-            elif split == 'test' and 'validation' in dataset_full: # Common fallback for test
+            elif split == 'test' and 'validation' in dataset_full: # test 대체용 fallback
                 print(f"'{split}' split not found, using 'validation' split instead for {dataset_config['name']}.")
                 data_split = dataset_full['validation']
-            elif split == 'validation' and 'test' in dataset_full: # Common fallback for validation
-                 print(f"'{split}' split not found, using 'test' split instead for {dataset_config['name']}.")
-                 data_split = dataset_full['test']
-            else: # If specific split not found, try to use 'train' or the first available
+            elif split == 'validation' and 'test' in dataset_full: # validation 대체용 fallback
+                print(f"'{split}' split not found, using 'test' split instead for {dataset_config['name']}.")
+                data_split = dataset_full['test']
+            else: # 특정 스플릿이 없으면 'train' 또는 첫 번째 사용 가능한 스플릿 사용
                 available_splits = list(dataset_full.keys())
                 chosen_split_name = 'train' if 'train' in available_splits else available_splits[0]
                 print(f"'{split}' split not found, using '{chosen_split_name}' split instead for {dataset_config['name']}.")
                 data_split = dataset_full[chosen_split_name]
 
             texts = []
-            labels = [] # Will be empty if text_only or no label_column
+            labels = [] # text_only 또는 label_column이 없으면 비어 있음
 
             for item in tqdm(data_split, desc=f"Processing {dataset_config['name']} [{split}]"):
                 text = get_nested_value(item, dataset_config['text_column'])
-                #text = item.get(dataset_config['text_column'])
                 if text is not None and isinstance(text, str) and text.strip():
                     texts.append(text.strip())
                     if not text_only and dataset_config.get('label_column'):
                         label = item.get(dataset_config['label_column'])
                         if label is not None:
-                             labels.append(label)
-                        else: # maintain correspondence if a label is missing
-                             labels.append(-1) # Placeholder for missing label
-            
+                            labels.append(label)
+                        else: # 레이블이 누락된 경우에도 대응 유지
+                            labels.append(-1) # 누락된 레이블용 플레이스홀더
+                
             if not text_only and dataset_config.get('label_column'):
-                # Filter out samples where label was missing if we need labels
+                # 레이블이 필요한 경우 누락된 레이블이 있는 샘플 필터링
                 valid_indices = [i for i, lbl in enumerate(labels) if lbl != -1]
                 texts = [texts[i] for i in valid_indices]
                 labels = [labels[i] for i in valid_indices]
                 return {'text': texts, 'label': labels}
-            return {'text': texts} # No labels or text_only
+            return {'text': texts} # 레이블 없음 또는 text_only
         
         except Exception as e:
             print(f"Error loading dataset {dataset_config['name']} ({dataset_config.get('subset', 'default')}): {e}")
             return None
-
     @staticmethod
     def load_id_dataset(dataset_name: str): # For In-Distribution
         if dataset_name not in Config.NLP_ID_DATASETS:
@@ -1036,19 +1034,60 @@ class EnhancedModel(pl.LightningModule):
 
     def configure_optimizers(self):
         if self.is_hf_model:
-            optimizer = AdamW(self.parameters(), lr=self.config_params.NLP_LEARNING_RATE)
+            # For HuggingFace models, transformers.AdamW is often used,
+            # but torch.optim.AdamW is now preferred.
+            # Ensure you are using one consistently or as intended.
+            # If you imported `from transformers import AdamW`, this uses that.
+            # Otherwise, if you meant torch.optim.AdamW, ensure it's clear.
+            # For this example, assuming torch.optim.AdamW or a compatible AdamW.
+            optimizer = torch.optim.AdamW(self.parameters(), lr=self.config_params.NLP_LEARNING_RATE)
         else: # GRU/LSTM
             optimizer = optim.Adam(self.parameters(), lr=self.config_params.NLP_LEARNING_RATE)
         
-        scheduler = get_linear_schedule_with_warmup(
-            optimizer,
-            num_warmup_steps=0, # Or calculate based on data size
-            num_training_steps=self.trainer.estimated_stepping_batches
-        )
-        return {
-            "optimizer": optimizer, 
-            "lr_scheduler": {"scheduler": scheduler, "interval": "step"}
-        }
+        # Check if trainer information is available to calculate steps
+        if self.trainer and hasattr(self.trainer, 'estimated_stepping_batches') and self.trainer.estimated_stepping_batches > 0:
+            num_training_steps = self.trainer.estimated_stepping_batches
+            # 예를 들어 전체 스텝의 6%를 워밍업으로 사용 (이 비율은 조절 가능)
+            num_warmup_steps = int(num_training_steps * 0.06)
+            print(f"Base Classifier Scheduler: Total steps: {num_training_steps}, Warmup steps: {num_warmup_steps}")
+            
+            scheduler = get_linear_schedule_with_warmup(
+                optimizer,
+                num_warmup_steps=num_warmup_steps,
+                num_training_steps=num_training_steps
+            )
+            return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "interval": "step"}}
+        else:
+            # Fallback if trainer info is not available (e.g., when model is initialized outside of Trainer context)
+            # or if estimated_stepping_batches is 0 (e.g. sanity check with very few batches might lead to this)
+            print("Warning: Could not estimate training steps for base classifier scheduler. Using optimizer only, or scheduler with fixed steps if preferred.")
+            # Optionally, you could define a default scheduler here if needed,
+            # or just return the optimizer. For simplicity, returning optimizer only for now.
+            # If a scheduler is critical even in fallback, define total_steps based on epochs and a guess of batches_per_epoch.
+            # For example:
+            #  if self.trainer and self.trainer.datamodule and hasattr(self.trainer.datamodule, 'train_dataloader'):
+            #      try:
+            #          num_batches_per_epoch = len(self.trainer.datamodule.train_dataloader())
+            #          num_training_steps = num_batches_per_epoch * self.config_params.NLP_NUM_EPOCHS
+            #          num_warmup_steps = int(num_training_steps * 0.06)
+            #          scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_training_steps)
+            #          return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "interval": "step"}}
+            #      except Exception:
+            #          pass # Fall through to optimizer only
+
+            return optimizer
+                
+        if self.trainer and hasattr(self.trainer, 'estimated_stepping_batches') and self.trainer.estimated_stepping_batches > 0:
+            num_training_steps = self.trainer.estimated_stepping_batches
+            # 예를 들어 전체 스텝의 6%를 워밍업으로 사용
+            num_warmup_steps = int(num_training_steps * 0.06)
+            print(f"Scheduler: Total steps: {num_training_steps}, Warmup steps: {num_warmup_steps}")
+            scheduler = get_linear_schedule_with_warmup(
+                optimizer,
+                num_warmup_steps=num_warmup_steps,
+                num_training_steps=num_training_steps
+            )
+            return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "interval": "step"}}
 
 # === Enhanced Attention Analyzer ===
 # (This class will be largely similar, but adapted to use the EnhancedModel and its tokenizer)
@@ -1585,49 +1624,113 @@ class EnhancedVisualizer: # Simplified
         # print(f"Dist plot saved: {save_path}")
 
     def plot_tsne(self, features: np.ndarray, labels: np.ndarray, title: str, save_path: str,
-                  highlight_indices: Optional[np.ndarray] = None, highlight_label: str = 'OE Candidate',
-                  class_names: Optional[Dict] = None):
-        if len(features) == 0 or features.shape[0] <=1 : return # TSNE needs more than 1 sample
+                highlight_indices: Optional[np.ndarray] = None, highlight_label: str = 'OE Candidate',
+                class_names: Optional[Dict] = None):
+        """
+        특징 공간의 t-SNE 시각화를 생성합니다.
+        
+        Args:
+            features: 특징 행렬 (n_samples, n_features)
+            labels: 클래스 레이블 (n_samples,)
+            title: 플롯 제목
+            save_path: 그림을 저장할 경로
+            highlight_indices: 강조할 포인트 인덱스
+            highlight_label: 강조된 포인트의 레이블
+            class_names: 숫자 레이블을 클래스 이름에 매핑하는 딕셔너리
+        """
+        if len(features) == 0 or features.shape[0] <= 1: 
+            print(f"Skipping t-SNE: Not enough samples ({len(features)}) for visualization.")
+            return  # TSNE에는 1개 이상의 샘플이 필요
+        
         print(f"Running t-SNE for {features.shape[0]} samples...")
         perplexity_val = min(30.0, float(features.shape[0] - 1))
-        if perplexity_val <=1: # Perplexity must be > 1
-             print(f"Skipping t-SNE: Not enough samples ({features.shape[0]}) for perplexity {perplexity_val}.")
-             return
+        if perplexity_val <= 1:  # perplexity는 1보다 커야 함
+            print(f"Skipping t-SNE: Not enough samples ({features.shape[0]}) for perplexity {perplexity_val}.")
+            return
+        
         try:
-            tsne = TSNE(n_components=2, random_state=self.config.RANDOM_STATE, perplexity=perplexity_val, 
-                        max_iter=1000, init='pca', learning_rate='auto') # Added max_iter, init, lr
+            tsne = TSNE(
+                n_components=2, 
+                random_state=self.config.RANDOM_STATE, 
+                perplexity=perplexity_val,
+                max_iter=1000, 
+                init='pca', 
+                learning_rate='auto'
+            )
             tsne_results = tsne.fit_transform(features)
         except Exception as e:
             print(f"Error in t-SNE: {e}. Skipping plot.")
             return
         
         df_tsne = pd.DataFrame(tsne_results, columns=['tsne1', 'tsne2'])
-        df_tsne['label_val'] = labels # Use a generic name for label values
+        df_tsne['label_val'] = labels  # 레이블 값에 일반 이름 사용
         df_tsne['is_highlighted'] = False
-        if highlight_indices is not None and len(highlight_indices)>0: # Check if highlight_indices is not empty
-            df_tsne.loc[highlight_indices[highlight_indices < len(df_tsne)], 'is_highlighted'] = True # Ensure indices are valid
+        
+        if highlight_indices is not None and len(highlight_indices) > 0:  # highlight_indices가 비어 있지 않은지 확인
+            valid_indices = highlight_indices[highlight_indices < len(df_tsne)]
+            if len(valid_indices) > 0:
+                df_tsne.loc[valid_indices, 'is_highlighted'] = True  # 인덱스가 유효한지 확인
         
         plt.figure(figsize=(12, 8))
-        unique_label_vals = sorted(df_tsne['label_val'].unique())
-        # colors = plt.cm.get_cmap('viridis', len(unique_label_vals)) 
-        colors = matplotlib.colormaps['viridis'](np.linspace(0, 1, len(unique_label_vals))) if len(unique_label_vals) > 1 else ['blue']
         
+        # 고유 레이블 가져오기 및 컬러맵 준비
+        unique_label_vals = sorted(df_tsne['label_val'].unique())
+        
+        # 다중 클래스에 더 구분하기 쉬운 컬러맵 생성
+        if len(unique_label_vals) > 10:
+            # 많은 클래스의 경우 연속적인 컬러맵 사용
+            cmap = plt.cm.get_cmap('tab20' if len(unique_label_vals) <= 20 else 'viridis', len(unique_label_vals))
+            colors = [cmap(i) for i in range(len(unique_label_vals))]
+        else:
+            # 더 적은 클래스에는 구분되는 색상 사용
+            distinct_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', 
+                            '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+            colors = [distinct_colors[i % len(distinct_colors)] for i in range(len(unique_label_vals))]
+        
+        # 각 클래스 플롯
         for i, label_val_item in enumerate(unique_label_vals):
             subset = df_tsne[(df_tsne['label_val'] == label_val_item) & (~df_tsne['is_highlighted'])]
             if len(subset) > 0:
                 c_name = class_names.get(label_val_item, f'Label {label_val_item}') if class_names else f'Label {label_val_item}'
-                plt.scatter(subset['tsne1'], subset['tsne2'], color=colors(i) if callable(colors) else colors[i % len(colors)], 
-                            label=c_name, alpha=0.6, s=20)
+                plt.scatter(
+                    subset['tsne1'], 
+                    subset['tsne2'], 
+                    color=colors[i],
+                    label=c_name, 
+                    alpha=0.7, 
+                    s=30,
+                    edgecolors='none'
+                )
         
+        # 강조된 포인트가 있으면 플롯
         if highlight_indices is not None and len(df_tsne[df_tsne['is_highlighted']]) > 0:
             highlight_subset = df_tsne[df_tsne['is_highlighted']]
-            plt.scatter(highlight_subset['tsne1'], highlight_subset['tsne2'],
-                        color='red', marker='x', s=50, label=highlight_label, alpha=0.8)
+            plt.scatter(
+                highlight_subset['tsne1'], 
+                highlight_subset['tsne2'],
+                color='red', 
+                marker='x', 
+                s=80, 
+                label=highlight_label, 
+                alpha=0.9
+            )
         
-        plt.title(title); plt.xlabel("t-SNE Dim 1"); plt.ylabel("t-SNE Dim 2"); plt.grid(alpha=0.2)
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5)); plt.tight_layout(rect=[0,0,0.85,1]) # Adjust for legend
-        plt.savefig(save_path, dpi=150); plt.close()
-        # print(f"t-SNE plot saved: {save_path}")
+        plt.title(title, fontsize=14)
+        plt.xlabel("t-SNE Dimension 1", fontsize=12)
+        plt.ylabel("t-SNE Dimension 2", fontsize=12)
+        plt.grid(alpha=0.2)
+        
+        # 범례 처리: 많은 클래스는 외부에, 적은 클래스는 내부에
+        if len(unique_label_vals) > 5:
+            plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize=10)
+            plt.tight_layout(rect=[0, 0, 0.85, 1])  # 범례 공간 확보
+        else:
+            plt.legend(loc='best', fontsize=10)
+            plt.tight_layout()
+        
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"t-SNE plot saved: {save_path}")
 
     def visualize_all_metrics(self, df_with_metrics: pd.DataFrame):
         metric_cols = ['max_attention', 'top_k_avg_attention', 'attention_entropy', 'removed_avg_attention']
@@ -1709,7 +1812,7 @@ class EnhancedVisualizer: # Simplified
 # OSR model and appropriate tokenizer if it differs from base classifier)
 
 # Placeholder for OSR evaluation and plotting functions (can be copied from original oe2.py or your current script)
-def evaluate_nlp_osr(model: nn.Module, id_loader: DataLoader, ood_loader: Optional[DataLoader], 
+def evaluate_nlp_osr(model: nn.Module, id_loader: Optional[DataLoader], ood_loader: Optional[DataLoader], 
                      device: torch.device, temperature: float = 1.0, threshold_percentile: float = 5.0, 
                      return_data: bool = False, is_hf_osr_model: bool = False, 
                      osr_tokenizer_for_custom: Optional[NLPTokenizer] = None) -> Union[Dict[str, float], Tuple[Dict[str, float], Dict[str, np.ndarray]]]:
@@ -1717,36 +1820,37 @@ def evaluate_nlp_osr(model: nn.Module, id_loader: DataLoader, ood_loader: Option
     id_logits_all, id_scores_all, id_labels_true, id_labels_pred, id_features_all = [], [], [], [], []
     ood_logits_all, ood_scores_all, ood_features_all = [], [], []
 
-    with torch.no_grad():
-        for batch in tqdm(id_loader, desc="Evaluating ID for OSR", leave=False):
-            input_ids = batch['input_ids'].to(device)
-            attention_mask = batch['attention_mask'].to(device)
+    # ID 데이터가 있는 경우 처리
+    if id_loader is not None:
+        with torch.no_grad():
+            for batch in tqdm(id_loader, desc="Evaluating ID for OSR", leave=False):
+                input_ids = batch['input_ids'].to(device)
+                attention_mask = batch['attention_mask'].to(device)
 
-            # --- 레이블 접근 방식 수정 ---
-            if 'labels' in batch:
-                labels_tensor = batch['labels'] # .to(device)는 필요 없음, 비교용이므로 CPU에 둬도 됨
-            elif 'label' in batch:
-                labels_tensor = batch['label']
-            else:
-                # ID 데이터에는 레이블이 항상 있어야 함
-                raise KeyError("ID batch for OSR evaluation does not contain 'label' or 'labels' key.")
-            # --------------------------
+                # --- 레이블 접근 방식 ---
+                if 'labels' in batch:
+                    labels_tensor = batch['labels'] # CPU에 유지
+                elif 'label' in batch:
+                    labels_tensor = batch['label']
+                else:
+                    # ID 데이터에는 레이블이 항상 있어야 함
+                    raise KeyError("ID batch for OSR evaluation does not contain 'label' or 'labels' key.")
 
-            if is_hf_osr_model or not hasattr(model, 'forward_features'):
-                 logits, features = model(input_ids, attention_mask, output_features=True)
-            else:
-                 logits, features = model.forward_features(input_ids, attention_mask)
+                if is_hf_osr_model or not hasattr(model, 'forward_features'):
+                     logits, features = model(input_ids, attention_mask, output_features=True)
+                else:
+                     logits, features = model.forward_features(input_ids, attention_mask)
 
-            softmax_probs = F.softmax(logits / temperature, dim=1)
-            max_probs, preds = softmax_probs.max(dim=1)
+                softmax_probs = F.softmax(logits / temperature, dim=1)
+                max_probs, preds = softmax_probs.max(dim=1)
 
-            id_logits_all.append(logits.cpu())
-            id_scores_all.append(max_probs.cpu())
-            id_labels_true.extend(labels_tensor.numpy()) # labels_tensor 사용
-            id_labels_pred.extend(preds.cpu().numpy())
-            if features is not None: id_features_all.append(features.cpu())
+                id_logits_all.append(logits.cpu())
+                id_scores_all.append(max_probs.cpu())
+                id_labels_true.extend(labels_tensor.numpy()) # labels_tensor 사용
+                id_labels_pred.extend(preds.cpu().numpy())
+                if features is not None: id_features_all.append(features.cpu())
 
-    # OOD 데이터 로더에 대한 루프는 레이블이 없으므로 수정할 필요 없음
+    # OOD 데이터가 있는 경우 처리
     if ood_loader:
         with torch.no_grad():
             for batch in tqdm(ood_loader, desc="Evaluating OOD for OSR", leave=False):
@@ -1764,12 +1868,13 @@ def evaluate_nlp_osr(model: nn.Module, id_loader: DataLoader, ood_loader: Option
                 ood_scores_all.append(max_probs.cpu())
                 if features is not None: ood_features_all.append(features.cpu())
 
+    # 결과 조합 및 처리
     id_scores = torch.cat(id_scores_all).numpy() if id_scores_all else np.array([])
     id_features_list = [f for f in id_features_all if f is not None] # None 필터링
     id_features = torch.cat(id_features_list).numpy() if id_features_list and len(id_features_list) > 0 else np.array([])
     
-    id_labels_true_np = np.array(id_labels_true)
-    id_labels_pred_np = np.array(id_labels_pred)
+    id_labels_true_np = np.array(id_labels_true) if id_labels_true else np.array([])
+    id_labels_pred_np = np.array(id_labels_pred) if id_labels_pred else np.array([])
 
     ood_scores = torch.cat(ood_scores_all).numpy() if ood_scores_all else np.array([])
     ood_features_list = [f for f in ood_features_all if f is not None] # None 필터링
@@ -1801,23 +1906,22 @@ def evaluate_nlp_osr(model: nn.Module, id_loader: DataLoader, ood_loader: Option
         results["FPR@TPR90"] = fpr[idx_tpr90[0]] if len(idx_tpr90) > 0 else 1.0
         precision_in, recall_in, _ = precision_recall_curve(y_true_osr, y_scores_osr, pos_label=1)
         results["AUPR_In"] = auc(recall_in, precision_in)
-        precision_out, recall_out, _ = precision_recall_curve(1 - y_true_osr, 1 - y_scores_osr, pos_label=1) # For OOD as positive
+        precision_out, recall_out, _ = precision_recall_curve(1 - y_true_osr, 1 - y_scores_osr, pos_label=1) # OOD를 양성으로
         results["AUPR_Out"] = auc(recall_out, precision_out)
 
     chosen_threshold = np.percentile(id_scores, threshold_percentile) if len(id_scores) > 0 else 0.5
     results["Threshold_Used"] = chosen_threshold
-    id_preds_binary = (id_scores >= chosen_threshold).astype(int) # Correctly ID
-    ood_preds_binary = (ood_scores < chosen_threshold).astype(int) # Correctly OOD
+    id_preds_binary = (id_scores >= chosen_threshold).astype(int) # 올바르게 ID로 분류
+    ood_preds_binary = (ood_scores < chosen_threshold).astype(int) # 올바르게 OOD로 분류
     if (len(id_scores) + len(ood_scores)) > 0:
         results["DetectionAccuracy"] = (np.sum(id_preds_binary) + np.sum(ood_preds_binary)) / (len(id_scores) + len(ood_scores))
     
     known_mask = (id_scores >= chosen_threshold)
     ccr = accuracy_score(id_labels_true_np[known_mask], id_labels_pred_np[known_mask]) if np.sum(known_mask) > 0 else 0.0
-    oer = np.sum(ood_scores >= chosen_threshold) / len(ood_scores) if len(ood_scores) > 0 else 0.0 # Misclassified OOD as ID
+    oer = np.sum(ood_scores >= chosen_threshold) / len(ood_scores) if len(ood_scores) > 0 else 0.0 # OOD를 ID로 잘못 분류
     results["OSCR"] = ccr * (1.0 - oer)
 
     return (results, all_data_dict) if return_data else results
-
 
 def plot_confidence_histograms_osr(id_scores, ood_scores, title, save_path):
     plt.figure(figsize=(8, 5))
@@ -2004,18 +2108,112 @@ class EnhancedOEPipeline:
         print(f"Derived OE metrics and features saved.")
         return df_with_metrics, features
 
+
     def run_stage4_visualization(self, df_with_metrics: Optional[pd.DataFrame], features: Optional[List[np.ndarray]]):
-        if not self.config.STAGE_VISUALIZATION: print("Skipping Stage 4: Visualization"); return
+        if not self.config.STAGE_VISUALIZATION: 
+            print("Skipping Stage 4: Visualization")
+            return
+        
         print(f"\n{'='*50}\nSTAGE 4: VISUALIZATION\n{'='*50}")
         if df_with_metrics is None or features is None:
             df_with_metrics, features = self._load_final_metrics_and_features()
-        if df_with_metrics is None: print("Error: Metrics DF not available for viz."); return
-        if self.data_module is None: self.data_module = EnhancedDataModule(self.config); self.data_module.setup()
+        if df_with_metrics is None: 
+            print("Error: Metrics DF not available for viz.")
+            return
+        
+        if self.data_module is None: 
+            self.data_module = EnhancedDataModule(self.config)
+            self.data_module.prepare_data()
+            self.data_module.setup()
 
+        # 메트릭 분포 시각화
         self.visualizer.visualize_all_metrics(df_with_metrics)
+        
+        # OE 후보를 사용하여 ID 특징 시각화
         if features:
-            self.visualizer.visualize_oe_candidates(df_with_metrics, features, self.data_module.label2id, self.data_module.id2label)
+            self.visualizer.visualize_oe_candidates(df_with_metrics, features, 
+                                                self.data_module.label2id, 
+                                                self.data_module.id2label)
+        
+        # ID vs 외부 OE 데이터셋(WikiText-2 등) 시각화
+        self._visualize_id_vs_external_oe(features)
+        
         print("Visualization complete!")
+
+    def _visualize_id_vs_external_oe(self, id_features: Optional[List[np.ndarray]]):
+        """ID 특징과 WikiText-2와 같은 외부 OE 데이터셋을 시각화합니다."""
+        if id_features is None or len(id_features) == 0:
+            print("ID features not available for external OE visualization")
+            return
+        
+        # 필요한 경우 특징 리스트를 numpy로 변환
+        id_features_np = np.array(id_features)
+        if id_features_np.ndim == 1:
+            try:
+                id_features_np = np.vstack(id_features)
+            except Exception as e:
+                print(f"Error converting ID features for visualization: {e}")
+                return
+        
+        # OE 특징 디렉토리 순회
+        vis_base_dir = os.path.join(self.config.VIS_DIR, self.config.CURRENT_NLP_ID_DATASET)
+        os.makedirs(vis_base_dir, exist_ok=True)
+        
+        external_oe_features = {}
+        
+        # WikiText-2 또는 표준 OE 소스를 먼저 확인
+        wikitext_path = os.path.join(vis_base_dir, self.config.DEFAULT_OE_DATASET, 
+                                f"oe_features_{self.config.DEFAULT_OE_DATASET}.npy")
+        if os.path.exists(wikitext_path):
+            try:
+                wikitext_features = np.load(wikitext_path)
+                external_oe_features[self.config.DEFAULT_OE_DATASET] = wikitext_features
+                print(f"Loaded external OE features: {self.config.DEFAULT_OE_DATASET} ({len(wikitext_features)} samples)")
+            except Exception as e:
+                print(f"Error loading {self.config.DEFAULT_OE_DATASET} features: {e}")
+        
+        # 다른 OE 하위 디렉토리 찾기
+        for oe_source_dir in os.listdir(self.config.VIS_DIR):
+            oe_dir_path = os.path.join(self.config.VIS_DIR, oe_source_dir)
+            if not os.path.isdir(oe_dir_path) or oe_source_dir == self.config.CURRENT_NLP_ID_DATASET:
+                continue
+                
+            # 이 디렉토리에 OE 특징이 있는지 확인
+            for filename in os.listdir(oe_dir_path):
+                if filename.startswith('oe_features_') and filename.endswith('.npy'):
+                    oe_name = os.path.splitext(filename)[0].replace('oe_features_', '')
+                    
+                    # 이미 로드한 OE 소스는 건너뜀
+                    if oe_name in external_oe_features:
+                        continue
+                        
+                    try:
+                        oe_features = np.load(os.path.join(oe_dir_path, filename))
+                        external_oe_features[oe_name] = oe_features
+                        print(f"Loaded external OE features: {oe_name} ({len(oe_features)} samples)")
+                    except Exception as e:
+                        print(f"Error loading OE features from {filename}: {e}")
+        
+        # 각 OE 소스에 대해 ID와 비교하는 t-SNE 시각화 생성
+        id_labels = np.full(len(id_features_np), 1)  # 1 = ID
+        
+        for oe_name, oe_features in external_oe_features.items():
+            # 결합된 데이터셋 준비
+            all_features = np.vstack([id_features_np, oe_features])
+            all_labels = np.concatenate([id_labels, np.zeros(len(oe_features))])  # 0 = OOD
+            
+            # 범례를 위한 ID 레이블 매핑
+            class_names = {0: f"OE ({oe_name})", 1: f"ID ({self.config.CURRENT_NLP_ID_DATASET})"}
+            
+            # 시각화 생성
+            save_path = os.path.join(vis_base_dir, f"tsne_id_vs_{oe_name}.png")
+            title = f't-SNE: {self.config.CURRENT_NLP_ID_DATASET} (ID) vs {oe_name} (OE)'
+            
+            # visualizer의 plot_tsne 메서드 사용
+            self.visualizer.plot_tsne(all_features, all_labels, title, save_path, 
+                                    class_names=class_names)
+            print(f"Generated t-SNE visualization: ID vs {oe_name}")
+
         
     def run_stage5_osr_experiments(self):
         if not self.config.STAGE_OSR_EXPERIMENTS: print("Skipping Stage 5: OSR Experiments"); return
@@ -2136,19 +2334,22 @@ class EnhancedOEPipeline:
 
 
     def _run_single_nlp_osr_experiment(self, num_classes: int, class_names: List[str],
-                                       id_train_loader: DataLoader, id_test_loader: DataLoader, 
-                                       ood_eval_loader: Optional[DataLoader], ood_eval_name: str,
-                                       is_hf_osr_model: bool, osr_tokenizer: Union[NLPTokenizer, AutoTokenizer], 
-                                       osr_tokenizer_vocab_size: Optional[int], # Only for custom
-                                       oe_source_name: str, 
-                                       oe_dataset_for_training: Optional[OSRNNLPTorchDataset]) -> Tuple[Dict, Dict]:
+                                    id_train_loader: DataLoader, id_test_loader: DataLoader, 
+                                    ood_eval_loader: Optional[DataLoader], ood_eval_name: str,
+                                    is_hf_osr_model: bool, osr_tokenizer: Union[NLPTokenizer, AutoTokenizer], 
+                                    osr_tokenizer_vocab_size: Optional[int], # 커스텀 모델용
+                                    oe_source_name: str, 
+                                    oe_dataset_for_training: Optional[OSRNNLPTorchDataset]) -> Tuple[Dict, Dict]:
         
         experiment_tag = f"ID_{self.config.CURRENT_NLP_ID_DATASET}_OSRModel_{self.config.OSR_NLP_MODEL_TYPE}_OE_{oe_source_name}"
         print(f"\n===== NLP OSR Experiment: {experiment_tag} =====")
         
         current_result_dir = os.path.join(self.config.OSR_RESULT_DIR, self.config.CURRENT_NLP_ID_DATASET, oe_source_name)
         current_model_dir = os.path.join(self.config.OSR_MODEL_DIR, self.config.CURRENT_NLP_ID_DATASET, oe_source_name)
+        current_feature_dir = os.path.join(self.config.VIS_DIR, self.config.CURRENT_NLP_ID_DATASET, oe_source_name)
+        
         os.makedirs(current_result_dir, exist_ok=True)
+        os.makedirs(current_feature_dir, exist_ok=True)
         if self.config.OSR_SAVE_MODEL_PER_EXPERIMENT: os.makedirs(current_model_dir, exist_ok=True)
 
         model_osr = NLPModelOOD(self.config, num_classes, tokenizer_vocab_size=osr_tokenizer_vocab_size).to(DEVICE_OSR)
@@ -2232,7 +2433,32 @@ class EnhancedOEPipeline:
             if self.config.OSR_SAVE_MODEL_PER_EXPERIMENT: torch.save(model_osr.state_dict(), model_save_path); print(f"OSR Model saved: {model_save_path}")
             if not self.config.OSR_NO_PLOT_PER_EXPERIMENT and epoch_losses: self._plot_training_curve(epoch_losses, experiment_tag, current_result_dir)
         
-        # Evaluation
+        # WikiText-2나 다른 외부 OE 데이터셋의 특징 추출 (시각화용)
+        if oe_dataset_for_training and self.config.STAGE_VISUALIZATION:
+            print(f"Extracting features from OE dataset: {oe_source_name} for visualization")
+            oe_features_path = os.path.join(current_feature_dir, f"oe_features_{oe_source_name}.npy")
+            oe_loader_for_features = DataLoader(
+                oe_dataset_for_training, batch_size=self.config.OSR_NLP_BATCH_SIZE, shuffle=False,
+                num_workers=self.config.OSR_NUM_DATALOADER_WORKERS,
+                collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None,
+                persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0
+            )
+            
+            # 특징만 추출하기 위해 평가 함수 사용 (id_loader=None)
+            model_osr.eval()
+            _, oe_data_dict = evaluate_nlp_osr(
+                model_osr, id_loader=None, ood_loader=oe_loader_for_features, device=DEVICE_OSR,
+                temperature=self.config.OSR_TEMPERATURE, threshold_percentile=self.config.OSR_THRESHOLD_PERCENTILE,
+                return_data=True, is_hf_osr_model=is_hf_osr_model,
+                osr_tokenizer_for_custom=osr_tokenizer if not is_hf_osr_model else None
+            )
+            
+            # OE 특징 저장
+            if oe_data_dict["ood_features"] is not None and len(oe_data_dict["ood_features"]) > 0:
+                np.save(oe_features_path, oe_data_dict["ood_features"])
+                print(f"Saved OE features for {oe_source_name} ({len(oe_data_dict['ood_features'])} samples)")
+        
+        # ID 및 OOD 테스트 데이터로 평가
         results_this_exp, data_for_plots_this_exp = evaluate_nlp_osr(
             model_osr, id_test_loader, ood_eval_loader, DEVICE_OSR,
             self.config.OSR_TEMPERATURE, self.config.OSR_THRESHOLD_PERCENTILE, return_data=True,
@@ -2240,22 +2466,29 @@ class EnhancedOEPipeline:
         )
         print(f"  Results ({experiment_tag} vs {ood_eval_name}): {results_this_exp}")
         
-        # Store results with a unique key
+        # 고유한 키로 결과 저장
         metric_key = f"{experiment_tag}_VS_{ood_eval_name}"
         final_results = {metric_key: results_this_exp}
         final_data_for_plots = {metric_key: data_for_plots_this_exp}
 
+        # ID 특징 저장 (시각화용)
+        if self.config.STAGE_VISUALIZATION and data_for_plots_this_exp["id_features"] is not None:
+            id_features_path = os.path.join(current_feature_dir, f"id_features_{self.config.CURRENT_NLP_ID_DATASET}.npy")
+            np.save(id_features_path, data_for_plots_this_exp["id_features"])
+            print(f"Saved ID features for {self.config.CURRENT_NLP_ID_DATASET} ({len(data_for_plots_this_exp['id_features'])} samples)")
+
+        # 평가 결과에 대한 플롯 생성
         if not self.config.OSR_NO_PLOT_PER_EXPERIMENT:
-            plot_filename_prefix = re.sub(r'[^\w\-]+', '_', metric_key) # Sanitize for filename
+            plot_filename_prefix = re.sub(r'[^\w\-]+', '_', metric_key) # 파일 이름 정리
             if data_for_plots_this_exp['id_scores'] is not None and data_for_plots_this_exp['ood_scores'] is not None:
                 plot_confidence_histograms_osr(data_for_plots_this_exp['id_scores'], data_for_plots_this_exp['ood_scores'],
                                             f'Conf - {metric_key}', os.path.join(current_result_dir, f'{plot_filename_prefix}_hist.png'))
                 plot_roc_curve_osr(data_for_plots_this_exp['id_scores'], data_for_plots_this_exp['ood_scores'],
-                                   f'ROC - {metric_key}', os.path.join(current_result_dir, f'{plot_filename_prefix}_roc.png'))
+                                f'ROC - {metric_key}', os.path.join(current_result_dir, f'{plot_filename_prefix}_roc.png'))
             if data_for_plots_this_exp['id_features'] is not None and data_for_plots_this_exp['ood_features'] is not None:
                 plot_tsne_osr(data_for_plots_this_exp['id_features'], data_for_plots_this_exp['ood_features'],
-                              f't-SNE - {metric_key}', os.path.join(current_result_dir, f'{plot_filename_prefix}_tsne.png'), 
-                              seed=self.config.RANDOM_STATE)
+                            f't-SNE - {metric_key}', os.path.join(current_result_dir, f'{plot_filename_prefix}_tsne.png'), 
+                            seed=self.config.RANDOM_STATE)
         
         del model_osr; gc.collect(); torch.cuda.empty_cache()
         return final_results, final_data_for_plots
