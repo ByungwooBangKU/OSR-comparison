@@ -118,6 +118,7 @@ from scipy.stats import entropy
 import ast
 from datetime import datetime
 import random
+os.environ["TOKENIZERS_PARALLELISM"] = "true"  # 병렬 처리 유지하되 경고 방지
 
 # NLTK 초기화
 NLTK_DATA_PATH = os.path.expanduser('~/AppData/Roaming/nltk_data')
@@ -186,7 +187,7 @@ class Config:
     DEFAULT_OOD_TEST_DATASET = 'wmt16' # OOD Test dataset
 
     # === 출력 디렉토리 설정 ===
-    OUTPUT_DIR = 'enhanced_oe_nlp_results' # Base output directory
+    OUTPUT_DIR = 'enhanced_oe_nlp_results2' # Base output directory
     # Subdirectories will be derived from this
     
     # === NLP 모델 설정 (Base Classifier & OSR Model if GRU/LSTM) ===
@@ -237,7 +238,7 @@ class Config:
     OSR_NLP_MODEL_TYPE = "roberta-base" # OSR model: "gru", "lstm", or "roberta-base"
     # OSR_NLP_VOCAB_SIZE, EMBED_DIM, HIDDEN_DIM, NUM_LAYERS, DROPOUT use NLP_ counterparts if GRU/LSTM
     OSR_NLP_MAX_LENGTH = 256 # Max length for OSR model inputs
-    OSR_NLP_BATCH_SIZE = 32
+    OSR_NLP_BATCH_SIZE = 64
     OSR_NLP_NUM_EPOCHS = 15 # Epochs for OSR model training
     OSR_NLP_LEARNING_RATE = 2e-5 if OSR_NLP_MODEL_TYPE == "roberta-base" else 1e-3
     
@@ -255,7 +256,7 @@ class Config:
     
     # === Flags ===
     OSR_SAVE_MODEL_PER_EXPERIMENT = True
-    OSR_EVAL_ONLY = False # If true, loads existing OSR models instead of training
+    OSR_EVAL_ONLY = True # If true, loads existing OSR models instead of training
     OSR_NO_PLOT_PER_EXPERIMENT = False
     OSR_SKIP_STANDARD_MODEL = False # If true, skips OSR without any OE
     
@@ -858,15 +859,20 @@ class EnhancedDataModule(pl.LightningDataModule):
     def _create_dataloader(self, df: pd.DataFrame, shuffle=False, sampler=None):
         dataset = NLPTorchDataset(
             df['text'].tolist(),
-            df['label_id'].tolist(), # This provides the labels
+            df['label_id'].tolist(),
             self.tokenizer,
             max_length=self.config.NLP_MAX_LENGTH,
             is_hf_tokenizer=self.is_hf_tokenizer
         )
         return DataLoader(
-            dataset, batch_size=self.config.NLP_BATCH_SIZE, shuffle=shuffle, sampler=sampler,
-            num_workers=self.config.NUM_WORKERS, pin_memory=True,
-            collate_fn=self.data_collator, # Will be None if not HF tokenizer, which is fine for custom Dataset
+            dataset, 
+            batch_size=self.config.NLP_BATCH_SIZE, 
+            shuffle=shuffle, 
+            sampler=sampler,
+            num_workers=self.config.NUM_WORKERS, 
+            multiprocessing_context='spawn' if self.config.NUM_WORKERS > 0 else None,  # 추가된 부분
+            pin_memory=True,
+            collate_fn=self.data_collator,
             persistent_workers=self.config.NUM_WORKERS > 0
         )
 
@@ -2089,9 +2095,15 @@ class EnhancedOEPipeline:
         dataset_metrics = MaskedTextDatasetForMetrics(
             all_texts_for_metrics, self.model.tokenizer, self.config.NLP_MAX_LENGTH, self.model.is_hf_model
         )
-        dataloader_metrics = DataLoader(dataset_metrics, batch_size=self.config.NLP_BATCH_SIZE, 
-                                        num_workers=self.config.NUM_WORKERS, shuffle=False,
-                                        collate_fn=DataCollatorWithPadding(self.model.tokenizer) if self.model.is_hf_model else None)
+        dataloader_metrics = DataLoader(
+            dataset_metrics, 
+            batch_size=self.config.NLP_BATCH_SIZE, 
+            num_workers=self.config.NUM_WORKERS, 
+            shuffle=False,
+            multiprocessing_context='spawn' if self.config.NUM_WORKERS > 0 else None,  # 추가된 부분
+            collate_fn=DataCollatorWithPadding(self.model.tokenizer) if self.model.is_hf_model else None,
+            pin_memory=torch.cuda.is_available()  # 추가: 메모리 전송 최적화
+        )    
         
         attention_metrics_df, features = self.oe_extractor.extract_attention_metrics(dataloader_metrics, df_with_attention)
         
@@ -2259,11 +2271,26 @@ class EnhancedOEPipeline:
         osr_id_train_dataset = OSRNNLPTorchDataset(id_train_texts, id_train_labels, osr_tokenizer, self.config.OSR_NLP_MAX_LENGTH, is_hf_osr_model)
         osr_id_test_dataset = OSRNNLPTorchDataset(id_test_texts, id_test_labels, osr_tokenizer, self.config.OSR_NLP_MAX_LENGTH, is_hf_osr_model)
         
-        osr_id_train_loader = DataLoader(osr_id_train_dataset, batch_size=self.config.OSR_NLP_BATCH_SIZE, shuffle=True, num_workers=self.config.OSR_NUM_DATALOADER_WORKERS,
-                                         collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None, persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0)
-        osr_id_test_loader = DataLoader(osr_id_test_dataset, batch_size=self.config.OSR_NLP_BATCH_SIZE, num_workers=self.config.OSR_NUM_DATALOADER_WORKERS,
-                                        collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None, persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0)
+        osr_id_train_loader = DataLoader(
+            osr_id_train_dataset, 
+            batch_size=self.config.OSR_NLP_BATCH_SIZE, 
+            shuffle=True, 
+            num_workers=self.config.OSR_NUM_DATALOADER_WORKERS,
+            multiprocessing_context='spawn' if self.config.OSR_NUM_DATALOADER_WORKERS > 0 else None,  # 추가된 부분
+            collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None, 
+            persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0,
+            pin_memory=torch.cuda.is_available()  # 추가: 메모리 전송 최적화
+        )
         
+        osr_id_test_loader = DataLoader(
+            osr_id_test_dataset, 
+            batch_size=self.config.OSR_NLP_BATCH_SIZE, 
+            num_workers=self.config.OSR_NUM_DATALOADER_WORKERS,
+            multiprocessing_context='spawn' if self.config.OSR_NUM_DATALOADER_WORKERS > 0 else None,  # 추가된 부분
+            collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None, 
+            persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0,
+            pin_memory=torch.cuda.is_available()  # 추가: 메모리 전송 최적화
+        )
         num_osr_classes = self.data_module.num_labels
         osr_class_names = [str(self.data_module.id2label.get(i,f"C{i}")) for i in range(num_osr_classes)]
 
@@ -2273,8 +2300,15 @@ class EnhancedOEPipeline:
         ood_test_loader = None
         if ood_test_raw and ood_test_raw['text']:
             ood_test_dataset = OSRNNLPTorchDataset(ood_test_raw['text'], None, osr_tokenizer, self.config.OSR_NLP_MAX_LENGTH, is_hf_osr_model)
-            ood_test_loader = DataLoader(ood_test_dataset, batch_size=self.config.OSR_NLP_BATCH_SIZE, num_workers=self.config.OSR_NUM_DATALOADER_WORKERS,
-                                         collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None, persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0)
+            ood_test_loader = DataLoader(
+                ood_test_dataset, 
+                batch_size=self.config.OSR_NLP_BATCH_SIZE, 
+                num_workers=self.config.OSR_NUM_DATALOADER_WORKERS,
+                multiprocessing_context='spawn' if self.config.OSR_NUM_DATALOADER_WORKERS > 0 else None,  # 추가된 부분
+                collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None, 
+                persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0,
+                pin_memory=torch.cuda.is_available()  # 추가: 메모리 전송 최적화
+            )        
         else:
             print(f"Warning: Could not load OOD test dataset {ood_test_data_name}. OSR evaluation will be limited.")
 
@@ -2344,13 +2378,15 @@ class EnhancedOEPipeline:
         experiment_tag = f"ID_{self.config.CURRENT_NLP_ID_DATASET}_OSRModel_{self.config.OSR_NLP_MODEL_TYPE}_OE_{oe_source_name}"
         print(f"\n===== NLP OSR Experiment: {experiment_tag} =====")
         
+        # 디렉토리 경로 생성
         current_result_dir = os.path.join(self.config.OSR_RESULT_DIR, self.config.CURRENT_NLP_ID_DATASET, oe_source_name)
         current_model_dir = os.path.join(self.config.OSR_MODEL_DIR, self.config.CURRENT_NLP_ID_DATASET, oe_source_name)
         current_feature_dir = os.path.join(self.config.VIS_DIR, self.config.CURRENT_NLP_ID_DATASET, oe_source_name)
         
+        # 디렉토리가 없으면 생성 - 모든 케이스에서 디렉토리를 확실히 생성
         os.makedirs(current_result_dir, exist_ok=True)
+        os.makedirs(current_model_dir, exist_ok=True)  # OSR_SAVE_MODEL_PER_EXPERIMENT 조건 제거
         os.makedirs(current_feature_dir, exist_ok=True)
-        if self.config.OSR_SAVE_MODEL_PER_EXPERIMENT: os.makedirs(current_model_dir, exist_ok=True)
 
         model_osr = NLPModelOOD(self.config, num_classes, tokenizer_vocab_size=osr_tokenizer_vocab_size).to(DEVICE_OSR)
         model_filename = f"osr_model_{experiment_tag}.pt"
@@ -2366,20 +2402,27 @@ class EnhancedOEPipeline:
             optimizer = AdamW(model_osr.parameters(), lr=self.config.OSR_NLP_LEARNING_RATE) if is_hf_osr_model \
                         else optim.Adam(model_osr.parameters(), lr=self.config.OSR_NLP_LEARNING_RATE)
 
-
             model_osr.train()
             for epoch in range(self.config.OSR_NLP_NUM_EPOCHS):
-                total_loss_epoch, id_loss_epoch, oe_loss_epoch = 0,0,0
+                total_loss_epoch, id_loss_epoch, oe_loss_epoch = 0, 0, 0
                 
                 id_iter = iter(id_train_loader)
                 
                 num_batches = len(id_train_loader)
                 oe_loader_for_training = None
+                # OE 데이터셋으로 DataLoader 생성 부분 수정
                 if oe_dataset_for_training:
-                    oe_loader_for_training = DataLoader(oe_dataset_for_training, batch_size=self.config.OSR_NLP_BATCH_SIZE, shuffle=True, 
-                                                        num_workers=self.config.OSR_NUM_DATALOADER_WORKERS, 
-                                                        collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None,
-                                                        persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0)
+                    # 'spawn' 방식 추가, 워커 수 최적화
+                    oe_loader_for_training = DataLoader(
+                        oe_dataset_for_training, 
+                        batch_size=self.config.OSR_NLP_BATCH_SIZE, 
+                        shuffle=True, 
+                        num_workers=self.config.OSR_NUM_DATALOADER_WORKERS,
+                        multiprocessing_context='spawn' if self.config.OSR_NUM_DATALOADER_WORKERS > 0 else None,  # 추가된 부분
+                        collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None,
+                        persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0,
+                        pin_memory=torch.cuda.is_available()  # 추가: 메모리 전송 최적화
+                    )
                     num_batches = max(num_batches, len(oe_loader_for_training))
                     oe_iter = iter(oe_loader_for_training)
 
@@ -2387,13 +2430,16 @@ class EnhancedOEPipeline:
                 
                 for batch_idx in progress_bar:
                     optimizer.zero_grad()
-                    try: id_batch = next(id_iter)
-                    except StopIteration: id_iter = iter(id_train_loader); id_batch = next(id_iter)
+                    try: 
+                        id_batch = next(id_iter)
+                    except StopIteration: 
+                        id_iter = iter(id_train_loader)
+                        id_batch = next(id_iter)
 
                     id_input_ids = id_batch['input_ids'].to(DEVICE_OSR)
                     id_attention_mask = id_batch['attention_mask'].to(DEVICE_OSR)
                     
-                    # CORRECTED LABEL ACCESS
+                    # 레이블 접근
                     if 'labels' in id_batch:
                         id_labels = id_batch['labels'].to(DEVICE_OSR)
                     elif 'label' in id_batch:
@@ -2406,8 +2452,11 @@ class EnhancedOEPipeline:
                     
                     loss_oe = torch.tensor(0.0).to(DEVICE_OSR)
                     if oe_loader_for_training:
-                        try: oe_batch = next(oe_iter)
-                        except StopIteration: oe_iter = iter(oe_loader_for_training); oe_batch = next(oe_iter)
+                        try: 
+                            oe_batch = next(oe_iter)
+                        except StopIteration: 
+                            oe_iter = iter(oe_loader_for_training)
+                            oe_batch = next(oe_iter)
 
                         oe_input_ids = oe_batch['input_ids'].to(DEVICE_OSR)
                         oe_attention_mask = oe_batch['attention_mask'].to(DEVICE_OSR)
@@ -2424,39 +2473,61 @@ class EnhancedOEPipeline:
                     total_loss_epoch += total_batch_loss.item()
                     id_loss_epoch += loss_id.item()
                     oe_loss_epoch += loss_oe.item()
-                    progress_bar.set_postfix({'L_total': f"{total_batch_loss.item():.3f}", 'L_id': f"{loss_id.item():.3f}", 'L_oe': f"{loss_oe.item():.3f}"})
+                    progress_bar.set_postfix({
+                        'L_total': f"{total_batch_loss.item():.3f}", 
+                        'L_id': f"{loss_id.item():.3f}", 
+                        'L_oe': f"{loss_oe.item():.3f}"
+                    })
                 
                 avg_loss = total_loss_epoch / num_batches
                 epoch_losses.append(avg_loss)
                 print(f"Epoch {epoch+1} Avg Loss: {avg_loss:.4f} (ID: {id_loss_epoch/num_batches:.4f}, OE: {oe_loss_epoch/num_batches:.4f})")
 
-            if self.config.OSR_SAVE_MODEL_PER_EXPERIMENT: torch.save(model_osr.state_dict(), model_save_path); print(f"OSR Model saved: {model_save_path}")
-            if not self.config.OSR_NO_PLOT_PER_EXPERIMENT and epoch_losses: self._plot_training_curve(epoch_losses, experiment_tag, current_result_dir)
-        
+            # 항상 모델 저장 (조건 제거 - 저장 여부는 config에서만 제어)
+            if self.config.OSR_SAVE_MODEL_PER_EXPERIMENT: 
+                torch.save(model_osr.state_dict(), model_save_path)
+                print(f"OSR Model saved: {model_save_path}")
+            
+            # 항상 학습 곡선 그리기 (조건 완화)
+            if epoch_losses and not self.config.OSR_NO_PLOT_PER_EXPERIMENT: 
+                self._plot_training_curve(epoch_losses, experiment_tag, current_result_dir)
+                
         # WikiText-2나 다른 외부 OE 데이터셋의 특징 추출 (시각화용)
-        if oe_dataset_for_training and self.config.STAGE_VISUALIZATION:
-            print(f"Extracting features from OE dataset: {oe_source_name} for visualization")
-            oe_features_path = os.path.join(current_feature_dir, f"oe_features_{oe_source_name}.npy")
-            oe_loader_for_features = DataLoader(
-                oe_dataset_for_training, batch_size=self.config.OSR_NLP_BATCH_SIZE, shuffle=False,
-                num_workers=self.config.OSR_NUM_DATALOADER_WORKERS,
-                collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None,
-                persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0
-            )
-            
-            # 특징만 추출하기 위해 평가 함수 사용 (id_loader=None)
-            model_osr.eval()
-            _, oe_data_dict = evaluate_nlp_osr(
-                model_osr, id_loader=None, ood_loader=oe_loader_for_features, device=DEVICE_OSR,
-                temperature=self.config.OSR_TEMPERATURE, threshold_percentile=self.config.OSR_THRESHOLD_PERCENTILE,
-                return_data=True, is_hf_osr_model=is_hf_osr_model,
-                osr_tokenizer_for_custom=osr_tokenizer if not is_hf_osr_model else None
-            )
-            
-            # OE 특징 저장
-            if oe_data_dict["ood_features"] is not None and len(oe_data_dict["ood_features"]) > 0:
-                np.save(oe_features_path, oe_data_dict["ood_features"])
-                print(f"Saved OE features for {oe_source_name} ({len(oe_data_dict['ood_features'])} samples)")
+            if oe_dataset_for_training and self.config.STAGE_VISUALIZATION:
+                print(f"Extracting features from OE dataset: {oe_source_name} for visualization")
+                oe_features_path = os.path.join(current_feature_dir, f"oe_features_{oe_source_name}.npy")
+                
+                # 이미 추출된 특징이 있는지 확인
+                if os.path.exists(oe_features_path):
+                    print(f"OE features already exist at {oe_features_path}")
+                else:
+                    # 여기도 'spawn' 방식 추가
+                    oe_loader_for_features = DataLoader(
+                        oe_dataset_for_training, 
+                        batch_size=self.config.OSR_NLP_BATCH_SIZE, 
+                        shuffle=False,
+                        num_workers=self.config.OSR_NUM_DATALOADER_WORKERS,
+                        multiprocessing_context='spawn' if self.config.OSR_NUM_DATALOADER_WORKERS > 0 else None,  # 추가된 부분
+                        collate_fn=DataCollatorWithPadding(osr_tokenizer) if is_hf_osr_model else None,
+                        persistent_workers=self.config.OSR_NUM_DATALOADER_WORKERS > 0,
+                        pin_memory=torch.cuda.is_available()  # 추가: 메모리 전송 최적화
+                    )
+                
+                # 특징만 추출하기 위해 평가 함수 사용 (id_loader=None)
+                model_osr.eval()
+                _, oe_data_dict = evaluate_nlp_osr(
+                    model_osr, id_loader=None, ood_loader=oe_loader_for_features, device=DEVICE_OSR,
+                    temperature=self.config.OSR_TEMPERATURE, threshold_percentile=self.config.OSR_THRESHOLD_PERCENTILE,
+                    return_data=True, is_hf_osr_model=is_hf_osr_model,
+                    osr_tokenizer_for_custom=osr_tokenizer if not is_hf_osr_model else None
+                )
+                
+                # OE 특징 저장
+                if oe_data_dict.get("ood_features") is not None and len(oe_data_dict["ood_features"]) > 0:
+                    np.save(oe_features_path, oe_data_dict["ood_features"])
+                    print(f"Saved OE features for {oe_source_name} ({len(oe_data_dict['ood_features'])} samples)")
+                else:
+                    print(f"Warning: Could not extract features from {oe_source_name} dataset")
         
         # ID 및 OOD 테스트 데이터로 평가
         results_this_exp, data_for_plots_this_exp = evaluate_nlp_osr(
@@ -2472,27 +2543,56 @@ class EnhancedOEPipeline:
         final_data_for_plots = {metric_key: data_for_plots_this_exp}
 
         # ID 특징 저장 (시각화용)
-        if self.config.STAGE_VISUALIZATION and data_for_plots_this_exp["id_features"] is not None:
+        if self.config.STAGE_VISUALIZATION and data_for_plots_this_exp.get("id_features") is not None:
             id_features_path = os.path.join(current_feature_dir, f"id_features_{self.config.CURRENT_NLP_ID_DATASET}.npy")
             np.save(id_features_path, data_for_plots_this_exp["id_features"])
             print(f"Saved ID features for {self.config.CURRENT_NLP_ID_DATASET} ({len(data_for_plots_this_exp['id_features'])} samples)")
 
-        # 평가 결과에 대한 플롯 생성
+        # 평가 결과에 대한 플롯 생성 - 항상 실행 (조건 완화)
         if not self.config.OSR_NO_PLOT_PER_EXPERIMENT:
             plot_filename_prefix = re.sub(r'[^\w\-]+', '_', metric_key) # 파일 이름 정리
-            if data_for_plots_this_exp['id_scores'] is not None and data_for_plots_this_exp['ood_scores'] is not None:
-                plot_confidence_histograms_osr(data_for_plots_this_exp['id_scores'], data_for_plots_this_exp['ood_scores'],
-                                            f'Conf - {metric_key}', os.path.join(current_result_dir, f'{plot_filename_prefix}_hist.png'))
-                plot_roc_curve_osr(data_for_plots_this_exp['id_scores'], data_for_plots_this_exp['ood_scores'],
-                                f'ROC - {metric_key}', os.path.join(current_result_dir, f'{plot_filename_prefix}_roc.png'))
-            if data_for_plots_this_exp['id_features'] is not None and data_for_plots_this_exp['ood_features'] is not None:
-                plot_tsne_osr(data_for_plots_this_exp['id_features'], data_for_plots_this_exp['ood_features'],
-                            f't-SNE - {metric_key}', os.path.join(current_result_dir, f'{plot_filename_prefix}_tsne.png'), 
-                            seed=self.config.RANDOM_STATE)
+            
+            # 스코어 플롯 생성 - id_scores와 ood_scores가 있는지 확인
+            if (data_for_plots_this_exp.get('id_scores') is not None and 
+                data_for_plots_this_exp.get('ood_scores') is not None and
+                len(data_for_plots_this_exp['id_scores']) > 0 and 
+                len(data_for_plots_this_exp['ood_scores']) > 0):
+                
+                plot_confidence_histograms_osr(
+                    data_for_plots_this_exp['id_scores'], 
+                    data_for_plots_this_exp['ood_scores'],
+                    f'Conf - {metric_key}', 
+                    os.path.join(current_result_dir, f'{plot_filename_prefix}_hist.png')
+                )
+                plot_roc_curve_osr(
+                    data_for_plots_this_exp['id_scores'], 
+                    data_for_plots_this_exp['ood_scores'],
+                    f'ROC - {metric_key}', 
+                    os.path.join(current_result_dir, f'{plot_filename_prefix}_roc.png')
+                )
+                print(f"Generated histogram and ROC curve plots for {oe_source_name}")
+            else:
+                print(f"Warning: Could not generate score plots for {oe_source_name} (missing score data)")
+            
+            # 특징 t-SNE 플롯 생성 - id_features와 ood_features가 있는지 확인
+            if (data_for_plots_this_exp.get('id_features') is not None and 
+                data_for_plots_this_exp.get('ood_features') is not None and
+                len(data_for_plots_this_exp['id_features']) > 0 and 
+                len(data_for_plots_this_exp['ood_features']) > 0):
+                
+                plot_tsne_osr(
+                    data_for_plots_this_exp['id_features'], 
+                    data_for_plots_this_exp['ood_features'],
+                    f't-SNE - {metric_key}', 
+                    os.path.join(current_result_dir, f'{plot_filename_prefix}_tsne.png'),
+                    seed=self.config.RANDOM_STATE
+                )
+                print(f"Generated t-SNE plot for {oe_source_name}")
+            else:
+                print(f"Warning: Could not generate t-SNE plot for {oe_source_name} (missing feature data)")
         
         del model_osr; gc.collect(); torch.cuda.empty_cache()
         return final_results, final_data_for_plots
-
     def _save_osr_results(self, results: Dict, summary_name_suffix: str):
         print(f"\n===== OSR Experiments Overall Summary ({summary_name_suffix}) =====")
         if not results: print("No OSR results to save."); return
