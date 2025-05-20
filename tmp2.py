@@ -70,7 +70,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset as TorchDataset, Subset, random_split, ConcatDataset
 from datasets import Dataset as HFDataset, DatasetDict, concatenate_datasets, load_dataset
-
+from torch.optim import AdamW
 from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification,
@@ -78,7 +78,6 @@ from transformers import (
     get_linear_schedule_with_warmup,
     RobertaTokenizer, # Kept for potential direct use if needed, but AutoTokenizer is preferred
     RobertaForSequenceClassification, # Kept for OSR model
-    AdamW,
 )
 from sklearn.model_selection import train_test_split
 from sklearn.utils.class_weight import compute_class_weight
