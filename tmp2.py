@@ -238,7 +238,7 @@ class Config:
     OSR_NLP_MODEL_TYPE = "roberta-base" # OSR model: "gru", "lstm", or "roberta-base"
     # OSR_NLP_VOCAB_SIZE, EMBED_DIM, HIDDEN_DIM, NUM_LAYERS, DROPOUT use NLP_ counterparts if GRU/LSTM
     OSR_NLP_MAX_LENGTH = 256 # Max length for OSR model inputs
-    OSR_NLP_BATCH_SIZE = 64
+    OSR_NLP_BATCH_SIZE = 32
     OSR_NLP_NUM_EPOCHS = 15 # Epochs for OSR model training
     OSR_NLP_LEARNING_RATE = 2e-5 if OSR_NLP_MODEL_TYPE == "roberta-base" else 1e-3
     
@@ -2324,11 +2324,26 @@ class EnhancedOEPipeline:
             )
             all_osr_results.update(results)
 
+
+
         # Exp 2: OE with WikiText2
         print(f"\n--- OSR: OE with {self.config.DEFAULT_OE_DATASET} (ID: {self.config.CURRENT_NLP_ID_DATASET}) ---")
         wikitext_oe_raw = NLPDatasetLoader.load_oe_dataset(self.config.DEFAULT_OE_DATASET)
         if wikitext_oe_raw and wikitext_oe_raw['text']:
-            wikitext_oe_dataset = OSRNNLPTorchDataset(wikitext_oe_raw['text'], None, osr_tokenizer, self.config.OSR_NLP_MAX_LENGTH, is_hf_osr_model)
+            # Sample only 40% of the WikiText data to reduce processing time
+            original_size = len(wikitext_oe_raw['text'])
+            sampled_size = int(original_size * 0.4)  # Use 40% of the data
+            
+            # Use random sampling to get a representative subset
+            import random
+            random.seed(self.config.RANDOM_STATE)  # For reproducibility
+            sampled_indices = random.sample(range(original_size), sampled_size)
+            sampled_texts = [wikitext_oe_raw['text'][i] for i in sampled_indices]
+            
+            print(f"Sampled WikiText-2 data: {sampled_size} examples (40% of {original_size})")
+            
+            # Use the sampled data instead of the full dataset
+            wikitext_oe_dataset = OSRNNLPTorchDataset(sampled_texts, None, osr_tokenizer, self.config.OSR_NLP_MAX_LENGTH, is_hf_osr_model)
             results, _ = self._run_single_nlp_osr_experiment(
                 num_osr_classes, osr_class_names, osr_id_train_loader, osr_id_test_loader, ood_test_loader, ood_test_data_name,
                 is_hf_osr_model, osr_tokenizer, osr_tokenizer_vocab_size,
