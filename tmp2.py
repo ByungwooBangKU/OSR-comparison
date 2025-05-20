@@ -2325,7 +2325,6 @@ class EnhancedOEPipeline:
             all_osr_results.update(results)
 
 
-
         # Exp 2: OE with WikiText2
         print(f"\n--- OSR: OE with {self.config.DEFAULT_OE_DATASET} (ID: {self.config.CURRENT_NLP_ID_DATASET}) ---")
         wikitext_oe_raw = NLPDatasetLoader.load_oe_dataset(self.config.DEFAULT_OE_DATASET)
@@ -2336,7 +2335,7 @@ class EnhancedOEPipeline:
             
             # Use random sampling to get a representative subset
             import random
-            random.seed(self.config.RANDOM_STATE)  # For reproducibility
+            random.seed(self.config.RANDOM_STATE)  # For reproducibilityrmrj
             sampled_indices = random.sample(range(original_size), sampled_size)
             sampled_texts = [wikitext_oe_raw['text'][i] for i in sampled_indices]
             
